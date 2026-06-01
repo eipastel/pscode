@@ -727,7 +727,10 @@ export class InitCommand {
     }
 
     try {
-      const yamlContent = serializeConfig({ schema: DEFAULT_SCHEMA });
+      const globalConfig = getGlobalConfig();
+      const resolvedProfile = this.resolveProfileOverride() ?? (isValidProfile(globalConfig.profile ?? '') ? globalConfig.profile as ProfileName : DEFAULT_PROFILE);
+      const schema = resolvedProfile === 'dixi' ? 'pstld-workflow' : DEFAULT_SCHEMA;
+      const yamlContent = serializeConfig({ schema });
       await FileSystemUtils.writeFile(configPath, yamlContent);
       return 'created';
     } catch {
@@ -802,7 +805,10 @@ export class InitCommand {
 
     // Config status
     if (configStatus === 'created') {
-      console.log(`Config: pscode/config.yaml (schema: ${DEFAULT_SCHEMA})`);
+      const globalCfgForSchema = getGlobalConfig();
+      const profileForSchema = this.resolveProfileOverride() ?? (isValidProfile(globalCfgForSchema.profile ?? '') ? globalCfgForSchema.profile as ProfileName : DEFAULT_PROFILE);
+      const createdSchema = profileForSchema === 'dixi' ? 'pstld-workflow' : DEFAULT_SCHEMA;
+      console.log(`Config: pscode/config.yaml (schema: ${createdSchema})`);
     } else if (configStatus === 'exists') {
       // Show actual filename (config.yaml or config.yml)
       const configYaml = path.join(projectPath, PSCODE_DIR_NAME, 'config.yaml');
