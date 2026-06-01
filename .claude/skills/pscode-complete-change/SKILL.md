@@ -5,7 +5,7 @@ compatibility: Requires pscode CLI.
 metadata:
   author: pscode
   version: "1.0"
-  generatedBy: "2.3.0"
+  generatedBy: "2.5.0"
 ---
 
 Complete a change.
