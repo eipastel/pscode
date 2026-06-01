@@ -1,0 +1,451 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { Command } from 'commander';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import * as os from 'node:os';
+import { execSync } from 'node:child_process';
+
+vi.mock('node:child_process', async () => {
+  const actual = await vi.importActual<typeof import('node:child_process')>('node:child_process');
+  return {
+    ...actual,
+    execSync: vi.fn(),
+  };
+});
+
+vi.mock('@inquirer/prompts', () => ({
+  select: vi.fn(),
+  confirm: vi.fn(),
+}));
+
+async function runConfigCommand(args: string[]): Promise<void> {
+  const { registerConfigCommand } = await import('../../src/commands/config.js');
+  const program = new Command();
+  registerConfigCommand(program);
+  await program.parseAsync(['node', 'pscode', 'config', ...args]);
+}
+
+async function getPromptMocks(): Promise<{
+  select: ReturnType<typeof vi.fn>;
+  confirm: ReturnType<typeof vi.fn>;
+}> {
+  const prompts = await import('@inquirer/prompts');
+  return {
+    select: prompts.select as unknown as ReturnType<typeof vi.fn>,
+    confirm: prompts.confirm as unknown as ReturnType<typeof vi.fn>,
+  };
+}
+
+describe('diffProfileState', () => {
+  it('detects profile change', async () => {
+    const { diffProfileState } = await import('../../src/commands/config.js');
+    const diff = diffProfileState(
+      { profile: 'standard', delivery: 'both' },
+      { profile: 'dixi', delivery: 'both' },
+    );
+    expect(diff.hasChanges).toBe(true);
+    expect(diff.lines).toEqual(['profile: standard -> dixi']);
+  });
+
+  it('detects delivery change', async () => {
+    const { diffProfileState } = await import('../../src/commands/config.js');
+    const diff = diffProfileState(
+      { profile: 'standard', delivery: 'both' },
+      { profile: 'standard', delivery: 'skills' },
+    );
+    expect(diff.hasChanges).toBe(true);
+    expect(diff.lines).toEqual(['delivery: both -> skills']);
+  });
+
+  it('reports no changes when identical', async () => {
+    const { diffProfileState } = await import('../../src/commands/config.js');
+    const diff = diffProfileState(
+      { profile: 'standard', delivery: 'both' },
+      { profile: 'standard', delivery: 'both' },
+    );
+    expect(diff.hasChanges).toBe(false);
+    expect(diff.lines).toEqual([]);
+  });
+});
+
+describe('config profile interactive flow', () => {
+  let tempDir: string;
+  let originalEnv: NodeJS.ProcessEnv;
+  let originalCwd: string;
+  let originalTTY: boolean | undefined;
+  let originalExitCode: number | undefined;
+  let consoleLogSpy: ReturnType<typeof vi.spyOn>;
+  let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
+
+  function setupDriftedProjectArtifacts(projectDir: string): void {
+    fs.mkdirSync(path.join(projectDir, 'pscode'), { recursive: true });
+    const exploreSkillPath = path.join(projectDir, '.claude', 'skills', 'pscode-explore', 'SKILL.md');
+    fs.mkdirSync(path.dirname(exploreSkillPath), { recursive: true });
+    fs.writeFileSync(exploreSkillPath, 'name: pscode-explore\n', 'utf-8');
+  }
+
+  function setupSyncedCoreBothArtifacts(projectDir: string): void {
+    fs.mkdirSync(path.join(projectDir, 'pscode'), { recursive: true });
+    const coreSkillDirs = [
+      'pscode-propose',
+      'pscode-explore',
+      'pscode-apply-change',
+      'pscode-sync-specs',
+      'pscode-archive-change',
+      'pscode-trello-setup',
+      'pscode-trello-draft',
+    ];
+    for (const dirName of coreSkillDirs) {
+      const skillPath = path.join(projectDir, '.claude', 'skills', dirName, 'SKILL.md');
+      fs.mkdirSync(path.dirname(skillPath), { recursive: true });
+      fs.writeFileSync(skillPath, `name: ${dirName}\n`, 'utf-8');
+    }
+
+    const coreCommands = ['propose', 'explore', 'apply', 'sync', 'complete', 'trello-setup', 'draft'];
+    for (const commandId of coreCommands) {
+      const commandPath = path.join(projectDir, '.claude', 'commands', 'ps', `${commandId}.md`);
+      fs.mkdirSync(path.dirname(commandPath), { recursive: true });
+      fs.writeFileSync(commandPath, `# ${commandId}\n`, 'utf-8');
+    }
+  }
+
+  function addExtraVerifyWorkflowArtifacts(projectDir: string): void {
+    const verifySkillPath = path.join(projectDir, '.claude', 'skills', 'pscode-verify-change', 'SKILL.md');
+    fs.mkdirSync(path.dirname(verifySkillPath), { recursive: true });
+    fs.writeFileSync(verifySkillPath, 'name: pscode-verify-change\n', 'utf-8');
+
+    const verifyCommandPath = path.join(projectDir, '.claude', 'commands', 'ps', 'verify.md');
+    fs.mkdirSync(path.dirname(verifyCommandPath), { recursive: true });
+    fs.writeFileSync(verifyCommandPath, '# verify\n', 'utf-8');
+  }
+
+  function setupWorkspaceState(
+    workspaceRoot: string,
+    options: { driftedSkills?: boolean } = {}
+  ): void {
+    // workspace.yaml lives directly in workspaceRoot (not inside .pscode-workspace)
+    // — this is what isWorkspaceRoot and readWorkspaceViewState expect
+    const workspaceSkillsLines = options.driftedSkills
+      ? [
+          'workspace_skills:',
+          '  selected_agents:',
+          '    - codex',
+          '  last_applied_profile: dixi',
+          '  last_applied_delivery: both',
+          '  last_applied_workflow_ids:',
+          '    - explore',
+        ]
+      : [
+          'workspace_skills:',
+          '  selected_agents:',
+          '    - codex',
+          '  last_applied_profile: standard',
+          '  last_applied_delivery: both',
+          '  last_applied_workflow_ids:',
+          '    - propose',
+          '    - explore',
+          '    - apply',
+          '    - sync',
+          '    - archive',
+        ];
+
+    fs.writeFileSync(
+      path.join(workspaceRoot, 'workspace.yaml'),
+      `version: 1\nname: platform\ncontext: null\nlinks: {}\n${workspaceSkillsLines.join('\n')}\n`,
+      'utf-8'
+    );
+  }
+
+  beforeEach(() => {
+    vi.resetModules();
+
+    tempDir = path.join(os.tmpdir(), `pscode-config-profile-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    fs.mkdirSync(tempDir, { recursive: true });
+
+    originalEnv = { ...process.env };
+    originalCwd = process.cwd();
+    originalTTY = (process.stdout as NodeJS.WriteStream & { isTTY?: boolean }).isTTY;
+    originalExitCode = process.exitCode;
+
+    process.env.XDG_CONFIG_HOME = tempDir;
+    process.chdir(tempDir);
+    (process.stdout as NodeJS.WriteStream & { isTTY?: boolean }).isTTY = true;
+    process.exitCode = undefined;
+
+    consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.mocked(execSync).mockReset();
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+    process.chdir(originalCwd);
+    (process.stdout as NodeJS.WriteStream & { isTTY?: boolean }).isTTY = originalTTY;
+    process.exitCode = originalExitCode;
+    fs.rmSync(tempDir, { recursive: true, force: true });
+
+    consoleLogSpy.mockRestore();
+    consoleErrorSpy.mockRestore();
+    vi.clearAllMocks();
+  });
+
+  it('delivery-only action should not invoke profile select prompt', async () => {
+    const { saveGlobalConfig, getGlobalConfig } = await import('../../src/core/global-config.js');
+    const { select } = await getPromptMocks();
+
+    saveGlobalConfig({ featureFlags: {}, profile: 'standard', delivery: 'both' });
+    select.mockResolvedValueOnce('delivery');
+    select.mockResolvedValueOnce('skills');
+
+    await runConfigCommand(['profile']);
+
+    expect(select).toHaveBeenCalledTimes(2);
+    expect(getGlobalConfig().delivery).toBe('skills');
+  });
+
+  it('action picker should list predefined profiles, delivery, and keep options', async () => {
+    const { saveGlobalConfig } = await import('../../src/core/global-config.js');
+    const { select } = await getPromptMocks();
+
+    saveGlobalConfig({ featureFlags: {}, profile: 'standard', delivery: 'both' });
+    select.mockResolvedValueOnce('keep');
+
+    await runConfigCommand(['profile']);
+
+    const firstCall = select.mock.calls[0][0];
+    expect(firstCall.message).toBe('What do you want to configure?');
+    expect(firstCall.choices).toEqual(expect.arrayContaining([
+      expect.objectContaining({ value: 'profile' }),
+      expect.objectContaining({ value: 'delivery' }),
+      expect.objectContaining({ value: 'keep' }),
+    ]));
+  });
+
+  it('profile-only action should not invoke delivery prompt', async () => {
+    const { saveGlobalConfig, getGlobalConfig } = await import('../../src/core/global-config.js');
+    const { select } = await getPromptMocks();
+
+    saveGlobalConfig({ featureFlags: {}, profile: 'standard', delivery: 'both' });
+    select.mockResolvedValueOnce('profile');
+    select.mockResolvedValueOnce('dixi');
+
+    await runConfigCommand(['profile']);
+
+    expect(select).toHaveBeenCalledTimes(2);
+    expect(getGlobalConfig().profile).toBe('dixi');
+  });
+
+  it('selecting current values only should be a no-op and should not ask apply', async () => {
+    const { saveGlobalConfig, getGlobalConfigPath } = await import('../../src/core/global-config.js');
+    const { select, confirm } = await getPromptMocks();
+
+    saveGlobalConfig({ featureFlags: {}, profile: 'standard', delivery: 'both' });
+    const configPath = getGlobalConfigPath();
+    const beforeContent = fs.readFileSync(configPath, 'utf-8');
+
+    fs.mkdirSync(path.join(tempDir, 'pscode'), { recursive: true });
+    select.mockResolvedValueOnce('delivery');
+    select.mockResolvedValueOnce('both');
+
+    await runConfigCommand(['profile']);
+
+    const afterContent = fs.readFileSync(configPath, 'utf-8');
+    expect(afterContent).toBe(beforeContent);
+    expect(confirm).not.toHaveBeenCalled();
+    expect(consoleLogSpy).toHaveBeenCalledWith('No changes.');
+  });
+
+  it('keep action should warn when project files drift from global config', async () => {
+    const { saveGlobalConfig } = await import('../../src/core/global-config.js');
+    const { select } = await getPromptMocks();
+
+    saveGlobalConfig({ featureFlags: {}, profile: 'standard', delivery: 'both' });
+    setupDriftedProjectArtifacts(tempDir);
+    select.mockResolvedValueOnce('keep');
+
+    await runConfigCommand(['profile']);
+
+    expect(consoleLogSpy).toHaveBeenCalledWith('No changes.');
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Warning: Global config is not applied to this project.'));
+  });
+
+  it('keep action should not warn when project files are already synced', async () => {
+    const { saveGlobalConfig } = await import('../../src/core/global-config.js');
+    const { select } = await getPromptMocks();
+
+    saveGlobalConfig({ featureFlags: {}, profile: 'standard', delivery: 'both' });
+    setupSyncedCoreBothArtifacts(tempDir);
+    select.mockResolvedValueOnce('keep');
+
+    await runConfigCommand(['profile']);
+
+    const allLogs = consoleLogSpy.mock.calls.map((args) => args.map(String).join(' '));
+    expect(allLogs.some((line) => line.includes('Warning: Global config is not applied to this project.'))).toBe(false);
+  });
+
+  it('effective no-op after prompts should warn when project files drift', async () => {
+    const { saveGlobalConfig } = await import('../../src/core/global-config.js');
+    const { select, confirm } = await getPromptMocks();
+
+    saveGlobalConfig({ featureFlags: {}, profile: 'standard', delivery: 'both' });
+    setupDriftedProjectArtifacts(tempDir);
+    select.mockResolvedValueOnce('delivery');
+    select.mockResolvedValueOnce('both');
+
+    await runConfigCommand(['profile']);
+
+    expect(consoleLogSpy).toHaveBeenCalledWith('No changes.');
+    expect(confirm).not.toHaveBeenCalled();
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Warning: Global config is not applied to this project.'));
+  });
+
+  it('keep action should warn when project has extra workflows beyond active profile', async () => {
+    const { saveGlobalConfig } = await import('../../src/core/global-config.js');
+    const { select } = await getPromptMocks();
+
+    saveGlobalConfig({ featureFlags: {}, profile: 'standard', delivery: 'both' });
+    setupSyncedCoreBothArtifacts(tempDir);
+    addExtraVerifyWorkflowArtifacts(tempDir);
+    select.mockResolvedValueOnce('keep');
+
+    await runConfigCommand(['profile']);
+
+    expect(consoleLogSpy).toHaveBeenCalledWith('No changes.');
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Warning: Global config is not applied to this project.'));
+  });
+
+  it('changed config should save and ask apply when inside project', async () => {
+    const { saveGlobalConfig, getGlobalConfig } = await import('../../src/core/global-config.js');
+    const { select, confirm } = await getPromptMocks();
+
+    saveGlobalConfig({ featureFlags: {}, profile: 'standard', delivery: 'both' });
+    fs.mkdirSync(path.join(tempDir, 'pscode'), { recursive: true });
+
+    select.mockResolvedValueOnce('delivery');
+    select.mockResolvedValueOnce('skills');
+    confirm.mockResolvedValueOnce(false);
+
+    await runConfigCommand(['profile']);
+
+    expect(getGlobalConfig().delivery).toBe('skills');
+    expect(confirm).toHaveBeenCalledWith({
+      message: 'Apply to this project now?',
+      default: true,
+    });
+  });
+
+  it('changed config should ask to apply to the current workspace and print workspace guidance when declined', async () => {
+    const { saveGlobalConfig, getGlobalConfig } = await import('../../src/core/global-config.js');
+    const { select, confirm } = await getPromptMocks();
+
+    setupWorkspaceState(tempDir);
+    saveGlobalConfig({ featureFlags: {}, profile: 'standard', delivery: 'both' });
+
+    select.mockResolvedValueOnce('delivery');
+    select.mockResolvedValueOnce('skills');
+    confirm.mockResolvedValueOnce(false);
+
+    await runConfigCommand(['profile']);
+
+    expect(getGlobalConfig().delivery).toBe('skills');
+    expect(confirm).toHaveBeenCalledWith({
+      message: 'Apply to this workspace now?',
+      default: true,
+    });
+    expect(execSync).not.toHaveBeenCalled();
+    expect(consoleLogSpy).toHaveBeenCalledWith('Config updated. Run `pscode workspace update` to apply it to workspace-local skills.');
+  });
+
+  it('confirmed workspace apply should run workspace update instead of repo-local update', async () => {
+    const { saveGlobalConfig } = await import('../../src/core/global-config.js');
+    const { select, confirm } = await getPromptMocks();
+
+    setupWorkspaceState(tempDir);
+    fs.mkdirSync(path.join(tempDir, 'pscode'), { recursive: true });
+    saveGlobalConfig({ featureFlags: {}, profile: 'standard', delivery: 'both' });
+
+    select.mockResolvedValueOnce('delivery');
+    select.mockResolvedValueOnce('skills');
+    confirm.mockResolvedValueOnce(true);
+
+    await runConfigCommand(['profile']);
+
+    expect(execSync).toHaveBeenCalledWith('npx pscode workspace update', {
+      stdio: 'inherit',
+      cwd: process.cwd(),
+    });
+    expect(execSync).not.toHaveBeenCalledWith('npx pscode update', expect.anything());
+  });
+
+  it('no-op inside a workspace should warn when workspace skills drift', async () => {
+    const { saveGlobalConfig } = await import('../../src/core/global-config.js');
+    const { select, confirm } = await getPromptMocks();
+
+    setupWorkspaceState(tempDir, { driftedSkills: true });
+    saveGlobalConfig({ featureFlags: {}, profile: 'standard', delivery: 'both' });
+
+    select.mockResolvedValueOnce('delivery');
+    select.mockResolvedValueOnce('both');
+
+    await runConfigCommand(['profile']);
+
+    expect(confirm).not.toHaveBeenCalled();
+    expect(consoleLogSpy).toHaveBeenCalledWith('No changes.');
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Workspace-local agent skills are out of sync'));
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('pscode workspace update'));
+  });
+
+  it('preset arg should set profile and preserve delivery setting', async () => {
+    const { saveGlobalConfig, getGlobalConfig } = await import('../../src/core/global-config.js');
+    const { select, confirm } = await getPromptMocks();
+
+    saveGlobalConfig({ featureFlags: {}, profile: 'standard', delivery: 'skills' });
+
+    await runConfigCommand(['profile', 'dixi']);
+
+    const config = getGlobalConfig();
+    expect(config.profile).toBe('dixi');
+    expect(config.delivery).toBe('skills');
+    expect((config as Record<string, unknown>).workflows).toBeUndefined();
+    expect(select).not.toHaveBeenCalled();
+    expect(confirm).not.toHaveBeenCalled();
+  });
+
+  it('unknown preset arg should print error and set exit code 1', async () => {
+    await runConfigCommand(['profile', 'nonexistent']);
+    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Unknown profile'));
+    expect(process.exitCode).toBe(1);
+  });
+
+  it('preset inside a workspace should stay non-interactive and print workspace update guidance', async () => {
+    const { saveGlobalConfig, getGlobalConfig } = await import('../../src/core/global-config.js');
+    const { select, confirm } = await getPromptMocks();
+
+    setupWorkspaceState(tempDir, { driftedSkills: true });
+    saveGlobalConfig({ featureFlags: {}, profile: 'standard', delivery: 'skills' });
+
+    await runConfigCommand(['profile', 'dixi']);
+
+    const config = getGlobalConfig();
+    expect(config.profile).toBe('dixi');
+    expect(config.delivery).toBe('skills');
+    expect(select).not.toHaveBeenCalled();
+    expect(confirm).not.toHaveBeenCalled();
+    expect(consoleLogSpy).toHaveBeenCalledWith('Config updated. Run `pscode workspace update` to apply it to workspace-local skills.');
+  });
+
+  it('Ctrl+C should cancel without stack trace and set interrupted exit code', async () => {
+    const { confirm } = await getPromptMocks();
+    const { select } = await getPromptMocks();
+    const cancellationError = new Error('User force closed the prompt with SIGINT');
+    cancellationError.name = 'ExitPromptError';
+
+    select.mockRejectedValueOnce(cancellationError);
+
+    await expect(runConfigCommand(['profile'])).resolves.toBeUndefined();
+
+    expect(consoleLogSpy).toHaveBeenCalledWith('Cancelled.');
+    expect(process.exitCode).toBe(130);
+    expect(confirm).not.toHaveBeenCalled();
+  });
+});

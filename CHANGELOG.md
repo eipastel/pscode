@@ -1,0 +1,669 @@
+﻿# @thiagodiogo/pastelsdd
+
+## 2.0.1
+
+### Patch Changes
+
+- [#3](https://github.com/eipastel/pscode/pull/3) [`6c0553d`](https://github.com/eipastel/pscode/commit/6c0553dff450821cbbf0761f5b94cd97f2fe320a) Thanks [@eipastel](https://github.com/eipastel)! - Fix Windows CI test failures caused by EBUSY on temp directory cleanup and timeout on heavy workspace test.
+
+## 2.0.0
+
+### Major Changes
+
+- 4afd62b: O comando `pscode archive` foi renomeado para `pscode complete`. O slash command `/ps:archive` foi renomeado para `/ps:complete`. Nenhuma mudança de comportamento.
+
+  **Migration:** Substitua `pscode archive` por `pscode complete` e `/ps:archive` por `/ps:complete` em seus scripts e atalhos. Execute `pscode update` para atualizar os arquivos de skill e comando gerados.
+
+### Minor Changes
+
+- 7485989: Add 5 `/pstld:*` slash commands installed by the `dixi` profile
+
+  The `dixi` profile now installs 5 Claude Code slash commands into `.claude/commands/pstld/` during `pscode init --profile dixi`:
+
+  - `/pstld:rfc` — structured RFC flow referencing `pastelsdd/context/dev-flow.md`
+  - `/pstld:arch-check` — architecture conformance check (hexagonal for Java, feature-sliced for React)
+  - `/pstld:adr` — generates a structured Architecture Decision Record
+  - `/pstld:jira-sync` — verifies JIRA integration via MCP Atlassian and `pastelsdd/jira.yaml`
+  - `/pstld:dod` — checks Definition of Done criteria from `pastelsdd/context/dod.md`
+
+  Commands are stack-agnostic at install time and adapt their output at runtime by reading `.pscode-dixi.yaml`.
+
+- 7485989: Adiciona 3 skills auto-invocadas pstld-\* para o profile dixi com suporte a Java e React/Next.
+
+  - `pstld-arch-guardian`: monitora edições em camadas arquiteturais, bloqueia violações hexagonais (Java) e de feature-sliced (React/Next)
+  - `pstld-commit-crafter`: monta mensagem Conventional Commits com escopo por stack e ticket JIRA obrigatório
+  - `pstld-jira-context`: injeta contexto de tickets JIRA no prompt via MCP Atlassian quando chave `[A-Z]+-\d+` é detectada
+  - `installDixiExtras` atualizado para copiar as skills para `.claude/skills/pstld-*/SKILL.md` no projeto do cliente
+
+- ae29efe: Adiciona dois hooks Claude Code ao perfil `dixi`:
+
+  - **`arch-guard.mjs`** (`PreToolUse`): bloqueia (`exit 2`) imports diretos de `domain/` em `infrastructure/` (Java/hexagonal) e importações cruzadas entre features (React/feature-sliced); emite warning (`exit 1`) para uso combinado de `useState`+`useEffect` em `pages/app`. Gate via `.pscode-dixi.yaml` — projetos não-Dixi nunca são afetados.
+
+  - **`jira-context.mjs`** (`UserPromptSubmit`): detecta tickets JIRA (`[A-Z]+-\d+`) no prompt e injeta contexto de `pastelsdd/jira.yaml` (project_key, board_url) quando configurado. Agnóstico de stack.
+
+  `installDixiExtras` atualizado para copiar ambos os hooks para `.claude/hooks/` (brownfield-safe: não sobrescreve arquivos existentes) e fazer merge em `.claude/settings.json` sem duplicar entradas.
+
+- ae29efe: Adiciona kit SDLC Dixi com variantes por stack (Java/Spring e React/Next.js):
+
+  - **Kit shared** (instalado para qualquer stack): `.commitlintrc.yml` com conventional commits + warning JIRA via `commitlint-plugin-jira-rules`; `.github/pull_request_template.md` com seções padronizadas (sempre sobrescrito).
+
+  - **Kit Java** (`family: java`): `.editorconfig` (indent=4, LF para Java/XML/properties); `.husky/commit-msg`; `.github/workflows/ci-java.yml` com jobs `build → test → archunit → coverage` (Jacoco, Java 21 Temurin, Maven cache).
+
+  - **Kit React** (`family: react`): `.editorconfig` (indent=2 para TS/CSS/JSON); `.husky/commit-msg` + `.husky/pre-commit`; `lint-staged.config.mjs`; `.github/workflows/ci-react.yml` com jobs `typecheck → lint → test → build → e2e` (e2e condicional via `hashFiles('playwright.config.ts')`).
+
+  `installDixiExtras` estendido com `copyKitFiles` (brownfield-safe: não sobrescreve arquivos existentes, exceto `pull_request_template.md`). Exibe mensagem pós-instalação com dependências npm/Maven necessárias.
+
+- ae29efe: feat(dixi): add architectural skeleton for Java (hexagonal) and React (feature-sliced) profiles
+
+  `pscode init --profile dixi` now creates an opinionated project structure based on detected stack:
+
+  - **Java/Maven**: 10 hexagonal directories with `.gitkeep` (`domain/model`, `domain/port/in`, `domain/port/out`, `application/usecase`, `infrastructure/adapter/in/rest`, `infrastructure/adapter/out/persistence`, `infrastructure/config` + test equivalents) plus `ArchitectureTest.java` pre-configured with 3 ArchUnit rules
+  - **React/Next**: 7 feature-sliced directories (`shared/components/ui`, `shared/hooks`, `shared/services`, `shared/types`, `shared/utils`, `entities`, `features`) with `features/README.md` documenting conventions and `eslint-architecture.mjs` template with `no-restricted-imports` rules
+
+  All operations are brownfield-safe (skip if already exists). The `basePackage` for Java is auto-detected from `pom.xml` with fallback to `com.example.app`.
+
+- b97a408: feat(dixi): complete dixi profile with 8 real workflows and JIRA MCP integration on init
+
+  `profiles.ts` and `init.ts` updated for the `dixi` profile:
+
+  - **`ALL_WORKFLOWS`** gains 7 new IDs: `rfc`, `design`, `tasks`, `arch-check`, `adr`, `jira-sync`, `dod`
+  - **`PROFILES.dixi`** now has the correct description and 8 workflows: `rfc`, `design`, `tasks`, `apply`, `arch-check`, `adr`, `jira-sync`, `dod`
+  - **`WORKFLOW_TO_SKILL_DIR`** in both `init.ts` and `profile-sync-drift.ts` maps all 7 new IDs to `pscode-dixi-*` directories
+  - **`pscode init --profile dixi`** now generates `pastelsdd/jira.yaml` (with `project_key`, `board_url`, `configured: false`) and merges `.mcp.json` with the Atlassian MCP server entry — both operations are idempotent
+
+- b97a408: Adiciona integração JIRA completa ao profile dixi (Batch K):
+
+  - Novos slash commands `/pstld:jira-draft` e `/pstld:jira-setup` instalados pelo `installDixiExtras` (total: 7 comandos pstld)
+  - Campo opcional `jiraIssueKey` no `.pscode.yaml` para vincular uma change a uma issue JIRA
+  - `pscode archive` detecta `jiraIssueKey` e `transitions.done` de `pastelsdd/jira.yaml`, informando a transição pendente (non-fatal)
+  - Template `pastelsdd/jira.yaml` gerado pelo `pscode init --profile dixi` inclui campo `transitions.done`
+
+- 7485989: Adiciona fundação do profile dixi com detecção automática de stack
+
+  Introduz `src/core/presets/dixi.ts` com os tipos `DixiStack`/`DixiStackFamily` e as funções `detectDixiStack`, `getDixiStackFamily`, `getDixiStackLabel` e `installDixiExtras`. Quando `pscode init --profile dixi` é executado, a stack do projeto é detectada automaticamente (Java/Maven, Java/Gradle, Next.js, React, Node.js, Python) e o arquivo `.pscode-dixi.yaml` é gravado na raiz do projeto com os campos `stack`, `family` e `detectedAt`. A função `installDixiExtras` é um placeholder extensível pelos batches C–J.
+
+- 7485989: Adiciona 10 docs de referência técnica para o perfil Dixi (`pscode/content/dixi/context/`) e a lógica de instalação brownfield-safe em `installDixiExtras`.
+
+  - 4 docs compartilhados: `commits.md`, `dod.md`, `dev-flow.md`, `pr-flow.md`
+  - 3 docs Java/Spring: `architecture.md` (hexagonal), `testing.md` (JUnit/Testcontainers/RestAssured), `naming.md`
+  - 3 docs React/Next.js: `architecture.md` (feature-sliced), `testing.md` (Vitest/RTL/Playwright), `naming.md`
+  - Nova função `copyContextDocs(destRoot, srcDir)` com brownfield-safe (skip se arquivo existir)
+  - `installDixiExtras` agora copia `shared/` sempre + `java/` ou `react/` conforme stack detectada
+  - Os docs são instalados em `pastelsdd/context/` no repo do cliente via `pscode init --profile dixi`
+
+- 7485989: dixi: instalar CLAUDE.md constitucional via pscode init --profile dixi (Batch D)
+- 1a7ebd6: **BREAKING**: Remove o comando `pscode sync` e o workflow `/ps:sync`.
+
+  O comando `pscode sync` era um passo intermediário que propagava delta specs para as specs principais. Ele foi removido porque o `pscode complete` já executa esse sync automaticamente ao final, sem prompts ou flags opcionais — eliminando a ambiguidade de quando rodar o sync.
+
+  **Mudanças:**
+
+  - `pscode sync` não existe mais; scripts que chamam esse comando vão quebrar
+  - `pscode complete` agora sincroniza specs automaticamente sempre ao final (log "Sincronizando specs...")
+  - A opção `--skip-specs` foi removida do `pscode complete`
+  - O workflow `sync` foi removido de `ALL_WORKFLOWS` e de todos os profiles
+  - Os arquivos de skill `sync.md` nos adapters (claude, cursor, codex, gemini, github-copilot) não são mais gerados pelo `pscode update`
+
+  **Migração:** Use `pscode complete` — o sync de specs agora ocorre automaticamente, sem nenhum passo adicional.
+
+### Patch Changes
+
+- 99b0ffc: Add `pstld-workflow` schema with RFC → Design → Tasks DAG for Dixi profile projects
+
+## 1.0.3
+
+### Patch Changes
+
+- Fix update command triggering false config-sync when trello workflows are installed
+
+## 1.3.1
+
+### Patch Changes
+
+- [#995](https://github.com/thiagodiogo/Pastelsdd/pull/995) [`d1f3861`](https://github.com/thiagodiogo/Pastelsdd/commit/d1f3861d9ec694cc924b042b5da01963dcf93137) Thanks [@TabishB](https://github.com/TabishB)! - ### Bug Fixes
+
+  - **Canonical artifact paths** — Workflow artifact paths are now resolved via the native `realpath`, so symlinks and case-insensitive filesystems no longer cause path mismatches during apply and archive.
+  - **Glob apply instructions** — Apply instructions with glob artifact outputs now resolve correctly, and literal artifact outputs are enforced to be file paths.
+  - **Hidden main spec requirements** — Requirements nested inside fenced code blocks or otherwise hidden in main specs are now detected during validation.
+  - **Clean `--json` output** — Spinner progress text no longer leaks into stderr when `--json` is passed, so AI agents that combine stdout and stderr can parse the JSON reliably.
+  - **Silent telemetry in firewalled environments** — PostHog network errors are now swallowed with a 1s timeout and retries/remote config disabled, so Pastelsdd no longer surfaces `PostHogFetchNetworkError` in locked-down networks. Telemetry opt-out is documented earlier in the README, installation guide, and CLI reference.
+
+## 1.3.0
+
+### Minor Changes
+
+- [#952](https://github.com/thiagodiogo/Pastelsdd/pull/952) [`cce787e`](https://github.com/thiagodiogo/Pastelsdd/commit/cce787ec4083da2b27781f6786f5ce0002909a7b) Thanks [@TabishB](https://github.com/TabishB)! - ### New Features
+
+  - **Junie support** — Added tool and command generation for JetBrains Junie
+  - **Lingma IDE support** — Added configuration support for Lingma IDE
+  - **ForgeCode support** — Added tool support for ForgeCode
+  - **IBM Bob support** — Added support for IBM Bob coding assistant
+
+  ### Bug Fixes
+
+  - **Shell completions opt-in** — Completion install is now opt-in, fixing PowerShell encoding corruption
+  - **Copilot auto-detection** — Prevented false GitHub Copilot detection from a bare `.github/` directory
+  - **pi.dev command generation** — Fixed command reference transforms and template argument passing
+
+### Patch Changes
+
+- [#760](https://github.com/thiagodiogo/Pastelsdd/pull/760) [`61eb999`](https://github.com/thiagodiogo/Pastelsdd/commit/61eb999f7c6c0fc98d2e7f3678756fce6a3f4378) Thanks [@fsilvaortiz](https://github.com/fsilvaortiz)! - fix: OpenCode adapter now uses `.opencode/commands/` (plural) to match OpenCode's official directory convention. Fixes #748.
+
+- [#759](https://github.com/thiagodiogo/Pastelsdd/pull/759) [`afdca0d`](https://github.com/thiagodiogo/Pastelsdd/commit/afdca0d5dab1aa109cfd8848b2512333ccad60c3) Thanks [@fsilvaortiz](https://github.com/fsilvaortiz)! - fix: `pastelsdd status` now exits gracefully when no changes exist instead of throwing a fatal error. Fixes #714.
+
+## 1.2.0
+
+### Minor Changes
+
+- [#747](https://github.com/thiagodiogo/Pastelsdd/pull/747) [`1e94443`](https://github.com/thiagodiogo/Pastelsdd/commit/1e94443a3551b228eecbc89e95d96d3b9600a192) Thanks [@TabishB](https://github.com/TabishB)! - ### New Features
+
+  - **Profile system** — Choose between `core` (4 essential workflows) and `custom` (pick any subset) profiles to control which skills get installed. Manage profiles with the new `pastelsdd config profile` command
+  - **Propose workflow** — New one-step workflow creates a complete change proposal with design, specs, and tasks from a single request — no need to run `new` then `ff` separately
+  - **AI tool auto-detection** — `pastelsdd init` now scans your project for existing tool directories (`.claude/`, `.cursor/`, etc.) and pre-selects detected tools
+  - **Pi (pi.dev) support** — Pi coding agent is now a supported tool with prompt and skill generation
+  - **Kiro support** — AWS Kiro IDE is now a supported tool with prompt and skill generation
+  - **Sync prunes deselected workflows** — `pastelsdd update` now removes command files and skill directories for workflows you've deselected, keeping your project clean
+  - **Config drift warning** — `pastelsdd config list` warns when global config is out of sync with the current project
+
+  ### Bug Fixes
+
+  - Fixed onboard preflight giving a false "not initialized" error on freshly initialized projects
+  - Fixed archive workflow stopping mid-way when syncing — it now properly resumes after sync completes
+  - Added Windows PowerShell alternatives for onboard shell commands
+
+## 1.1.1
+
+### Patch Changes
+
+- [#627](https://github.com/thiagodiogo/Pastelsdd/pull/627) [`afb73cf`](https://github.com/thiagodiogo/Pastelsdd/commit/afb73cf9ec59c6f8b26d0c538c0218c203ba3c56) Thanks [@TabishB](https://github.com/TabishB)! - ### Bug Fixes
+
+  - **OpenCode command references** — Command references in generated files now use the correct `/pastel-` hyphen format instead of `/pastel:` colon format, ensuring commands work properly in OpenCode
+
+## 1.1.0
+
+### Minor Changes
+
+- [#625](https://github.com/thiagodiogo/Pastelsdd/pull/625) [`53081fb`](https://github.com/thiagodiogo/Pastelsdd/commit/53081fb2a26ec66d2950ae0474b9a56cbc5b5a76) Thanks [@TabishB](https://github.com/TabishB)! - ### Bug Fixes
+
+  - **Codex global path support** — Codex adapter now resolves global paths correctly, fixing workflow file generation when run outside the project directory (#622)
+  - **Archive operations on cross-device or restricted paths** — Archive now falls back to copy+remove when rename fails with EPERM or EXDEV errors, fixing failures on networked/external drives (#605)
+  - **Slash command hints in workflow messages** — Workflow completion messages now display helpful slash command hints for next steps (#603)
+  - **Windsurf workflow file path** — Updated Windsurf adapter to use the correct `workflows` directory instead of the legacy `commands` path (#610)
+
+### Patch Changes
+
+- [#550](https://github.com/thiagodiogo/Pastelsdd/pull/550) [`86d2e04`](https://github.com/thiagodiogo/Pastelsdd/commit/86d2e04cae76a999dbd1b4571f52fa720036be0c) Thanks [@jerome-benoit](https://github.com/jerome-benoit)! - ### Improvements
+
+  - **Nix flake maintenance** — Version now read dynamically from package.json, reducing manual sync issues
+  - **Nix build optimization** — Source filtering excludes node_modules and artifacts, improving build times
+  - **update-flake.sh script** — Detects when hash is already correct, skipping unnecessary rebuilds
+
+  ### Other
+
+  - Updated Nix CI actions to latest versions (nix-installer v21, magic-nix-cache v13)
+
+## 1.0.2
+
+### Patch Changes
+
+- [#596](https://github.com/thiagodiogo/Pastelsdd/pull/596) [`e91568d`](https://github.com/thiagodiogo/Pastelsdd/commit/e91568deb948073f3e9d9bb2d2ab5bf8080d6cf4) Thanks [@TabishB](https://github.com/TabishB)! - ### Bug Fixes
+
+  - Clarified spec naming convention — Specs should be named after capabilities (`specs/<capability>/spec.md`), not changes
+  - Fixed task checkbox format guidance — Tasks now clearly require `- [ ]` checkbox format for apply phase tracking
+
+## 1.0.1
+
+### Patch Changes
+
+- [#587](https://github.com/thiagodiogo/Pastelsdd/pull/587) [`943e0d4`](https://github.com/thiagodiogo/Pastelsdd/commit/943e0d41026d034de66b9442d1276c01b293eb2b) Thanks [@TabishB](https://github.com/TabishB)! - ### Bug Fixes
+
+  - Fixed incorrect archive path in onboarding documentation — the template now shows the correct path `pastelsdd/changes/archive/YYYY-MM-DD-<name>/` instead of the incorrect `pastelsdd/archive/YYYY-MM-DD--<name>/`
+
+## 1.0.0
+
+### Major Changes
+
+- [#578](https://github.com/thiagodiogo/Pastelsdd/pull/578) [`0cc9d90`](https://github.com/thiagodiogo/Pastelsdd/commit/0cc9d9025af367faa1688a7b2606a2549053cd3f) Thanks [@TabishB](https://github.com/TabishB)! - ## Pastelsdd 1.0 — The OPSX Release
+
+  The workflow has been rebuilt from the ground up. OPSX replaces the old phase-locked `/pastelsdd:*` commands with an action-based system where AI understands what artifacts exist, what's ready to create, and what each action unlocks.
+
+  ### Breaking Changes
+
+  - **Old commands removed** — `/pastelsdd:proposal`, `/pastelsdd:apply`, and `/pastelsdd:archive` no longer exist
+  - **Config files removed** — Tool-specific instruction files (`CLAUDE.md`, `.cursorrules`, `AGENTS.md`, `project.md`) are no longer generated
+  - **Migration** — Run `pastelsdd init` to upgrade. Legacy artifacts are detected and cleaned up with confirmation.
+
+  ### From Static Prompts to Dynamic Instructions
+
+  **Before:** AI received the same static instructions every time, regardless of project state.
+
+  **Now:** Instructions are dynamically assembled from three layers:
+
+  1. **Context** — Project background from `config.yaml` (tech stack, conventions)
+  2. **Rules** — Artifact-specific constraints (e.g., "propose spike tasks for unknowns")
+  3. **Template** — The actual structure for the output file
+
+  AI queries the CLI for real-time state: which artifacts exist, what's ready to create, what dependencies are satisfied, and what each action unlocks.
+
+  ### From Phase-Locked to Action-Based
+
+  **Before:** Linear workflow — proposal → apply → archive. Couldn't easily go back or iterate.
+
+  **Now:** Flexible actions on a change. Edit any artifact anytime. The artifact graph tracks state automatically.
+
+  | Command                | What it does                                         |
+  | ---------------------- | ---------------------------------------------------- |
+  | `/pastel:explore`      | Think through ideas before committing to a change    |
+  | `/pastel:new`          | Start a new change                                   |
+  | `/pastel:continue`     | Create one artifact at a time (step-through)         |
+  | `/pastel:ff`           | Create all planning artifacts at once (fast-forward) |
+  | `/pastel:apply`        | Implement tasks                                      |
+  | `/pastel:verify`       | Validate implementation matches artifacts            |
+  | `/pastel:sync`         | Sync delta specs to main specs                       |
+  | `/pastel:archive`      | Archive completed change                             |
+  | `/pastel:bulk-archive` | Archive multiple changes with conflict detection     |
+  | `/pastel:onboard`      | Guided 15-minute walkthrough of complete workflow    |
+
+  ### From Text Merging to Semantic Spec Syncing
+
+  **Before:** Spec updates required manual merging or wholesale file replacement.
+
+  **Now:** Delta specs use semantic markers that AI understands:
+
+  - `## ADDED Requirements` — New requirements to add
+  - `## MODIFIED Requirements` — Partial updates (add scenario without copying existing ones)
+  - `## REMOVED Requirements` — Delete with reason and migration notes
+  - `## RENAMED Requirements` — Rename preserving content
+
+  Archive parses these at the requirement level, not brittle header matching.
+
+  ### From Scattered Files to Agent Skills
+
+  **Before:** 8+ config files at project root + slash commands scattered across 21 tool-specific locations with different formats.
+
+  **Now:** Single `.claude/skills/` directory with YAML-fronted markdown files. Auto-detected by Claude Code, Cursor, Windsurf. Cross-editor compatible.
+
+  ### New Features
+
+  - **Onboarding skill** — `/pastel:onboard` walks new users through their first complete change with codebase-aware task suggestions and step-by-step narration (11 phases, ~15 minutes)
+
+  - **21 AI tools supported** — Claude Code, Cursor, Windsurf, Continue, Gemini CLI, GitHub Copilot, Amazon Q, Cline, RooCode, Kilo Code, Auggie, CodeBuddy, Qoder, Qwen, CoStrict, Crush, Factory, OpenCode, Antigravity, iFlow, and Codex
+
+  - **Interactive setup** — `pastelsdd init` shows animated welcome screen and searchable multi-select for choosing tools. Pre-selects already-configured tools for easy refresh.
+
+  - **Customizable schemas** — Define custom artifact workflows in `pastelsdd/schemas/` without touching package code. Teams can share workflows via version control.
+
+  ### Bug Fixes
+
+  - Fixed Claude Code YAML parsing failure when command names contained colons
+  - Fixed task file parsing to handle trailing whitespace on checkbox lines
+  - Fixed JSON instruction output to separate context/rules from template — AI was copying constraint blocks into artifact files
+
+  ### Documentation
+
+  - New getting-started guide, CLI reference, concepts documentation
+  - Removed misleading "edit mid-flight and continue" claims that weren't implemented
+  - Added migration guide for upgrading from pre-OPSX versions
+
+## 0.23.0
+
+### Minor Changes
+
+- [#540](https://github.com/thiagodiogo/Pastelsdd/pull/540) [`c4cfdc7`](https://github.com/thiagodiogo/Pastelsdd/commit/c4cfdc7c499daef30d8a218f5f59b8d9e5adb754) Thanks [@TabishB](https://github.com/TabishB)! - ### New Features
+
+  - **Bulk archive skill** — Archive multiple completed changes in a single operation with `/pastel:bulk-archive`. Includes batch validation, spec conflict detection, and consolidated confirmation
+
+  ### Other
+
+  - **Simplified setup** — Config creation now uses sensible defaults with helpful comments instead of interactive prompts
+
+## 0.22.0
+
+### Minor Changes
+
+- [#530](https://github.com/thiagodiogo/Pastelsdd/pull/530) [`33466b1`](https://github.com/thiagodiogo/Pastelsdd/commit/33466b1e2a6798bdd6d0e19149173585b0612e6f) Thanks [@TabishB](https://github.com/TabishB)! - Add project-level configuration, project-local schemas, and schema management commands
+
+  **New Features**
+
+  - **Project-level configuration** — Configure Pastelsdd behavior per-project via `pastelsdd/config.yaml`, including custom rules injection, context files, and schema resolution settings
+  - **Project-local schemas** — Define custom artifact schemas within your project's `pastelsdd/schemas/` directory for project-specific workflows
+  - **Schema management commands** — New `pastelsdd schema` commands (`list`, `show`, `export`, `validate`) for inspecting and managing artifact schemas (experimental)
+
+  **Bug Fixes**
+
+  - Fixed config loading to handle null `rules` field in project configuration
+
+## 0.21.0
+
+### Minor Changes
+
+- [#516](https://github.com/thiagodiogo/Pastelsdd/pull/516) [`b5a8847`](https://github.com/thiagodiogo/Pastelsdd/commit/b5a884748be6156a7bb140b4941cfec4f20a9fc8) Thanks [@TabishB](https://github.com/TabishB)! - Add feedback command and Nix flake support
+
+  **New Features**
+
+  - **Feedback command** — Submit feedback directly from the CLI with `pastelsdd feedback`, which creates GitHub Issues with automatic metadata inclusion and graceful fallback for manual submission
+  - **Nix flake support** — Install and develop pastelsdd using Nix with the new `flake.nix`, including automated flake maintenance and CI validation
+
+  **Bug Fixes**
+
+  - **Explore mode guardrails** — Explore mode now explicitly prevents implementation, keeping the focus on thinking and discovery while still allowing artifact creation
+
+  **Other**
+
+  - Improved change inference in `pastel apply` — automatically detects the target change from conversation context or prompts when ambiguous
+  - Streamlined archive sync assessment with clearer delta spec location guidance
+
+## 0.20.0
+
+### Minor Changes
+
+- [#502](https://github.com/thiagodiogo/Pastelsdd/pull/502) [`9db74aa`](https://github.com/thiagodiogo/Pastelsdd/commit/9db74aa5ac6547efadaed795217cfa17444f2004) Thanks [@TabishB](https://github.com/TabishB)! - Add `/pastel:verify` command and fix vitest process storms
+
+  **New Features**
+
+  - **`/pastel:verify` command** — Validate that change implementations match their specifications
+
+  **Bug Fixes**
+
+  - Fixed vitest process storms by capping worker parallelism
+  - Fixed agent workflows to use non-interactive mode for validation commands
+  - Fixed PowerShell completions generator to remove trailing commas
+
+## 0.19.0
+
+### Minor Changes
+
+- eb152eb: Add Continue IDE support, shell completions, and `/pastel:explore` command
+
+  **New Features**
+
+  - **Continue IDE support** – Pastelsdd now generates slash commands for [Continue](https://continue.dev/), expanding editor integration options alongside Cursor, Windsurf, Claude Code, and others
+  - **Shell completions for Bash, Fish, and PowerShell** – Run `pastelsdd completion install` to set up tab completion in your preferred shell
+  - **`/pastel:explore` command** – A new thinking partner mode for exploring ideas and investigating problems before committing to changes
+  - **Codebuddy slash command improvements** – Updated frontmatter format for better compatibility
+
+  **Bug Fixes**
+
+  - Shell completions now correctly offer parent-level flags (like `--help`) when a command has subcommands
+  - Fixed Windows compatibility issues in tests
+
+  **Other**
+
+  - Added optional anonymous usage statistics to help understand how Pastelsdd is used. This is **opt-out** by default – set `PASTELSDD_TELEMETRY=0` or `DO_NOT_TRACK=1` to disable. Only command names and version are collected; no arguments, file paths, or content. Automatically disabled in CI environments.
+
+## 0.18.0
+
+### Minor Changes
+
+- 8dfd824: Add OPSX experimental workflow commands and enhanced artifact system
+
+  **New Commands:**
+
+  - `/pastel:ff` - Fast-forward through artifact creation, generating all needed artifacts in one go
+  - `/pastel:sync` - Sync delta specs from a change to main specs
+  - `/pastel:archive` - Archive completed changes with smart sync check
+
+  **Artifact Workflow Enhancements:**
+
+  - Schema-aware apply instructions with inline guidance and XML output
+  - Agent schema selection for experimental artifact workflow
+  - Per-change schema metadata via `.pastelsdd.yaml` files
+  - Agent Skills for experimental artifact workflow
+  - Instruction loader for template loading and change context
+  - Restructured schemas as directories with templates
+
+  **Improvements:**
+
+  - Enhanced list command with last modified timestamps and sorting
+  - Change creation utilities for better workflow support
+
+  **Fixes:**
+
+  - Normalize paths for cross-platform glob compatibility
+  - Allow REMOVED requirements when creating new spec files
+
+## 0.17.2
+
+### Patch Changes
+
+- 455c65f: Fix `--no-interactive` flag in validate command to properly disable spinner, preventing hangs in pre-commit hooks and CI environments
+
+## 0.17.1
+
+### Patch Changes
+
+- a2757e7: Fix pre-commit hook hang issue in config command by using dynamic import for @inquirer/prompts
+
+  The config command was causing pre-commit hooks to hang indefinitely due to stdin event listeners being registered at module load time. This fix converts the static import to a dynamic import that only loads inquirer when the `config reset` command is actually used interactively.
+
+  Also adds ESLint with a rule to prevent static @inquirer imports, avoiding future regressions.
+
+## 0.17.0
+
+### Minor Changes
+
+- 2e71835: Add `pastelsdd config` command and Oh-my-zsh completions
+
+  **New Features**
+
+  - Add `pastelsdd config` command for managing global configuration settings
+  - Implement global config directory with XDG Base Directory specification support
+  - Add Oh-my-zsh shell completions support for enhanced CLI experience
+
+  **Bug Fixes**
+
+  - Fix hang in pre-commit hooks by using dynamic imports
+  - Respect XDG_CONFIG_HOME environment variable on all platforms
+  - Resolve Windows compatibility issues in zsh-installer tests
+  - Align cli-completion spec with implementation
+  - Remove hardcoded agent field from slash commands
+
+  **Documentation**
+
+  - Alphabetize AI tools list in README and make it collapsible
+
+## 0.16.0
+
+### Minor Changes
+
+- c08fbc1: Add new AI tool integrations and enhancements:
+
+  - **feat(iflow-cli)**: Add iFlow-cli integration with slash command support and documentation
+  - **feat(init)**: Add IDE restart instruction after init to inform users about slash command availability
+    **feat(antigravity)**: Add Antigravity slash command support
+  - **fix**: Generate TOML commands for Qwen Code (fixes #293)
+  - Clarify scaffold proposal documentation and enhance proposal guidelines
+  - Update proposal guidelines to emphasize design-first approach before implementation
+
+## Unreleased
+
+### Minor Changes
+
+- Add Continue slash command support so `pastelsdd init` can generate `.continue/prompts/pastelsdd-*.prompt` files with MARKDOWN frontmatter and `$ARGUMENTS` placeholder, and refresh them on `pastelsdd update`.
+
+- Add Antigravity slash command support so `pastelsdd init` can generate `.agent/workflows/pastelsdd-*.md` files with description-only frontmatter and `pastelsdd update` refreshes existing workflows alongside Windsurf.
+
+## 0.15.0
+
+### Minor Changes
+
+- 4758c5c: Add support for new AI tools with native slash command integration
+
+  - **Gemini CLI**: Add native TOML-based slash command support for Gemini CLI with `.gemini/commands/pastelsdd/` integration
+  - **RooCode**: Add RooCode integration with configurator, slash commands, and templates
+  - **Cline**: Fix Cline to use workflows instead of rules for slash commands (`.clinerules/workflows/` paths)
+  - **Documentation**: Update documentation to reflect new integrations and workflow changes
+
+## 0.14.0
+
+### Minor Changes
+
+- 8386b91: Add support for new AI assistants and configuration improvements
+
+  - feat: add Qwen Code support with slash command integration
+  - feat: add $ARGUMENTS support to apply slash command for dynamic variable passing
+  - feat: add Qoder CLI support to configuration and documentation
+  - feat: add CoStrict AI assistant support
+  - fix: recreate missing pastelsdd template files in extend mode
+  - fix: prevent false 'already configured' detection for tools
+  - fix: use change-id as fallback title instead of "Untitled Change"
+  - docs: add guidance for populating project-level context
+  - docs: add Crush to supported AI tools in README
+
+## 0.13.0
+
+### Minor Changes
+
+- 668a125: Add support for multiple AI assistants and improve validation
+
+  This release adds support for several new AI coding assistants:
+
+  - CodeBuddy Code - AI-powered coding assistant
+  - CodeRabbit - AI code review assistant
+  - Cline - Claude-powered CLI assistant
+  - Crush AI - AI assistant platform
+  - Auggie (Augment CLI) - Code augmentation tool
+
+  New features:
+
+  - Archive slash command now supports arguments for more flexible workflows
+
+  Bug fixes:
+
+  - Delta spec validation now handles case-insensitive headers and properly detects empty sections
+  - Archive validation now correctly honors --no-validate flag and ignores metadata
+
+  Documentation improvements:
+
+  - Added VS Code dev container configuration for easier development setup
+  - Updated AGENTS.md with explicit change-id notation
+  - Enhanced slash commands documentation with restart notes
+
+## 0.12.0
+
+### Minor Changes
+
+- 082abb4: Add factory function support for slash commands and non-interactive init options
+
+  This release includes two new features:
+
+  - **Factory function support for slash commands**: Slash commands can now be defined as functions that return command objects, enabling dynamic command configuration
+  - **Non-interactive init options**: Added `--tools`, `--all-tools`, and `--skip-tools` CLI flags to `pastelsdd init` for automated initialization in CI/CD pipelines while maintaining backward compatibility with interactive mode
+
+## 0.11.0
+
+### Minor Changes
+
+- 312e1d6: Add Amazon Q Developer CLI integration. Pastelsdd now supports Amazon Q Developer with automatic prompt generation in `.amazonq/prompts/` directory, allowing you to use Pastelsdd slash commands with Amazon Q's @-syntax.
+
+## 0.10.0
+
+### Minor Changes
+
+- d7e0ce8: Improve init wizard Enter key behavior to allow proceeding through prompts more naturally
+
+## 0.9.2
+
+### Patch Changes
+
+- 2ae0484: Fix cross-platform path handling issues. This release includes fixes for joinPath behavior and slash command path resolution to ensure Pastelsdd works correctly across all platforms.
+
+## 0.9.1
+
+### Patch Changes
+
+- 8210970: Fix Pastelsdd not working on Windows when Codex integration is selected. This release includes fixes for cross-platform path handling and normalization to ensure Pastelsdd works correctly on Windows systems.
+
+## 0.9.0
+
+### Minor Changes
+
+- efbbf3b: Add support for Codex and GitHub Copilot slash commands with YAML frontmatter and $ARGUMENTS
+
+## Unreleased
+
+### Minor Changes
+
+- Add GitHub Copilot slash command support. Pastelsdd now writes prompts to `.github/prompts/pastelsdd-{proposal,apply,archive}.prompt.md` with YAML frontmatter and `$ARGUMENTS` placeholder, and refreshes them on `pastelsdd update`.
+
+## 0.8.1
+
+### Patch Changes
+
+- d070d08: Fix CLI version mismatch and add a release guard that validates the packed tarball prints the same version as package.json via `pastelsdd --version`.
+
+## 0.8.0
+
+### Minor Changes
+
+- c29b06d: Add Windsurf support.
+- Add Codex slash command support. Pastelsdd now writes prompts directly to Codex's global directory (`~/.codex/prompts` or `$CODEX_HOME/prompts`) and refreshes them on `pastelsdd update`.
+
+## 0.7.0
+
+### Minor Changes
+
+- Add native Kilo Code workflow integration so `pastelsdd init` and `pastelsdd update` manage `.kilocode/workflows/pastelsdd-*.md` files.
+- Always scaffold the managed root `AGENTS.md` hand-off stub and regroup the AI tool prompts during init/update to keep instructions consistent.
+
+## 0.6.0
+
+### Minor Changes
+
+- Slim the generated root agent instructions down to a managed hand-off stub and update the init/update flows to refresh it safely.
+
+## 0.5.0
+
+### Minor Changes
+
+- feat: implement Phase 1 E2E testing with cross-platform CI matrix
+
+  - Add shared runCLI helper in test/helpers/run-cli.ts for spawn testing
+  - Create test/cli-e2e/basic.test.ts covering help, version, validate flows
+  - Migrate existing CLI exec tests to use runCLI helper
+  - Extend CI matrix to bash (Linux/macOS) and pwsh (Windows)
+  - Split PR and main workflows for optimized feedback
+
+### Patch Changes
+
+- Make apply instructions more specific
+
+  Improve agent templates and slash command templates with more specific and actionable apply instructions.
+
+- docs: improve documentation and cleanup
+
+  - Document non-interactive flag for archive command
+  - Replace discord badge in README
+  - Archive completed changes for better organization
+
+## 0.4.0
+
+### Minor Changes
+
+- Add Pastelsdd change proposals for CLI improvements and enhanced user experience
+- Add Opencode slash commands support for AI-driven development workflows
+
+### Patch Changes
+
+- Add documentation improvements including --yes flag for archive command template and Discord badge
+- Fix normalize line endings in markdown parser to handle CRLF files properly
+
+## 0.3.0
+
+### Minor Changes
+
+- Enhance `pastelsdd init` with extend mode, multi-tool selection, and an interactive `AGENTS.md` configurator.
+
+## 0.2.0
+
+### Minor Changes
+
+- ce5cead: - Add an `pastelsdd view` dashboard that rolls up spec counts and change progress at a glance
+  - Generate and update AI slash commands alongside the renamed `pastelsdd/AGENTS.md` instructions file
+  - Remove the deprecated `pastelsdd diff` command and direct users to `pastelsdd show`
+
+## 0.1.0
+
+### Minor Changes
+
+- 24b4866: Initial release
