@@ -65,6 +65,8 @@ jobs:
       - name: Version packages
         if: steps.check.outputs.has_changes == 'true'
         run: pnpm exec changeset version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
 
       - name: Read new version
         if: steps.check.outputs.has_changes == 'true'
