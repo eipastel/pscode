@@ -28,16 +28,16 @@ import {
 import { generateSkillContent } from '../../../src/core/shared/skill-generation.js';
 
 const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
-  getApplyChangeSkillTemplate: 'd9f36473db8a4dbb5829266e53668ba0370ff499046cf9de2a81bf9f114e82d5',
-  getCompleteChangeSkillTemplate: '2bad0e2858404e2b7fa3f3e18ff5e09d7aaf2a957cfffca7b38a876292234dae',
-  getBulkArchiveChangeSkillTemplate: '3f4a389b095f277e299c922d46b6ec9ee17ca2cb3cff92c7aa809c665b9164fb',
-  getContinueChangeSkillTemplate: 'cd188f08fa20612ffe445bac0c31bc111149582fc6250e6ea6923ef3198ec660',
-  getExploreSkillTemplate: '0b75a6f9a9bbb1811ddaa6f7033e90f9358660ba1a8cf05f107fda5750c2c46f',
-  getFeedbackSkillTemplate: '217dcc7f035e18024f3c3c1774f35b421e4043215a0627ecaf71b78baff94df4',
-  getFfChangeSkillTemplate: 'abc66c455e4e71e411968461121349e8d2a07fb78c3e2c73cac089abdb5aa008',
-  getNewChangeSkillTemplate: '693fe8ead94dabb7cc5e308c48170f5cc16afd8de2987d357d2cb17bc563ec3a',
-  getOnboardSkillTemplate: '19c3d9a9c2ae1d6dce05a3fef2849dcd8012cd90be4dce44543de6a993eaff64',
-  getProposeSkillTemplate: '8d7ea0b7589a222ed9b23c0a53253dbd9bf7f0e06dcc2c02316337540693dc22',
+  getApplyChangeSkillTemplate: '848680f426a3761e412f50ca0a668d690befff7c2dee0b41c3985656a3e59cd6',
+  getCompleteChangeSkillTemplate: '13f00c3a3fc13d29a4d81a199f9c993c8fc691a10ef12a3739d3fe2520d4b09e',
+  getBulkArchiveChangeSkillTemplate: '9a625b7b199ac465654d3c3d89b812f8a7ae6a4e2cca60010a8c03293a1ff801',
+  getContinueChangeSkillTemplate: '4bcce8b5109e8fe489782b5415d318816457b43db315b0747063ee35f4dc4e77',
+  getExploreSkillTemplate: '883766675e50ab0f1e8ddea8d35083523dad24f7358107659d670d4e6569e1cb',
+  getFeedbackSkillTemplate: '37cc46fb58f8390f6cb47d4221bfd729ea45692903f19ef5dc932b6a6e04c24a',
+  getFfChangeSkillTemplate: '900ccf0782ec1a9024ad4a8b890e34db4e7302222bd1b71613c8c858984126fd',
+  getNewChangeSkillTemplate: 'cd6a0b88659afcabe73581646e8d9b1accb2f48df547faa7c5d0e44d77ece0aa',
+  getOnboardSkillTemplate: '2db2164f9a052903709e1312175e34aeffb9d38e2c205cf9f985130013110b33',
+  getProposeSkillTemplate: 'e1d0d0461c80eeed5366c9bfd2e3a8f4a30fa28b5d8c79c526399404d6a79715',
   getPsApplyCommandTemplate: '5f0bdc25e3624a7158eaf0a3cb603ccfb79457ed80ef5fc26a2739827d5502b4',
   getPsCompleteCommandTemplate: '74db9b5f7f40e8e3b1360872a74969b1e5676c02eea69ea672d74c5a7c96598f',
   getPsBulkArchiveCommandTemplate: '1464df49ad5bf07a550d34f6950495e5ca397f6eb7a8690bcc0993c8e4136b74',
@@ -48,20 +48,20 @@ const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
   getPsOnboardCommandTemplate: 'f01a5baae071c51e5991e10024abef089a35c222c0bbc8be3c2f8dd580d48091',
   getPsProposeCommandTemplate: 'f87c9d316f1da25b4eacce0b4f05894e6d7190b950564c92449fe0c21c337a20',
   getPsVerifyCommandTemplate: 'ff5444b1f84b2de82e3c56b105f384bdd61e58251257b183087c5c92a608e7ec',
-  getVerifyChangeSkillTemplate: '75cb3e3bfbeca4402f70a552444c7c7f246e215f1997fc6c545bfda2a3b93179',
+  getVerifyChangeSkillTemplate: 'fb57bd2789816164ae3ffae404442456377e590cb7fe0a7a266eb1841c29ca5c',
 };
 
 const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
-  'pscode-apply-change': '26a436d516959970da836624d4a8c20998d82e036b36aba7ce7ef2ff1d349ce5',
-  'pscode-archive-change': '984a5bc32c2e35cf0f18800dfd2fa10827668ea2aeb9adcf4a37651d193c2d3a',
-  'pscode-bulk-archive-change': 'b9c04ef1f7a0ae77f9614f53a6f3d66d98eab9473a199948690556f6df65a744',
-  'pscode-continue-change': '653da27ffeb149d013dae46e5c5798b7d069853df4a8e86eef6be6e7cb8fc473',
-  'pscode-explore': '0738211d4ea6a31c346a09f4b0f5d36fe199298c602b9071949fe0da220f1095',
-  'pscode-ff-change': 'e90c927e307745c787e379b592c68e4398d8c755f49a5aed05532ccbfe1d3d3b',
-  'pscode-new-change': 'de4831901162220364af0992ae500cd0f840d521122b0fb963403857dcaba2e9',
-  'pscode-onboard': '619da33e386c2c41e3d0ddafc94572b39f1163050a50d89268e08b31a6b1d1e1',
-  'pscode-propose': '384f4d0d918a13a943df26b69e2610701741981ded63ea6d0658d160450cccd6',
-  'pscode-verify-change': '0bfe7b51d85a62b8229c12d30405d1070a6e27ecfa636e525eb7508e0cddcb4a',
+  'pscode-apply-change': 'ad1364bb1cf4125b24924491745a4b7e7dc02fc5e7204e28d299e6b1a3d23f29',
+  'pscode-archive-change': '6488e283714cb475040f23cf534f497ce2b3af43d7d06288e1a86459015a3294',
+  'pscode-bulk-archive-change': 'b09bc4dbad8eaa9d4682b28b3bbbc521948a397a0495f832cd3121a03703a863',
+  'pscode-continue-change': '2839984327a5ec7af43795bf7abc808074c3424a26f6c717dba31e0fc7d922b1',
+  'pscode-explore': 'e99fb2a097f7f6a5d7c2f3f5e8b4f59c8d1f979f971b91613409a3978fe503d3',
+  'pscode-ff-change': 'b16f044a89d3f675317500407dc9c4adfff8e788fb8a36b9441191a67221360c',
+  'pscode-new-change': 'bc876dbb82313189b89fc6a1076f29b2ebae749bc4f0bceca06480ea97de292e',
+  'pscode-onboard': '21fee8182d0b868c743cfde2fc4e21d7f8c12e0fec7e34b3641453eae1510fa6',
+  'pscode-propose': 'feb7794d842a56b31a94a7a99959d9a269e8e396fad541f704e8ec8bdca9c47c',
+  'pscode-verify-change': '93f85208b848b63b1baebd1e0165dc676a4b9b53b865b74aa811db9d2a9d5b8d',
 };
 
 function stableStringify(value: unknown): string {

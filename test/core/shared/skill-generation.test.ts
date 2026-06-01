@@ -194,7 +194,6 @@ describe('skill-generation', () => {
         name: 'test-skill',
         description: 'Test description',
         instructions: 'Test instructions',
-        license: 'MIT',
         compatibility: 'Test compatibility',
         metadata: {
           author: 'test-author',
@@ -207,7 +206,7 @@ describe('skill-generation', () => {
       expect(content).toMatch(/^---\n/);
       expect(content).toContain('name: test-skill');
       expect(content).toContain('description: Test description');
-      expect(content).toContain('license: MIT');
+      expect(content).not.toContain('license:');
       expect(content).toContain('compatibility: Test compatibility');
       expect(content).toContain('author: test-author');
       expect(content).toContain('version: "2.0"');
@@ -224,7 +223,7 @@ describe('skill-generation', () => {
 
       const content = generateSkillContent(template, '0.24.0');
 
-      expect(content).toContain('license: MIT');
+      expect(content).not.toContain('license:');
       expect(content).toContain('compatibility: Requires pscode CLI.');
       expect(content).toContain('author: pscode');
       expect(content).toContain('version: "1.0"');

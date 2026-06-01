@@ -350,7 +350,7 @@ describe('InitCommand', () => {
       expect(content).toMatch(/^---\n/);
       expect(content).toContain('name: pscode-explore');
       expect(content).toContain('description:');
-      expect(content).toContain('license:');
+      expect(content).not.toContain('license:');
       expect(content).toContain('compatibility:');
       expect(content).toContain('metadata:');
       expect(content).toMatch(/---\n\n/); // End of frontmatter
