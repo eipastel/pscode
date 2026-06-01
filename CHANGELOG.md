@@ -1,5 +1,15 @@
 ﻿# @thiagodiogo/pastelsdd
 
+## 2.3.0
+
+### Minor Changes
+
+- [#12](https://github.com/eipastel/pscode/pull/12) [`765c432`](https://github.com/eipastel/pscode/commit/765c432d782bf8f1e173ee2d25df63ec40692373) Thanks [@eipastel](https://github.com/eipastel)! - Adiciona o workflow `grill-me` nativo em ambos os perfis (`standard` e `dixi`).
+
+  O `grill-me` é gerado como skill (`pscode-grill-me`) e command (`/ps:grill-me`) para cada ferramenta de IA configurada. Ele conduz uma interrogação estruturada do plano — uma pergunta por vez, cada uma com resposta recomendada, explorando o código quando há evidência — até atingir entendimento compartilhado antes da implementação.
+
+  O `/ps:propose` passa a executar uma **fase de grill** após capturar a ideia inicial e antes de gerar os artefatos, garantindo que a proposta reflita o que realmente deve existir, não apenas a descrição inicial.
+
 ## 2.2.2
 
 ### Patch Changes
