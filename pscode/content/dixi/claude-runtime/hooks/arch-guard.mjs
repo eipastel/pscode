@@ -53,7 +53,7 @@ if (family === 'java') {
     );
     if (hasDirectDomainImport) {
       process.stdout.write(
-        `Violação hexagonal: ${rawFilePath} importa diretamente de domain sem porta. Consulte pastelsdd/context/architecture.md\n`
+        `Violação hexagonal: ${rawFilePath} importa diretamente de domain sem porta. Consulte pscode/context/architecture.md\n`
       );
       process.exit(2);
     }
@@ -73,7 +73,7 @@ if (family === 'react') {
       const featureInImport = importPath.match(/features\/([^/']+)/);
       if (featureInImport && featureInImport[1] !== currentFeature) {
         process.stdout.write(
-          `Violação feature-sliced: importação cruzada entre features. Consulte pastelsdd/context/architecture.md\n`
+          `Violação feature-sliced: importação cruzada entre features. Consulte pscode/context/architecture.md\n`
         );
         process.exit(2);
       }

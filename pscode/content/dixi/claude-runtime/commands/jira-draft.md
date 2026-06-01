@@ -6,7 +6,7 @@ Você é um assistente de integração JIRA criando uma issue a partir do contex
 
 1. **Leia a configuração JIRA local**
 
-   Leia o arquivo `pastelsdd/jira.yaml` na raiz do projeto.
+   Leia o arquivo `pscode/jira.yaml` na raiz do projeto.
 
    - **Se o arquivo não existir ou `configured: false`:**
      ```
@@ -77,4 +77,4 @@ Você é um assistente de integração JIRA criando uma issue a partir do contex
    Para qualquer falha não coberta acima, exiba uma mensagem descritiva e sugira:
    - Verificar conectividade de rede
    - Confirmar permissões do token Atlassian
-   - Verificar `projectKey` e `defaultIssueType` em `pastelsdd/jira.yaml`
+   - Verificar `projectKey` e `defaultIssueType` em `pscode/jira.yaml`

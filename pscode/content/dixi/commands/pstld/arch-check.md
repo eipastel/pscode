@@ -7,8 +7,8 @@ Você é um guardião de arquitetura verificando se o código atual respeita as 
 1. **Leia o contexto do projeto**
 
    - Leia `.pscode-dixi.yaml` na raiz do projeto para determinar `stack` e `family`.
-   - Leia `pastelsdd/context/architecture.md` para carregar as regras arquiteturais vigentes.
-   - Se `pastelsdd/context/architecture.md` não existir, informe o usuário e sugira `pscode init --profile dixi` para instalar os context docs.
+   - Leia `pscode/context/architecture.md` para carregar as regras arquiteturais vigentes.
+   - Se `pscode/context/architecture.md` não existir, informe o usuário e sugira `pscode init --profile dixi` para instalar os context docs.
 
 2. **Determine o escopo da verificação**
 
@@ -19,7 +19,7 @@ Você é um guardião de arquitetura verificando se o código atual respeita as 
 
    ### Java / Spring (Arquitetura Hexagonal)
 
-   Verifique as seguintes regras (conforme `pastelsdd/context/architecture.md`):
+   Verifique as seguintes regras (conforme `pscode/context/architecture.md`):
 
    - **Regra de dependência:** `infrastructure → application → domain`. Imports proibidos:
      - `domain.*` importando `application.*` ou `infrastructure.*`
@@ -30,7 +30,7 @@ Você é um guardião de arquitetura verificando se o código atual respeita as 
 
    ### React / Next.js (Feature-Sliced Design)
 
-   Verifique as seguintes regras (conforme `pastelsdd/context/architecture.md`):
+   Verifique as seguintes regras (conforme `pscode/context/architecture.md`):
 
    - **Isolamento de features:** imports cruzados entre features são proibidos (feature A não importa de feature B)
    - **Camadas permitidas:** `app → pages → widgets → features → entities → shared`
@@ -61,4 +61,4 @@ Você é um guardião de arquitetura verificando se o código atual respeita as 
    - <ação corretiva para cada violação>
    ```
 
-5. **Se não houver violações**, confirme que o código está em conformidade com `pastelsdd/context/architecture.md`.
+5. **Se não houver violações**, confirme que o código está em conformidade com `pscode/context/architecture.md`.

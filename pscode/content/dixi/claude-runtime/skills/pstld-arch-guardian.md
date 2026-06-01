@@ -41,7 +41,7 @@ Se detectar esta violação:
 > O arquivo `[caminho do arquivo]` importa diretamente de `domain/` sem usar uma porta.
 > A regra de dependência exige que `infrastructure` acesse `domain` apenas via interfaces de porta.
 >
-> Consulte `pastelsdd/context/architecture.md` para a lista de imports permitidos.
+> Consulte `pscode/context/architecture.md` para a lista de imports permitidos.
 >
 > **A edição foi bloqueada.** Refatore para usar a porta adequada antes de continuar.
 
@@ -69,7 +69,7 @@ Se o arquivo editado está em `src/features/<feature-a>/` e o novo conteúdo imp
 > Features devem ser independentes entre si — imports cruzados criam acoplamento proibido.
 >
 > Use `src/shared/` para código reutilizado entre features.
-> Consulte `pastelsdd/context/architecture.md`.
+> Consulte `pscode/context/architecture.md`.
 >
 > **A edição foi bloqueada.**
 
@@ -88,7 +88,7 @@ Emita aviso (não bloqueie):
 > O componente em `[caminho]` parece conter lógica de negócio inline.
 > Considere extrair para um custom hook em `src/features/` ou `src/shared/hooks/`.
 >
-> Consulte `pastelsdd/context/architecture.md` para o padrão recomendado.
+> Consulte `pscode/context/architecture.md` para o padrão recomendado.
 >
 > A edição foi aplicada, mas revise antes de finalizar.
 

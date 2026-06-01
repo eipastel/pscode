@@ -5,7 +5,7 @@ compatibility: Requires pscode CLI and Trello MCP server configured via /ps:trel
 metadata:
   author: pscode
   version: "1.0"
-  generatedBy: "2.2.0"
+  generatedBy: "2.2.1"
 ---
 
 Capture uma ideia ou conceito bruto diretamente no Backlog do Trello.

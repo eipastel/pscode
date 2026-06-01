@@ -52,7 +52,7 @@ import {
 } from './shared/index.js';
 import { getGlobalConfig, type Delivery } from './global-config.js';
 import { getProfileWorkflows, isValidProfile, DEFAULT_PROFILE, type ProfileName, PROFILES, ALL_WORKFLOWS } from './profiles.js';
-import { detectDixiStack, getDixiStackFamily, getDixiStackLabel, installDixiExtras } from './presets/dixi.js';
+import { detectDixiStack, getDixiStackFamily, getDixiStackLabel, installDixiExtras, migrateLegacyPastelsddDir } from './presets/dixi.js';
 import { stringify as stringifyYaml } from 'yaml';
 import { parse as parseYaml } from 'yaml';
 import { getAvailableTools } from './available-tools.js';
@@ -937,10 +937,12 @@ export class InitCommand {
   }
 
   private async generateJiraFiles(projectPath: string): Promise<void> {
-    const pastelsddPath = path.join(projectPath, 'pastelsdd');
-    await FileSystemUtils.createDirectory(pastelsddPath);
+    migrateLegacyPastelsddDir(projectPath);
 
-    const jiraYamlPath = path.join(pastelsddPath, 'jira.yaml');
+    const pscodeDirPath = path.join(projectPath, PSCODE_DIR_NAME);
+    await FileSystemUtils.createDirectory(pscodeDirPath);
+
+    const jiraYamlPath = path.join(pscodeDirPath, 'jira.yaml');
     if (!fs.existsSync(jiraYamlPath)) {
       const content = `project_key: ""\nboard_url: ""\nconfigured: false\ntransitions:\n  done: ""\n`;
       await FileSystemUtils.writeFile(jiraYamlPath, content);
@@ -969,7 +971,7 @@ export class InitCommand {
       await FileSystemUtils.writeFile(mcpJsonPath, JSON.stringify(mcpConfig, null, 2) + '\n');
     }
 
-    console.log('JIRA: edite pastelsdd/jira.yaml com project_key e board_url, depois use /pstld:jira-sync para testar a conexão.');
+    console.log(`JIRA: edite ${PSCODE_DIR_NAME}/jira.yaml com project_key e board_url, depois use /pstld:jira-sync para testar a conexão.`);
   }
 
   private async handleDixiExtras(projectPath: string): Promise<void> {

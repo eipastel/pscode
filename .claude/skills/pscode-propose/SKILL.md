@@ -5,7 +5,7 @@ compatibility: Requires pscode CLI.
 metadata:
   author: pscode
   version: "1.0"
-  generatedBy: "2.2.0"
+  generatedBy: "2.2.1"
 ---
 
 Propose a new change - create the change and generate all artifacts in one step.

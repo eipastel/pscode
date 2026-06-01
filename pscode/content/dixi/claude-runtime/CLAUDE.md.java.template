@@ -2,7 +2,7 @@
 # Regras Constitucionais — Java/Spring (Arquitetura Hexagonal)
 
 > Regras invioláveis. Não negocie sem motivo documentado.
-> Detalhes completos em `pastelsdd/context/`.
+> Detalhes completos em `pscode/context/`.
 
 ## Arquitetura Hexagonal
 
@@ -53,10 +53,10 @@ fix(infra): correct JPA mapping for OrderStatus [PROJ-55]
 
 ## Referências
 
-Docs completos em `pastelsdd/context/`:
-- `pastelsdd/context/java/architecture.md` — guia completo de arquitetura hexagonal
-- `pastelsdd/context/java/naming.md` — convenções de nomenclatura por camada
-- `pastelsdd/context/shared/commits.md` — convenção completa de commits
-- `pastelsdd/context/shared/dev-flow.md` — fluxo de desenvolvimento e PR
+Docs completos em `pscode/context/`:
+- `pscode/context/java/architecture.md` — guia completo de arquitetura hexagonal
+- `pscode/context/java/naming.md` — convenções de nomenclatura por camada
+- `pscode/context/shared/commits.md` — convenção completa de commits
+- `pscode/context/shared/dev-flow.md` — fluxo de desenvolvimento e PR
 
-> Se `pastelsdd/context/` não existe, rode `pscode init --profile dixi` para instalar.
+> Se `pscode/context/` não existe, rode `pscode init --profile dixi` para instalar.

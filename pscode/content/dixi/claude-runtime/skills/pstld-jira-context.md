@@ -15,13 +15,13 @@ Se o prompt não contém nenhum padrão `[A-Z]+-\d+`, a skill não é ativada.
 
 ### 1. Verificar configuração JIRA
 
-Leia `pastelsdd/jira.yaml` na raiz do projeto.
+Leia `pscode/jira.yaml` na raiz do projeto.
 
 **Se o arquivo não existir ou tiver `configured: false`:**
 
 Exiba o seguinte aviso **uma única vez por sessão** (não repita em prompts subsequentes):
 
-> ℹ️ Integração JIRA não configurada — edite `pastelsdd/jira.yaml` para habilitar.
+> ℹ️ Integração JIRA não configurada — edite `pscode/jira.yaml` para habilitar.
 
 Prossiga sem buscar contexto do ticket.
 

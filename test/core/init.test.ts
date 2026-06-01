@@ -758,11 +758,11 @@ describe('InitCommand - profile and detection features', () => {
     expect(await fileExists(skillFile)).toBe(true);
   });
 
-  it('should generate pastelsdd/jira.yaml and .mcp.json with atlassian entry for dixi profile', async () => {
+  it('should generate pscode/jira.yaml and .mcp.json with atlassian entry for dixi profile', async () => {
     const initCommand = new InitCommand({ tools: 'claude', force: true, profile: 'dixi' });
     await initCommand.execute(testDir);
 
-    const jiraYamlPath = path.join(testDir, 'pastelsdd', 'jira.yaml');
+    const jiraYamlPath = path.join(testDir, 'pscode', 'jira.yaml');
     expect(await fileExists(jiraYamlPath)).toBe(true);
     const jiraContent = await fs.readFile(jiraYamlPath, 'utf-8');
     expect(jiraContent).toContain('project_key');
@@ -781,7 +781,7 @@ describe('InitCommand - profile and detection features', () => {
     const initCommand1 = new InitCommand({ tools: 'claude', force: true, profile: 'dixi' });
     await initCommand1.execute(testDir);
 
-    const jiraYamlPath = path.join(testDir, 'pastelsdd', 'jira.yaml');
+    const jiraYamlPath = path.join(testDir, 'pscode', 'jira.yaml');
     await fs.writeFile(jiraYamlPath, 'project_key: "MYPROJ"\nboard_url: "https://example.atlassian.net"\nconfigured: true\n');
 
     const initCommand2 = new InitCommand({ tools: 'claude', force: true, profile: 'dixi' });

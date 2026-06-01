@@ -6,20 +6,20 @@ Você é um assistente de integração JIRA verificando a configuração e conex
 
 1. **Leia a configuração JIRA local**
 
-   Leia o arquivo `pastelsdd/jira.yaml` na raiz do projeto.
+   Leia o arquivo `pscode/jira.yaml` na raiz do projeto.
 
    - **Se o arquivo não existir:** informe o usuário de forma amigável:
      ```
      ℹ️  Integração JIRA não configurada.
      Para configurar, rode: /pstld:jira-setup
-     O arquivo pastelsdd/jira.yaml será criado com suas preferências.
+     O arquivo pscode/jira.yaml será criado com suas preferências.
      ```
      Encerre aqui.
 
    - **Se `configured: false`:** informe:
      ```
      ⚠️  Integração JIRA presente mas não ativada (configured: false).
-     Edite pastelsdd/jira.yaml e defina configured: true após preencher os campos.
+     Edite pscode/jira.yaml e defina configured: true após preencher os campos.
      ```
      Mostre o conteúdo atual do arquivo para o usuário revisar. Encerre aqui.
 
@@ -35,7 +35,7 @@ Você é um assistente de integração JIRA verificando a configuração e conex
      ```
      ⚠️  MCP Atlassian não está disponível nesta sessão.
      Verifique se o MCP está configurado em .mcp.json e reinicie o Claude Code.
-     Configuração esperada: pastelsdd/jira.yaml → cloudId: <seu-cloud-id>
+     Configuração esperada: pscode/jira.yaml → cloudId: <seu-cloud-id>
      ```
      Encerre aqui.
 
@@ -47,12 +47,12 @@ Você é um assistente de integração JIRA verificando a configuração e conex
    ## Status da Integração JIRA ✅
 
    **Usuário autenticado:** <nome do usuário>
-   **Cloud ID:** <cloudId de pastelsdd/jira.yaml>
-   **Projeto padrão:** <projectKey de pastelsdd/jira.yaml>
+   **Cloud ID:** <cloudId de pscode/jira.yaml>
+   **Projeto padrão:** <projectKey de pscode/jira.yaml>
    **Tipo de issue padrão:** <defaultIssueType>
 
    ### Verificações
-   - ✅ pastelsdd/jira.yaml encontrado e configurado
+   - ✅ pscode/jira.yaml encontrado e configurado
    - ✅ MCP Atlassian disponível e autenticado
    - ✅ Conexão com JIRA estabelecida
 
@@ -66,4 +66,4 @@ Você é um assistente de integração JIRA verificando a configuração e conex
    Para qualquer falha não coberta acima, mostre uma mensagem descritiva e sugira verificar:
    - A conectividade de rede
    - As permissões do token Atlassian
-   - O `cloudId` em `pastelsdd/jira.yaml`
+   - O `cloudId` em `pscode/jira.yaml`

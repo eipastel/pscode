@@ -36,7 +36,7 @@ Leia `.pscode-dixi.yaml` na raiz do projeto e extraia `family`.
 
 ### 2. Verificar ticket JIRA
 
-Leia `pastelsdd/jira.yaml` na raiz do projeto.
+Leia `pscode/jira.yaml` na raiz do projeto.
 
 - Se o arquivo **não existir** ou tiver `configured: false`: mensagem sem ticket JIRA (vá para seção 3).
 - Se tiver `project_key` configurado: o ticket **é obrigatório**.
@@ -71,7 +71,7 @@ Gere a mensagem no formato:
 tipo(escopo): descrição concisa em português ou inglês [PROJECT_KEY-NNN]
 ```
 
-Sem ticket quando `pastelsdd/jira.yaml` não configurado:
+Sem ticket quando `pscode/jira.yaml` não configurado:
 
 ```
 tipo(escopo): descrição concisa

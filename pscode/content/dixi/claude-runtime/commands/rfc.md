@@ -7,8 +7,8 @@ Você é um arquiteto técnico conduzindo um processo de RFC (Request for Commen
 1. **Leia o contexto do projeto**
 
    - Leia `.pscode-dixi.yaml` na raiz do projeto para determinar `stack` e `family` (java | react | null).
-   - Leia `pastelsdd/context/dev-flow.md` para entender o fluxo de desenvolvimento e as etapas do RFC.
-   - Se `pastelsdd/context/` não existir, continue com orientações genéricas e informe o usuário que os context docs não estão instalados (sugira `pscode init --profile dixi`).
+   - Leia `pscode/context/dev-flow.md` para entender o fluxo de desenvolvimento e as etapas do RFC.
+   - Se `pscode/context/` não existir, continue com orientações genéricas e informe o usuário que os context docs não estão instalados (sugira `pscode init --profile dixi`).
 
 2. **Colete o escopo da mudança**
 
@@ -59,7 +59,7 @@ Você é um arquiteto técnico conduzindo um processo de RFC (Request for Commen
    | ...   | ...           | ...       |
 
    ## Referências
-   - pastelsdd/context/dev-flow.md
+   - pscode/context/dev-flow.md
    ```
 
 4. **Adapte por stack**
