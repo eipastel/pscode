@@ -77,6 +77,44 @@ describe('InitCommand', () => {
       expect(content).toContain('schema: spec-driven');
     });
 
+    it('should create config.yaml with pstld-workflow schema when profile is dixi', async () => {
+      const initCommand = new InitCommand({ tools: 'claude', force: true, profile: 'dixi' });
+
+      await initCommand.execute(testDir);
+
+      const configPath = path.join(testDir, 'pscode', 'config.yaml');
+      expect(await fileExists(configPath)).toBe(true);
+
+      const content = await fs.readFile(configPath, 'utf-8');
+      expect(content).toContain('schema: pstld-workflow');
+    });
+
+    it('should create config.yaml with spec-driven schema when profile is standard', async () => {
+      const initCommand = new InitCommand({ tools: 'claude', force: true, profile: 'standard' });
+
+      await initCommand.execute(testDir);
+
+      const configPath = path.join(testDir, 'pscode', 'config.yaml');
+      expect(await fileExists(configPath)).toBe(true);
+
+      const content = await fs.readFile(configPath, 'utf-8');
+      expect(content).toContain('schema: spec-driven');
+    });
+
+    it('should not overwrite existing config.yaml regardless of profile', async () => {
+      const pscodeDir = path.join(testDir, 'pscode');
+      await fs.mkdir(pscodeDir, { recursive: true });
+      const configPath = path.join(pscodeDir, 'config.yaml');
+      const existingContent = 'schema: custom-schema\n';
+      await fs.writeFile(configPath, existingContent);
+
+      const initCommand = new InitCommand({ tools: 'claude', force: true, profile: 'dixi' });
+      await initCommand.execute(testDir);
+
+      const content = await fs.readFile(configPath, 'utf-8');
+      expect(content).toBe(existingContent);
+    });
+
     it('should create core profile skills for Claude Code by default', async () => {
       const initCommand = new InitCommand({ tools: 'claude', force: true });
 
