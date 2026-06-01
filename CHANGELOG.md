@@ -1,5 +1,11 @@
 ﻿# @thiagodiogo/pastelsdd
 
+## 2.1.1
+
+### Patch Changes
+
+- [#3](https://github.com/eipastel/pscode/pull/3) [`95177d0`](https://github.com/eipastel/pscode/commit/95177d00e25b6a3df2b9f9e0822cc0110c24c7c1) Thanks [@eipastel](https://github.com/eipastel)! - When `pscode init --profile dixi` runs, `pscode/config.yaml` is now created with `schema: pstld-workflow` instead of the default `spec-driven`. The success message after init also reflects the actual schema written.
+
 ## 2.1.0
 
 ### Minor Changes
