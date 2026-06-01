@@ -104,9 +104,26 @@ function getApplyInstructions(): string {
 
    **Workspace guard:** If status JSON reports \`actionContext.mode: "workspace-planning"\` and \`allowedEditRoots\` is empty, explain that full workspace apply is not supported in this slice. Treat linked repos and folders as read-only context, ask the user to select an affected area, and STOP before editing files.
 
-5. **Read context files**
+5. **Read context files and PR config**
 
    Read every file path listed under \`contextFiles\` from the apply instructions output.
+
+   Additionally, use the **Read tool** to read \`pscode/config.yaml\` from the current working directory.
+
+   **If \`pscode/config.yaml\` exists and \`pr.enabled: true\`:**
+
+   Before starting any implementation, inform the user of the PR workflow requirements:
+
+   > 🔀 **Workflow de PR ativo** — este projeto requer branches dedicadas e Pull Requests.
+   > - Branch: crie uma branch com o padrão \`<pr.branch.pattern>\` antes de codificar
+   > - Título do PR: \`<pr.title.template>\`
+   > - Descrição do PR: use o template definido em \`pr.description.template\`
+   > - Ao abrir o PR: \`<"comente o link do PR nesta task" se pr.comments.linkInTask: true, senão omita>\`
+
+   The agent MUST create the branch with the configured pattern before making any code changes.
+   Template variables available: \`{change-name}\` = current change name, \`{type}\` = feat/fix/chore, \`{ticket}\` = ticket ID if available.
+
+   **If \`pscode/config.yaml\` does not exist, or \`pr.enabled: false\`, or file not found:** continue normally without any PR instructions.
 
 6. **Show current progress**
 

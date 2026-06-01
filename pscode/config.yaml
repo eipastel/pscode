@@ -1,5 +1,23 @@
 schema: spec-driven
 
+pr:
+  enabled: true
+  branch:
+    pattern: feat/{change-name}
+  title:
+    template: "[{type}] {change-name}"
+  description:
+    template: |
+      ## O que foi feito
+
+
+      ## Como testar
+
+
+      ## Referências
+  comments:
+    linkInTask: true
+
 # Project context (optional)
 # This is shown to AI when creating artifacts.
 # Add your tech stack, conventions, style guides, domain knowledge, etc.

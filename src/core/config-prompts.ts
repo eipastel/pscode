@@ -1,9 +1,10 @@
+import { stringify as stringifyYaml } from 'yaml';
 import type { ProjectConfig } from './project-config.js';
 
 /**
  * Serialize config to YAML string with helpful comments.
  *
- * @param config - Partial config object (schema required, context/rules optional)
+ * @param config - Partial config object (schema required, context/rules/pr optional)
  * @returns YAML string ready to write to file
  */
 export function serializeConfig(config: Partial<ProjectConfig>): string {
@@ -12,6 +13,13 @@ export function serializeConfig(config: Partial<ProjectConfig>): string {
   // Schema (required)
   lines.push(`schema: ${config.schema}`);
   lines.push('');
+
+  // PR workflow config (if present)
+  if (config.pr !== undefined) {
+    const prYaml = stringifyYaml({ pr: config.pr }, { lineWidth: 0 });
+    lines.push(prYaml.trimEnd());
+    lines.push('');
+  }
 
   // Context section with comments
   lines.push('# Project context (optional)');

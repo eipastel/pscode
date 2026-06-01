@@ -23,6 +23,14 @@ export const COMMAND_REGISTRY: CommandDefinition[] = [
         takesValue: true,
         values: ['standard', 'dixi'],
       },
+      {
+        name: 'pr',
+        description: 'Enable PR workflow config without interactive prompts',
+      },
+      {
+        name: 'no-pr',
+        description: 'Disable PR workflow config without interactive prompts',
+      },
     ],
   },
   {
