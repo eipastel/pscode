@@ -5,7 +5,7 @@ compatibility: Requires pscode CLI and the Trello MCP server.
 metadata:
   author: pscode
   version: "1.0"
-  generatedBy: "2.2.1"
+  generatedBy: "2.2.2"
 ---
 
 Configure Trello integration for your Pscode workflow.

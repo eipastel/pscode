@@ -5,7 +5,7 @@ compatibility: Requires pscode CLI.
 metadata:
   author: pscode
   version: "1.0"
-  generatedBy: "2.2.1"
+  generatedBy: "2.2.2"
 ---
 
 Enter explore mode. Think deeply. Visualize freely. Follow the conversation wherever it goes.
