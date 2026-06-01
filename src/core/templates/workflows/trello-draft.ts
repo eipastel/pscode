@@ -15,7 +15,6 @@ export function getTrelloDraftSkillTemplate(): SkillTemplate {
     description:
       'Capture a raw idea or concept into the Backlog Trello list. Use when the user wants to quickly record something without refining it into a task yet.',
     instructions: getTrelloDraftInstructions(),
-    license: 'MIT',
     compatibility: 'Requires pscode CLI and Trello MCP server configured via /ps:trello-setup.',
     metadata: { author: 'pscode', version: '1.0' },
   };

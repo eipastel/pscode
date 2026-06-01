@@ -1,7 +1,6 @@
 ---
 name: pscode-archive-change
 description: Complete a completed change. Use when the user wants to finalize and complete a change after implementation is complete.
-license: MIT
 compatibility: Requires pscode CLI.
 metadata:
   author: pscode

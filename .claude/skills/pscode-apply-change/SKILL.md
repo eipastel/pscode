@@ -1,7 +1,6 @@
 ---
 name: pscode-apply-change
 description: Implement tasks from an Pscode change. Use when the user wants to start implementing, continue implementation, or work through tasks.
-license: MIT
 compatibility: Requires pscode CLI.
 metadata:
   author: pscode
@@ -190,7 +189,13 @@ Implement tasks from a Pscode change.
           Testado por: <usuario / Claude>
           Status: Funcionando
 
-          Proximo passo: /ps:complete <name> para arquivar a change.
+          ## Próximo passo
+
+          Para finalizar e arquivar a change, rode:
+
+          ```
+          /ps:complete "<card title>"
+          ```
       ```
 
    If any Trello call fails, continue — Trello is auxiliary, never blocking.

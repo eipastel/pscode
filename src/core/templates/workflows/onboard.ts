@@ -11,7 +11,6 @@ export function getOnboardSkillTemplate(): SkillTemplate {
     name: 'pscode-onboard',
     description: 'Guided onboarding for Pscode - walk through a complete workflow cycle with narration and real codebase work.',
     instructions: getOnboardInstructions(),
-    license: 'MIT',
     compatibility: 'Requires pscode CLI.',
     metadata: { author: 'pscode', version: '1.0' },
   };

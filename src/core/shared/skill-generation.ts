@@ -17,6 +17,7 @@ import {
   getProposeSkillTemplate,
   getTrelloSetupSkillTemplate,
   getTrelloDraftSkillTemplate,
+  getHandoffSkillTemplate,
   getPsExploreCommandTemplate,
   getPsNewCommandTemplate,
   getPsContinueCommandTemplate,
@@ -29,6 +30,7 @@ import {
   getPsProposeCommandTemplate,
   getTrelloSetupCommandTemplate,
   getTrelloDraftCommandTemplate,
+  getHandoffCommandTemplate,
   type SkillTemplate,
 } from '../templates/skill-templates.js';
 import type { CommandContent } from '../command-generation/index.js';
@@ -70,6 +72,8 @@ export function getSkillTemplates(workflowFilter?: readonly string[]): SkillTemp
     // Trello-specific workflows
     { template: getTrelloSetupSkillTemplate(), dirName: 'pscode-trello-setup', workflowId: 'trello-setup' },
     { template: getTrelloDraftSkillTemplate(), dirName: 'pscode-trello-draft', workflowId: 'draft' },
+    // Productivity workflows
+    { template: getHandoffSkillTemplate(), dirName: 'pscode-handoff', workflowId: 'handoff' },
   ];
 
   if (!workflowFilter) return all;
@@ -98,6 +102,8 @@ export function getCommandTemplates(workflowFilter?: readonly string[]): Command
     // Trello-specific workflows
     { template: getTrelloSetupCommandTemplate(), id: 'trello-setup' },
     { template: getTrelloDraftCommandTemplate(), id: 'draft' },
+    // Productivity workflows
+    { template: getHandoffCommandTemplate(), id: 'handoff' },
   ];
 
   if (!workflowFilter) return all;
@@ -142,7 +148,6 @@ export function generateSkillContent(
   return `---
 name: ${template.name}
 description: ${template.description}
-license: ${template.license || 'MIT'}
 compatibility: ${template.compatibility || 'Requires pscode CLI.'}
 metadata:
   author: ${template.metadata?.author || 'pscode'}

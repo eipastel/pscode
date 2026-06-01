@@ -237,9 +237,12 @@ Options:
        ### Resumo
        <2-3 line summary of what will be built>
 
-       ### Para iniciar a implementação
+       ## Próximo passo
+
+       Para implementar as tasks da change, rode:
+
        ```
-       /ps:apply <name>
+       /ps:apply "<card title>"
        ```
 
        _Aguardando aprovação para mover para Ready to Dev._
@@ -261,9 +264,12 @@ Options:
 
        O planejamento foi revisado e aprovado.
 
-       ### Próximo passo
+       ## Próximo passo
+
+       Para implementar as tasks da change, rode:
+
        ```
-       /ps:apply <name>
+       /ps:apply "<card title>"
        ```
    ```
 

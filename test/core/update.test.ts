@@ -105,7 +105,6 @@ describe('UpdateCommand', () => {
       const oldSkillContent = `---
 name: pscode-explore (old)
 description: Old description
-license: MIT
 compatibility: Requires pscode CLI.
 metadata:
   author: pscode
@@ -130,7 +129,7 @@ Old instructions content
       );
       expect(updatedSkill).toContain('name: pscode-explore');
       expect(updatedSkill).not.toContain('Old instructions content');
-      expect(updatedSkill).toContain('license: MIT');
+      expect(updatedSkill).not.toContain('license:');
 
       // Check console output
       expect(consoleSpy).toHaveBeenCalledWith(
@@ -496,7 +495,7 @@ Old instructions content
       expect(skillContent).toMatch(/^---\n/);
       expect(skillContent).toContain('name:');
       expect(skillContent).toContain('description:');
-      expect(skillContent).toContain('license:');
+      expect(skillContent).not.toContain('license:');
       expect(skillContent).toContain('compatibility:');
       expect(skillContent).toContain('metadata:');
       expect(skillContent).toContain('author:');

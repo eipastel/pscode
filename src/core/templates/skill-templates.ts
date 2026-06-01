@@ -21,3 +21,6 @@ export { getFeedbackSkillTemplate } from './workflows/feedback.js';
 // Trello-specific workflows
 export { getTrelloSetupSkillTemplate, getTrelloSetupCommandTemplate } from './workflows/trello-setup.js';
 export { getTrelloDraftSkillTemplate, getTrelloDraftCommandTemplate } from './workflows/trello-draft.js';
+
+// Productivity workflows
+export { getHandoffSkillTemplate, getHandoffCommandTemplate } from './workflows/handoff.js';

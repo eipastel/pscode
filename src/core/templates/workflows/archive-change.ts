@@ -11,7 +11,6 @@ export function getCompleteChangeSkillTemplate(): SkillTemplate {
     name: 'pscode-archive-change',
     description: 'Complete a completed change. Use when the user wants to finalize and complete a change after implementation is complete.',
     instructions: getArchiveInstructions(),
-    license: 'MIT',
     compatibility: 'Requires pscode CLI.',
     metadata: { author: 'pscode', version: '1.0' },
   };

@@ -14,7 +14,6 @@ export function getTrelloSetupSkillTemplate(): SkillTemplate {
     description:
       'Configure Trello integration for your Pscode workflow. Checks MCP availability, reads or creates a Trello board, and writes pscode/trello.yaml with your stage-to-list mapping.',
     instructions: getTrelloSetupInstructions(),
-    license: 'MIT',
     compatibility: 'Requires pscode CLI and the Trello MCP server.',
     metadata: { author: 'pscode', version: '1.0' },
   };

@@ -434,7 +434,6 @@ Do NOT move the card. End the loop.
 - **Do question assumptions** - Including the user's and your own
 - **Always run the refinement loop after propose** - When exploration leads to a proposal, the refinement validation loop (Steps RF1–RF3) is mandatory, not optional
 - **Preserve the loop** - Do not exit until the user explicitly approves or cancels`,
-    license: 'MIT',
     compatibility: 'Requires pscode CLI.',
     metadata: { author: 'pscode', version: '1.0' },
   };

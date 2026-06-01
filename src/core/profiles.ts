@@ -26,6 +26,7 @@ export const ALL_WORKFLOWS = [
   'adr',
   'jira-sync',
   'dod',
+  'handoff',
 ] as const;
 
 export type WorkflowId = (typeof ALL_WORKFLOWS)[number];
@@ -38,11 +39,11 @@ export interface ProfileDefinition {
 export const PROFILES = {
   standard: {
     description: 'Padrão — propose, explore, apply, complete',
-    workflows: ['propose', 'explore', 'apply', 'complete', 'trello-setup', 'draft'],
+    workflows: ['propose', 'explore', 'apply', 'complete', 'trello-setup', 'draft', 'handoff'],
   },
   dixi: {
     description: 'Dixi — propose, explore, apply, complete com guardrails para Java/Spring e React/Next.js',
-    workflows: ['propose', 'explore', 'apply', 'complete', 'trello-setup', 'draft'],
+    workflows: ['propose', 'explore', 'apply', 'complete', 'trello-setup', 'draft', 'handoff'],
   },
 } as const satisfies Record<string, ProfileDefinition>;
 
