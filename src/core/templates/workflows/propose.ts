@@ -5,7 +5,7 @@
  * templates file into workflow-focused modules.
  */
 import type { SkillTemplate, CommandTemplate } from '../types.js';
-import { buildNextStepComment } from './trello-next-step-comment.js';
+import { buildNextStepComment, buildNextStepReminder } from './trello-next-step-comment.js';
 
 export function getProposeSkillTemplate(): SkillTemplate {
   return {
@@ -35,6 +35,7 @@ function getProposeInstructions(): string {
     .split('\n')
     .map((line) => (line.length > 0 ? `       ${line}` : ''))
     .join('\n');
+  const applyReminder = buildNextStepReminder('<card title>', '/ps:apply');
 
   return `Propose a new change - create the change and generate all artifacts in one step.
 
@@ -244,6 +245,7 @@ update the card with the refinement content **before** asking for approval.
    \`\`\`
 
 2. **Add a refinement comment** in Portuguese (if \`cardId\` exists):
+   ${applyReminder}
    \`\`\`tool
    mcp__claude_ai_Trello_Custom__add_comment
      card_id: "<cardId>"
@@ -294,6 +296,7 @@ Now just move the card and register the explicit approval.
    \`\`\`
 
 2. **Add a final Trello comment** (if cardId exists):
+   ${applyReminder}
    \`\`\`tool
    mcp__claude_ai_Trello_Custom__add_comment
      card_id: "<cardId>"
