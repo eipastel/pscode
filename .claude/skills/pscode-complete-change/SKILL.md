@@ -35,9 +35,8 @@ Complete a change.
    If status reports `actionContext.mode: "workspace-planning"`, explain that workspace archive is not supported in this slice and STOP.
 
    **If any artifacts are not `done`:**
-   - Display warning listing incomplete artifacts
-   - Use **AskUserQuestion tool** to confirm user wants to proceed
-   - Proceed if user confirms
+   - Record a warning listing the incomplete artifacts (to surface in the final summary)
+   - Proceed automatically — do NOT use `AskUserQuestion` and do NOT block on this
 
 3. **Check task completion status**
 
@@ -46,26 +45,20 @@ Complete a change.
    Count tasks marked with `- [ ]` (incomplete) vs `- [x]` (complete).
 
    **If incomplete tasks found:**
-   - Display warning showing count of incomplete tasks
-   - Use **AskUserQuestion tool** to confirm user wants to proceed
-   - Proceed if user confirms
+   - Record a warning showing the count of incomplete tasks (to surface in the final summary)
+   - Proceed automatically — do NOT use `AskUserQuestion` and do NOT block on this
 
    **If no tasks file exists:** Proceed without task-related warning.
 
-4. **Assess delta spec sync state**
+4. **Sync delta specs into main specs automatically**
 
-   Use `artifactPaths.specs.existingOutputPaths` from status JSON to check for delta specs. If none exist, proceed without sync prompt.
+   Use `artifactPaths.specs.existingOutputPaths` from status JSON to check for delta specs. If none exist, proceed directly to the archive step — there is nothing to sync.
 
-   **If delta specs exist:**
-   - Compare each delta spec with its corresponding main spec at `pscode/specs/<capability>/spec.md`
-   - Determine what changes would be applied (adds, modifications, removals, renames)
-   - Show a combined summary before prompting
-
-   **Prompt options:**
-   - If changes needed: "Sync now (recommended)", "Archive without syncing"
-   - If already synced: "Archive now", "Sync anyway", "Cancel"
-
-   If user chooses sync, use Task tool (subagent_type: "general-purpose", prompt: "Use Skill tool to invoke pscode-sync-specs for change '<name>'. Delta spec analysis: <include the analyzed delta spec summary>"). Proceed to archive regardless of choice.
+   **If delta specs exist, sync them inline yourself (no prompt, no subagent):**
+   - For each delta spec, read it and compare it with its corresponding main spec at `pscode/specs/<capability>/spec.md` (create the main spec if it does not exist yet).
+   - Apply the delta directly to the main spec: `## ADDED Requirements` are inserted, `## MODIFIED Requirements` replace the matching requirement, `## REMOVED Requirements` are deleted, and renames update the heading. Use the **Edit/Write tools** to apply the changes.
+   - Do NOT use `AskUserQuestion` and do NOT delegate to a `pscode-sync-specs` skill (it does not exist) — perform the merge inline.
+   - After applying, keep an informative summary of what was synced (adds, modifications, removals, renames) to show in the final summary. This summary is informational only — never blocking.
 
 5. **Perform the archive**
 
@@ -135,7 +128,7 @@ Complete a change.
        Change: <change-name>
        Schema: <schema-name>
        Arquivada em: <archive-path>
-       Specs: <sincronizado / sem delta specs / sync pulado>
+       Specs: <sincronizado / sem delta specs>
        Tasks: <N>/<N> concluidas
 
        Fluxo encerrado. Nenhuma acao adicional necessaria.
@@ -149,8 +142,8 @@ Complete a change.
    - Change name
    - Schema that was used
    - Archive location
-   - Spec sync status (synced / sync skipped / no delta specs)
-   - Note about any warnings (incomplete artifacts/tasks)
+   - Spec sync status (synced / no delta specs)
+   - Note about any warnings (incomplete artifacts/tasks that were archived anyway)
    - Trello: mention if card was moved to "Concluído"
 
 **Output On Success**
@@ -175,13 +168,12 @@ All artifacts complete. All tasks complete.
 **Change:** <change-name>
 **Schema:** <schema-name>
 **Archived to:** <archive-path>
-**Specs:** Sync skipped (user chose to skip)
+**Specs:** ✓ Synced to main specs
 **Trello:** Card moved to ✅ Concluído    ← only shown if Trello is configured
 
 **Warnings:**
 - Archived with 2 incomplete artifacts
 - Archived with 3 incomplete tasks
-- Delta spec sync was skipped
 
 Review the archive if this was not intentional.
 ```
@@ -203,13 +195,13 @@ Target archive directory already exists.
 ```
 
 **Guardrails**
-- Always prompt for change selection if not provided
+- Change selection (Step 1) is the ONLY interactive point — prompt for it only when no name is provided
+- Never use `AskUserQuestion` to confirm sync or archiving; sync and archive run automatically
 - Use artifact graph (pscode status --json) for completion checking
-- Don't block archive on warnings — just inform and confirm
+- Don't block archive on warnings — record them and surface in the final summary
 - Preserve .pscode.yaml when moving to archive (it moves with the directory)
 - Show clear summary of what happened
-- If sync is requested, use pscode-sync-specs approach (agent-driven)
-- If delta specs exist, always run the sync assessment and show the combined summary before prompting
+- If delta specs exist, sync them inline yourself (agent-driven merge into main specs) — there is no `pscode-sync-specs` skill
 - If Trello tools fail, continue normally — Trello is auxiliary, not blocking
 - All content written to Trello must be in Portuguese
 
