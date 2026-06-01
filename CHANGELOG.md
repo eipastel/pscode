@@ -1,5 +1,19 @@
 ﻿# @thiagodiogo/pastelsdd
 
+## 2.2.0
+
+### Minor Changes
+
+- [#6](https://github.com/eipastel/pscode/pull/6) [`7b828b5`](https://github.com/eipastel/pscode/commit/7b828b5088450bfdabee9640d77416a5d6a28922) Thanks [@eipastel](https://github.com/eipastel)! - Comentários de próximo passo no Trello com título do card pré-preenchido
+
+  Os skills `ps:draft`, `ps:propose` e `ps:apply` agora geram o comentário de próximo passo no Trello com o comando completo e o título do card já interpolado como argumento entre aspas (ex.: `/ps:apply "Minha feature"`), eliminando a digitação manual do nome pelo dev. A lógica fica centralizada no novo utilitário `trello-next-step-comment` (`buildNextStepComment` e `getNextStepCommentInstructionBlock`), que trata espaços, acentos, aspas duplas internas e fallback kebab-case para título ausente.
+
+### Patch Changes
+
+- [#9](https://github.com/eipastel/pscode/pull/9) [`65a933e`](https://github.com/eipastel/pscode/commit/65a933e76f4774d6c764780bf93053876d0c633b) Thanks [@eipastel](https://github.com/eipastel)! - Refinamento do `ps:propose`: atualiza card do Trello antes de pedir confirmação
+
+  O loop de refinamento do skill `ps:propose` agora atualiza a descrição e adiciona o comentário de refinamento no card do Trello **antes** de perguntar ao usuário se o planejamento está de acordo (novo Step R1b), permitindo que o card sirva como referência visual na decisão de aprovação. O Step R2a passa a apenas mover o card para Ready to Dev e registrar a aprovação explícita; em iterações de ajuste (R2b) o card é reatualizado antes de nova confirmação. A correção foi aplicada no template-fonte `src/core/templates/workflows/propose.ts` e nos arquivos gerados.
+
 ## 2.1.1
 
 ### Patch Changes
