@@ -137,7 +137,13 @@ Save the returned card `id` as `cardId` and `url` as `cardUrl`.
 ## Step 7 — Add next-step comment
 
 Add a comment to the card with the command to take this task to the next stage,
-formatted in Markdown so it is easy to copy and paste.
+with the card title (`<title>` from Step 3) pre-filled as the quoted argument so
+it is ready to copy and paste.
+
+## Step — Add next-step comment
+
+Post a comment on the card with the ready-to-paste command for the next stage,
+using `buildNextStepComment` so the card title is pre-filled as the quoted argument:
 
 ```tool
 mcp__claude_ai_Trello_Custom__add_comment
@@ -148,7 +154,7 @@ mcp__claude_ai_Trello_Custom__add_comment
     Para refinar e gerar os artefatos da change, rode:
 
     ```
-    /ps:propose
+    /ps:propose "<title>"
     ```
 ```
 
