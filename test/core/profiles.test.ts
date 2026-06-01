@@ -10,17 +10,14 @@ import {
 
 describe('profiles', () => {
   describe('ALL_WORKFLOWS', () => {
-    it('should contain all 21 workflows', () => {
-      expect(ALL_WORKFLOWS).toHaveLength(21);
+    it('should contain all 8 workflows', () => {
+      expect(ALL_WORKFLOWS).toHaveLength(8);
     });
 
     it('should contain expected workflow IDs', () => {
       const expected = [
-        'propose', 'explore', 'new', 'continue', 'apply',
-        'ff', 'complete', 'bulk-archive', 'verify', 'onboard',
-        'trello-setup', 'draft',
-        'rfc', 'design', 'tasks', 'arch-check', 'adr', 'jira-sync', 'dod',
-        'handoff', 'grill-me',
+        'propose', 'explore', 'apply', 'complete',
+        'trello-setup', 'draft', 'handoff', 'grill-me',
       ];
       expect([...ALL_WORKFLOWS]).toEqual(expected);
     });
@@ -29,10 +26,10 @@ describe('profiles', () => {
       expect(ALL_WORKFLOWS).not.toContain('sync');
     });
 
-    it('should contain the 7 new dixi workflow IDs', () => {
-      const newIds = ['rfc', 'design', 'tasks', 'arch-check', 'adr', 'jira-sync', 'dod'];
-      for (const id of newIds) {
-        expect(ALL_WORKFLOWS).toContain(id);
+    it('should not contain the removed orphan workflow IDs', () => {
+      const removed = ['new', 'continue', 'ff', 'bulk-archive', 'verify', 'onboard', 'rfc', 'design', 'tasks', 'arch-check', 'adr', 'jira-sync', 'dod'];
+      for (const id of removed) {
+        expect(ALL_WORKFLOWS).not.toContain(id);
       }
     });
   });

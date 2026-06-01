@@ -28,3 +28,9 @@ export {
   getCommandContents,
   generateSkillContent,
 } from './skill-generation.js';
+
+export {
+  type PruneResult,
+  pruneOrphans,
+  pruneOrphansForTool,
+} from './prune-orphans.js';

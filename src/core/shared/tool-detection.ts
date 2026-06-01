@@ -13,14 +13,8 @@ import { AI_TOOLS } from '../config.js';
  */
 export const SKILL_NAMES = [
   'pscode-explore',
-  'pscode-new-change',
-  'pscode-continue-change',
   'pscode-apply-change',
-  'pscode-ff-change',
-  'pscode-archive-change',
-  'pscode-bulk-archive-change',
-  'pscode-verify-change',
-  'pscode-onboard',
+  'pscode-complete-change',
   'pscode-propose',
 ] as const;
 
@@ -31,14 +25,8 @@ export type SkillName = (typeof SKILL_NAMES)[number];
  */
 export const COMMAND_IDS = [
   'explore',
-  'new',
-  'continue',
   'apply',
-  'ff',
   'complete',
-  'bulk-archive',
-  'verify',
-  'onboard',
   'propose',
 ] as const;
 

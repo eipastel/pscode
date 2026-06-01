@@ -5,63 +5,33 @@ import {
   type SkillTemplate,
   getApplyChangeSkillTemplate,
   getCompleteChangeSkillTemplate,
-  getBulkArchiveChangeSkillTemplate,
-  getContinueChangeSkillTemplate,
   getExploreSkillTemplate,
   getFeedbackSkillTemplate,
-  getFfChangeSkillTemplate,
-  getNewChangeSkillTemplate,
-  getOnboardSkillTemplate,
   getPsApplyCommandTemplate,
   getPsCompleteCommandTemplate,
-  getPsBulkArchiveCommandTemplate,
-  getPsContinueCommandTemplate,
   getPsExploreCommandTemplate,
-  getPsFfCommandTemplate,
-  getPsNewCommandTemplate,
-  getPsOnboardCommandTemplate,
   getPsProposeCommandTemplate,
   getProposeSkillTemplate,
-  getPsVerifyCommandTemplate,
-  getVerifyChangeSkillTemplate,
 } from '../../../src/core/templates/skill-templates.js';
 import { generateSkillContent } from '../../../src/core/shared/skill-generation.js';
 
 const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
   getApplyChangeSkillTemplate: '9ba4b2b078bcd3b47895cc30b5b00e042b360546dea8732cfe46e01f5a1c36a4',
-  getCompleteChangeSkillTemplate: '13f00c3a3fc13d29a4d81a199f9c993c8fc691a10ef12a3739d3fe2520d4b09e',
-  getBulkArchiveChangeSkillTemplate: '9a625b7b199ac465654d3c3d89b812f8a7ae6a4e2cca60010a8c03293a1ff801',
-  getContinueChangeSkillTemplate: '4bcce8b5109e8fe489782b5415d318816457b43db315b0747063ee35f4dc4e77',
+  getCompleteChangeSkillTemplate: 'e932374cb314b00a77854536619c1044e21367431f49124776b26f3b5e179bfe',
   getExploreSkillTemplate: '883766675e50ab0f1e8ddea8d35083523dad24f7358107659d670d4e6569e1cb',
   getFeedbackSkillTemplate: '37cc46fb58f8390f6cb47d4221bfd729ea45692903f19ef5dc932b6a6e04c24a',
-  getFfChangeSkillTemplate: '900ccf0782ec1a9024ad4a8b890e34db4e7302222bd1b71613c8c858984126fd',
-  getNewChangeSkillTemplate: 'cd6a0b88659afcabe73581646e8d9b1accb2f48df547faa7c5d0e44d77ece0aa',
-  getOnboardSkillTemplate: '2db2164f9a052903709e1312175e34aeffb9d38e2c205cf9f985130013110b33',
   getProposeSkillTemplate: '2df25f87f31a1c5ba43a88757835c4d894a49647dead7fc78376d056fc8c0c56',
   getPsApplyCommandTemplate: 'c75efd8b81ff877ba08c03463ff521eb3f7924cb230d8d95386f4ea431b0fdef',
   getPsCompleteCommandTemplate: '74db9b5f7f40e8e3b1360872a74969b1e5676c02eea69ea672d74c5a7c96598f',
-  getPsBulkArchiveCommandTemplate: '1464df49ad5bf07a550d34f6950495e5ca397f6eb7a8690bcc0993c8e4136b74',
-  getPsContinueCommandTemplate: 'dca3927fa00bf0a7135c6cc99f75b2908e80a38bb495ec5f3e5888743e0f1e6d',
   getPsExploreCommandTemplate: 'bfd0f5505ee60d50fb9b7f1ecb3ffa933d801d86136786e78c4fa4f60a1acabe',
-  getPsFfCommandTemplate: 'ef272952e2e01b96ed6e49abef147e8808d6186896d61cea60ce7ebcd947eabc',
-  getPsNewCommandTemplate: 'fdb348e81411ff65d722ab90a218155ed301712ef44b6621124dbad726959895',
-  getPsOnboardCommandTemplate: 'f01a5baae071c51e5991e10024abef089a35c222c0bbc8be3c2f8dd580d48091',
   getPsProposeCommandTemplate: '64110994ba8c58be601aa73b617d539c9eb754c6a072f5c6f9e400fdd752b14c',
-  getPsVerifyCommandTemplate: 'ff5444b1f84b2de82e3c56b105f384bdd61e58251257b183087c5c92a608e7ec',
-  getVerifyChangeSkillTemplate: 'fb57bd2789816164ae3ffae404442456377e590cb7fe0a7a266eb1841c29ca5c',
 };
 
 const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
   'pscode-apply-change': 'b4c78829a73d9ccb692b0ce09afa94c5049c3239ea2834f113b568e7d1bfcdcc',
-  'pscode-archive-change': '6488e283714cb475040f23cf534f497ce2b3af43d7d06288e1a86459015a3294',
-  'pscode-bulk-archive-change': 'b09bc4dbad8eaa9d4682b28b3bbbc521948a397a0495f832cd3121a03703a863',
-  'pscode-continue-change': '2839984327a5ec7af43795bf7abc808074c3424a26f6c717dba31e0fc7d922b1',
+  'pscode-complete-change': 'c90b597d7f5f3f78c6ee6416b79587fbd71f4224949a4014d2941cd105c48b80',
   'pscode-explore': 'e99fb2a097f7f6a5d7c2f3f5e8b4f59c8d1f979f971b91613409a3978fe503d3',
-  'pscode-ff-change': 'b16f044a89d3f675317500407dc9c4adfff8e788fb8a36b9441191a67221360c',
-  'pscode-new-change': 'bc876dbb82313189b89fc6a1076f29b2ebae749bc4f0bceca06480ea97de292e',
-  'pscode-onboard': '21fee8182d0b868c743cfde2fc4e21d7f8c12e0fec7e34b3641453eae1510fa6',
   'pscode-propose': '17f51fbb4a527390f8b1d680c3eae84769bf3d7b8615b90b138b1e8366e853e2',
-  'pscode-verify-change': '93f85208b848b63b1baebd1e0165dc676a4b9b53b865b74aa811db9d2a9d5b8d',
 };
 
 function stableStringify(value: unknown): string {
@@ -88,23 +58,11 @@ describe('skill templates split parity', () => {
   it('preserves all template function payloads exactly', () => {
     const functionFactories: Record<string, () => unknown> = {
       getExploreSkillTemplate,
-      getNewChangeSkillTemplate,
-      getContinueChangeSkillTemplate,
       getApplyChangeSkillTemplate,
-      getFfChangeSkillTemplate,
-      getOnboardSkillTemplate,
       getPsExploreCommandTemplate,
-      getPsNewCommandTemplate,
-      getPsContinueCommandTemplate,
       getPsApplyCommandTemplate,
-      getPsFfCommandTemplate,
       getCompleteChangeSkillTemplate,
-      getBulkArchiveChangeSkillTemplate,
-      getVerifyChangeSkillTemplate,
       getPsCompleteCommandTemplate,
-      getPsOnboardCommandTemplate,
-      getPsBulkArchiveCommandTemplate,
-      getPsVerifyCommandTemplate,
       getProposeSkillTemplate,
       getPsProposeCommandTemplate,
       getFeedbackSkillTemplate,
@@ -122,14 +80,8 @@ describe('skill templates split parity', () => {
     // deployed via generateSkillContent, while feedback is covered in function payload parity.
     const skillFactories: Array<[string, () => SkillTemplate]> = [
       ['pscode-explore', getExploreSkillTemplate],
-      ['pscode-new-change', getNewChangeSkillTemplate],
-      ['pscode-continue-change', getContinueChangeSkillTemplate],
       ['pscode-apply-change', getApplyChangeSkillTemplate],
-      ['pscode-ff-change', getFfChangeSkillTemplate],
-      ['pscode-archive-change', getCompleteChangeSkillTemplate],
-      ['pscode-bulk-archive-change', getBulkArchiveChangeSkillTemplate],
-      ['pscode-verify-change', getVerifyChangeSkillTemplate],
-      ['pscode-onboard', getOnboardSkillTemplate],
+      ['pscode-complete-change', getCompleteChangeSkillTemplate],
       ['pscode-propose', getProposeSkillTemplate],
     ];
 
@@ -167,9 +119,7 @@ describe('skill templates split parity', () => {
   it('guards unsupported workspace workflows from repo-local fallback edits', () => {
     const guardedSkills: Array<[string, () => SkillTemplate, string]> = [
       ['pscode-apply-change', getApplyChangeSkillTemplate, 'full workspace apply is not supported'],
-      ['pscode-archive-change', getCompleteChangeSkillTemplate, 'workspace archive is not supported'],
-      ['pscode-bulk-archive-change', getBulkArchiveChangeSkillTemplate, 'workspace bulk archive is not supported'],
-      ['pscode-verify-change', getVerifyChangeSkillTemplate, 'full workspace implementation verification is not supported'],
+      ['pscode-complete-change', getCompleteChangeSkillTemplate, 'workspace archive is not supported'],
     ];
 
     for (const [dirName, createTemplate, guardText] of guardedSkills) {

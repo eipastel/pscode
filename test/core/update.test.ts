@@ -158,7 +158,7 @@ Old instructions content
       const coreSkillNames = [
         'pscode-explore',
         'pscode-apply-change',
-        'pscode-archive-change',
+        'pscode-complete-change',
         'pscode-propose',
       ];
 
@@ -250,6 +250,73 @@ Old instructions content
       }
     });
 
+  });
+
+  describe('orphan pruning (filesystem scan)', () => {
+    async function configureClaude(): Promise<string> {
+      const skillsDir = path.join(testDir, '.claude', 'skills');
+      await fs.mkdir(path.join(skillsDir, 'pscode-explore'), { recursive: true });
+      await fs.writeFile(path.join(skillsDir, 'pscode-explore', 'SKILL.md'), 'old');
+      return skillsDir;
+    }
+
+    it('removes the skill of a workflow deleted from the enum', async () => {
+      const skillsDir = await configureClaude();
+      await fs.mkdir(path.join(skillsDir, 'pscode-verify-change'), { recursive: true });
+      await fs.writeFile(path.join(skillsDir, 'pscode-verify-change', 'SKILL.md'), 'orphan');
+
+      await updateCommand.execute(testDir);
+
+      expect(await FileSystemUtils.fileExists(path.join(skillsDir, 'pscode-verify-change', 'SKILL.md'))).toBe(false);
+      expect(await FileSystemUtils.fileExists(path.join(skillsDir, 'pscode-explore', 'SKILL.md'))).toBe(true);
+    });
+
+    it('removes the slash command of a deleted workflow', async () => {
+      await configureClaude();
+      const commandsDir = path.join(testDir, '.claude', 'commands', 'ps');
+      await fs.mkdir(commandsDir, { recursive: true });
+      await fs.writeFile(path.join(commandsDir, 'verify.md'), 'orphan');
+
+      await updateCommand.execute(testDir);
+
+      expect(await FileSystemUtils.fileExists(path.join(commandsDir, 'verify.md'))).toBe(false);
+      expect(await FileSystemUtils.fileExists(path.join(commandsDir, 'explore.md'))).toBe(true);
+    });
+
+    it('prunes orphans even when all tools are up to date', async () => {
+      const initCommand = new InitCommand({ tools: 'claude', force: true });
+      await initCommand.execute(testDir);
+
+      const skillsDir = path.join(testDir, '.claude', 'skills');
+      await fs.mkdir(path.join(skillsDir, 'pscode-verify-change'), { recursive: true });
+      await fs.writeFile(path.join(skillsDir, 'pscode-verify-change', 'SKILL.md'), 'orphan');
+
+      // No --force: tools are up to date, but the orphan must still be pruned.
+      await updateCommand.execute(testDir);
+
+      expect(await FileSystemUtils.fileExists(path.join(skillsDir, 'pscode-verify-change', 'SKILL.md'))).toBe(false);
+    });
+
+    it('preserves non-Pscode user skill directories', async () => {
+      const skillsDir = await configureClaude();
+      await fs.mkdir(path.join(skillsDir, 'my-custom-skill'), { recursive: true });
+      await fs.writeFile(path.join(skillsDir, 'my-custom-skill', 'SKILL.md'), 'mine');
+
+      await updateCommand.execute(testDir);
+
+      expect(await FileSystemUtils.fileExists(path.join(skillsDir, 'my-custom-skill', 'SKILL.md'))).toBe(true);
+    });
+
+    it('migrates the legacy pscode-archive-change dir to pscode-complete-change', async () => {
+      const skillsDir = await configureClaude();
+      await fs.mkdir(path.join(skillsDir, 'pscode-archive-change'), { recursive: true });
+      await fs.writeFile(path.join(skillsDir, 'pscode-archive-change', 'SKILL.md'), 'legacy');
+
+      await updateCommand.execute(testDir);
+
+      expect(await FileSystemUtils.fileExists(path.join(skillsDir, 'pscode-archive-change', 'SKILL.md'))).toBe(false);
+      expect(await FileSystemUtils.fileExists(path.join(skillsDir, 'pscode-complete-change', 'SKILL.md'))).toBe(true);
+    });
   });
 
   describe('multi-tool support', () => {
@@ -454,7 +521,7 @@ Old instructions content
         testDir,
         '.claude',
         'skills',
-        'pscode-archive-change'
+        'pscode-complete-change'
       );
       await fs.mkdir(skillDir, { recursive: true });
       await fs.writeFile(path.join(skillDir, 'SKILL.md'), 'old');
@@ -1127,7 +1194,7 @@ More user content after markers.
         expect.stringContaining('Getting started')
       );
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('/ps:new')
+        expect.stringContaining('/ps:propose')
       );
 
       // Skills should be created
@@ -1309,7 +1376,7 @@ More user content after markers.
         'pscode-propose',
         'pscode-explore',
         'pscode-apply-change',
-        'pscode-archive-change',
+        'pscode-complete-change',
       ];
 
       const skillsDir = path.join(testDir, '.claude', 'skills');

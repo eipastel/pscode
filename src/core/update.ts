@@ -23,6 +23,8 @@ import {
   getCommandContents,
   generateSkillContent,
   getToolsWithSkillsDir,
+  pruneOrphans,
+  pruneOrphansForTool,
   type ToolVersionStatus,
 } from './shared/index.js';
 import {
@@ -38,7 +40,6 @@ import { getGlobalConfig, type Delivery } from './global-config.js';
 import { getProfileWorkflows, isValidProfile, DEFAULT_PROFILE, type ProfileName, PROFILES, ALL_WORKFLOWS } from './profiles.js';
 import { getAvailableTools } from './available-tools.js';
 import {
-  WORKFLOW_TO_SKILL_DIR,
   getCommandConfiguredTools,
   getConfiguredToolsForProfileSync,
   getToolsNeedingProfileSync,
@@ -149,6 +150,16 @@ export class UpdateCommand {
       // All tools are up to date
       this.displayUpToDateMessage(toolStatuses);
 
+      // Even when up to date, prune orphan artifacts (e.g. skills/commands of
+      // workflows deleted or renamed in a previous version) by filesystem scan.
+      const pruned = pruneOrphans(resolvedProjectPath, configuredTools, desiredWorkflows, delivery);
+      if (pruned.removedSkillDirs > 0) {
+        console.log(chalk.dim(`Removed: ${pruned.removedSkillDirs} orphan skill directories`));
+      }
+      if (pruned.removedCommandFiles > 0) {
+        console.log(chalk.dim(`Removed: ${pruned.removedCommandFiles} orphan command files`));
+      }
+
       // Still check for new tool directories and extra workflows
       this.detectNewTools(resolvedProjectPath, configuredTools);
       this.displayExtraWorkflowsNote(resolvedProjectPath, configuredTools, desiredWorkflows);
@@ -196,13 +207,6 @@ export class UpdateCommand {
             const skillContent = generateSkillContent(template, PSCODE_VERSION, transformer);
             await FileSystemUtils.writeFile(skillFile, skillContent);
           }
-
-          removedDeselectedSkillCount += await this.removeUnselectedSkillDirs(skillsDir, desiredWorkflows);
-        }
-
-        // Delete skill directories if delivery is commands-only
-        if (!shouldGenerateSkills) {
-          removedSkillCount += await this.removeSkillDirs(skillsDir);
         }
 
         // Generate commands if delivery includes commands
@@ -215,18 +219,22 @@ export class UpdateCommand {
               const commandFile = path.isAbsolute(cmd.path) ? cmd.path : path.join(resolvedProjectPath, cmd.path);
               await FileSystemUtils.writeFile(commandFile, cmd.fileContent);
             }
-
-            removedDeselectedCommandCount += await this.removeUnselectedCommandFiles(
-              resolvedProjectPath,
-              toolId,
-              desiredWorkflows
-            );
           }
         }
 
-        // Delete command files if delivery is skills-only
-        if (!shouldGenerateCommands) {
-          removedCommandCount += await this.removeCommandFiles(resolvedProjectPath, toolId);
+        // Prune by filesystem scan: remove any Pscode-managed skill dir or
+        // command file that is not desired for the active profile/delivery —
+        // including orphans of workflows deleted or renamed in the enum.
+        const pruned = pruneOrphansForTool(resolvedProjectPath, toolId, desiredWorkflows, delivery);
+        if (shouldGenerateSkills) {
+          removedDeselectedSkillCount += pruned.removedSkillDirs;
+        } else {
+          removedSkillCount += pruned.removedSkillDirs;
+        }
+        if (shouldGenerateCommands) {
+          removedDeselectedCommandCount += pruned.removedCommandFiles;
+        } else {
+          removedCommandCount += pruned.removedCommandFiles;
         }
 
         spinner.succeed(`Updated ${tool.name}`);
@@ -265,9 +273,9 @@ export class UpdateCommand {
     if (newlyConfiguredTools.length > 0) {
       console.log();
       console.log(chalk.bold('Getting started:'));
-      console.log('  /ps:new       Start a new change');
-      console.log('  /ps:continue  Create the next artifact');
+      console.log('  /ps:propose   Propose a new change');
       console.log('  /ps:apply     Implement tasks');
+      console.log('  /ps:complete  Finalize and archive a change');
       console.log();
       console.log(`Learn more: ${chalk.cyan('https://github.com/thiagodiogo/Pscode')}`);
     }
@@ -364,125 +372,6 @@ export class UpdateCommand {
     if (extraWorkflows.length > 0) {
       console.log(chalk.dim(`Note: ${extraWorkflows.length} extra workflows not in profile (use \`pscode config profile\` to switch profiles)`));
     }
-  }
-
-  /**
-   * Removes skill directories for workflows when delivery changed to commands-only.
-   * Returns the number of directories removed.
-   */
-  private async removeSkillDirs(skillsDir: string): Promise<number> {
-    let removed = 0;
-
-    for (const workflow of ALL_WORKFLOWS) {
-      const dirName = WORKFLOW_TO_SKILL_DIR[workflow];
-      if (!dirName) continue;
-
-      const skillDir = path.join(skillsDir, dirName);
-      try {
-        if (fs.existsSync(skillDir)) {
-          await fs.promises.rm(skillDir, { recursive: true, force: true });
-          removed++;
-        }
-      } catch {
-        // Ignore errors
-      }
-    }
-
-    return removed;
-  }
-
-  /**
-   * Removes skill directories for workflows that are no longer selected in the active profile.
-   * Returns the number of directories removed.
-   */
-  private async removeUnselectedSkillDirs(
-    skillsDir: string,
-    desiredWorkflows: readonly (typeof ALL_WORKFLOWS)[number][]
-  ): Promise<number> {
-    const desiredSet = new Set(desiredWorkflows);
-    let removed = 0;
-
-    for (const workflow of ALL_WORKFLOWS) {
-      if (desiredSet.has(workflow)) continue;
-      const dirName = WORKFLOW_TO_SKILL_DIR[workflow];
-      if (!dirName) continue;
-
-      const skillDir = path.join(skillsDir, dirName);
-      try {
-        if (fs.existsSync(skillDir)) {
-          await fs.promises.rm(skillDir, { recursive: true, force: true });
-          removed++;
-        }
-      } catch {
-        // Ignore errors
-      }
-    }
-
-    return removed;
-  }
-
-  /**
-   * Removes command files for workflows when delivery changed to skills-only.
-   * Returns the number of files removed.
-   */
-  private async removeCommandFiles(
-    projectPath: string,
-    toolId: string,
-  ): Promise<number> {
-    let removed = 0;
-
-    const adapter = CommandAdapterRegistry.get(toolId);
-    if (!adapter) return 0;
-
-    for (const workflow of ALL_WORKFLOWS) {
-      const cmdPath = adapter.getFilePath(workflow);
-      const fullPath = path.isAbsolute(cmdPath) ? cmdPath : path.join(projectPath, cmdPath);
-
-      try {
-        if (fs.existsSync(fullPath)) {
-          await fs.promises.unlink(fullPath);
-          removed++;
-        }
-      } catch {
-        // Ignore errors
-      }
-    }
-
-    return removed;
-  }
-
-  /**
-   * Removes command files for workflows that are no longer selected in the active profile.
-   * Returns the number of files removed.
-   */
-  private async removeUnselectedCommandFiles(
-    projectPath: string,
-    toolId: string,
-    desiredWorkflows: readonly (typeof ALL_WORKFLOWS)[number][]
-  ): Promise<number> {
-    let removed = 0;
-
-    const adapter = CommandAdapterRegistry.get(toolId);
-    if (!adapter) return 0;
-
-    const desiredSet = new Set(desiredWorkflows);
-
-    for (const workflow of ALL_WORKFLOWS) {
-      if (desiredSet.has(workflow)) continue;
-      const cmdPath = adapter.getFilePath(workflow);
-      const fullPath = path.isAbsolute(cmdPath) ? cmdPath : path.join(projectPath, cmdPath);
-
-      try {
-        if (fs.existsSync(fullPath)) {
-          await fs.promises.unlink(fullPath);
-          removed++;
-        }
-      } catch {
-        // Ignore errors
-      }
-    }
-
-    return removed;
   }
 
   /**
