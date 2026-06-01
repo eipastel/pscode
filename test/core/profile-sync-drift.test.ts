@@ -39,6 +39,12 @@ function setupCoreCommands(projectDir: string): void {
   }
 }
 
+describe('WORKFLOW_TO_SKILL_DIR', () => {
+  it('maps grill-me to pscode-grill-me', () => {
+    expect(WORKFLOW_TO_SKILL_DIR['grill-me']).toBe('pscode-grill-me');
+  });
+});
+
 describe('profile sync drift detection', () => {
   let tempDir: string;
 

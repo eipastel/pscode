@@ -24,3 +24,4 @@ export { getTrelloDraftSkillTemplate, getTrelloDraftCommandTemplate } from './wo
 
 // Productivity workflows
 export { getHandoffSkillTemplate, getHandoffCommandTemplate } from './workflows/handoff.js';
+export { getGrillMeSkillTemplate, getGrillMeCommandTemplate } from './workflows/grill-me.js';

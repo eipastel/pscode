@@ -95,6 +95,7 @@ describe('config profile interactive flow', () => {
       'pscode-trello-setup',
       'pscode-trello-draft',
       'pscode-handoff',
+      'pscode-grill-me',
     ];
     for (const dirName of coreSkillDirs) {
       const skillPath = path.join(projectDir, '.claude', 'skills', dirName, 'SKILL.md');
@@ -102,7 +103,7 @@ describe('config profile interactive flow', () => {
       fs.writeFileSync(skillPath, `name: ${dirName}\n`, 'utf-8');
     }
 
-    const coreCommands = ['propose', 'explore', 'apply', 'sync', 'complete', 'trello-setup', 'draft', 'handoff'];
+    const coreCommands = ['propose', 'explore', 'apply', 'sync', 'complete', 'trello-setup', 'draft', 'handoff', 'grill-me'];
     for (const commandId of coreCommands) {
       const commandPath = path.join(projectDir, '.claude', 'commands', 'ps', `${commandId}.md`);
       fs.mkdirSync(path.dirname(commandPath), { recursive: true });

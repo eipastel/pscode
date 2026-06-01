@@ -10,8 +10,8 @@ import {
 
 describe('profiles', () => {
   describe('ALL_WORKFLOWS', () => {
-    it('should contain all 20 workflows', () => {
-      expect(ALL_WORKFLOWS).toHaveLength(20);
+    it('should contain all 21 workflows', () => {
+      expect(ALL_WORKFLOWS).toHaveLength(21);
     });
 
     it('should contain expected workflow IDs', () => {
@@ -20,7 +20,7 @@ describe('profiles', () => {
         'ff', 'complete', 'bulk-archive', 'verify', 'onboard',
         'trello-setup', 'draft',
         'rfc', 'design', 'tasks', 'arch-check', 'adr', 'jira-sync', 'dod',
-        'handoff',
+        'handoff', 'grill-me',
       ];
       expect([...ALL_WORKFLOWS]).toEqual(expected);
     });
@@ -51,7 +51,7 @@ describe('profiles', () => {
     });
 
     it('standard profile should contain the base workflows including trello', () => {
-      expect([...PROFILES.standard.workflows]).toEqual(['propose', 'explore', 'apply', 'complete', 'trello-setup', 'draft', 'handoff']);
+      expect([...PROFILES.standard.workflows]).toEqual(['propose', 'explore', 'apply', 'complete', 'trello-setup', 'draft', 'handoff', 'grill-me']);
     });
 
     it('standard profile should not contain sync', () => {

@@ -302,14 +302,14 @@ describe('workspace command', () => {
       expect.objectContaining({
         profile: 'standard',
         delivery: 'commands',
-        workflow_ids: ['propose', 'explore', 'apply', 'complete', 'trello-setup', 'draft', 'handoff'],
+        workflow_ids: ['propose', 'explore', 'apply', 'complete', 'trello-setup', 'draft', 'handoff', 'grill-me'],
         selected_agents: ['codex'],
         skills_only: true,
         delivery_notice: expect.stringContaining('skills only'),
         generated: [
           expect.objectContaining({
             tool_id: 'codex',
-            workflow_ids: ['propose', 'explore', 'apply', 'complete', 'trello-setup', 'draft', 'handoff'],
+            workflow_ids: ['propose', 'explore', 'apply', 'complete', 'trello-setup', 'draft', 'handoff', 'grill-me'],
           }),
         ],
         refreshed: [],
@@ -329,7 +329,7 @@ describe('workspace command', () => {
         selected_agents: ['codex'],
         last_applied_profile: 'standard',
         last_applied_delivery: 'commands',
-        last_applied_workflow_ids: ['propose', 'explore', 'apply', 'complete', 'trello-setup', 'draft', 'handoff'],
+        last_applied_workflow_ids: ['propose', 'explore', 'apply', 'complete', 'trello-setup', 'draft', 'handoff', 'grill-me'],
         last_applied_at: expect.any(String),
       })
     );
@@ -355,7 +355,7 @@ describe('workspace command', () => {
     expect(readWorkspaceState(setup.workspace.root).workspace_skills).toEqual(
       expect.objectContaining({
         selected_agents: [],
-        last_applied_workflow_ids: ['propose', 'explore', 'apply', 'complete', 'trello-setup', 'draft', 'handoff'],
+        last_applied_workflow_ids: ['propose', 'explore', 'apply', 'complete', 'trello-setup', 'draft', 'handoff', 'grill-me'],
       })
     );
   });
@@ -404,14 +404,14 @@ describe('workspace command', () => {
       expect.objectContaining({
         profile: 'standard',
         delivery: 'commands',
-        workflow_ids: ['propose', 'explore', 'apply', 'complete', 'trello-setup', 'draft', 'handoff'],
+        workflow_ids: ['propose', 'explore', 'apply', 'complete', 'trello-setup', 'draft', 'handoff', 'grill-me'],
         selected_agents: ['codex'],
         skills_only: true,
         delivery_notice: expect.stringContaining('skills only'),
         refreshed: [
           expect.objectContaining({
             tool_id: 'codex',
-            workflow_ids: ['propose', 'explore', 'apply', 'complete', 'trello-setup', 'draft', 'handoff'],
+            workflow_ids: ['propose', 'explore', 'apply', 'complete', 'trello-setup', 'draft', 'handoff', 'grill-me'],
           }),
         ],
         removed: [],
@@ -432,7 +432,7 @@ describe('workspace command', () => {
         selected_agents: ['codex'],
         last_applied_profile: 'standard',
         last_applied_delivery: 'commands',
-        last_applied_workflow_ids: ['propose', 'explore', 'apply', 'complete', 'trello-setup', 'draft', 'handoff'],
+        last_applied_workflow_ids: ['propose', 'explore', 'apply', 'complete', 'trello-setup', 'draft', 'handoff', 'grill-me'],
       })
     );
 
@@ -607,7 +607,7 @@ describe('workspace command', () => {
       expect.objectContaining({
         selected_agents: ['codex'],
         last_applied_profile: 'standard',
-        last_applied_workflow_ids: ['propose', 'explore', 'apply', 'complete', 'trello-setup', 'draft', 'handoff'],
+        last_applied_workflow_ids: ['propose', 'explore', 'apply', 'complete', 'trello-setup', 'draft', 'handoff', 'grill-me'],
       })
     );
   });
