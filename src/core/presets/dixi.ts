@@ -154,18 +154,6 @@ export function installDixiClaudeMd(projectDir: string, family: DixiStackFamily 
   }
 }
 
-const PSTLD_COMMANDS_SRC = path.join(
-  path.dirname(fileURLToPath(import.meta.url)),
-  '..', '..', '..',
-  'pscode', 'content', 'dixi', 'claude-runtime', 'commands'
-);
-
-const PSTLD_SKILLS_SRC = path.join(
-  path.dirname(fileURLToPath(import.meta.url)),
-  '..', '..', '..',
-  'pscode', 'content', 'dixi', 'claude-runtime', 'skills'
-);
-
 const HOOKS_SRC = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
   '..', '..', '..',
@@ -356,6 +344,20 @@ export function installEslintArchitectureTemplate(projectRoot: string): void {
   );
 }
 
+export function copyDixiCommands(destRoot: string, srcDir: string, subdir: string): void {
+  if (!fs.existsSync(srcDir)) return;
+
+  const destDir = path.join(destRoot, '.claude', 'commands', subdir);
+  if (!fs.existsSync(destDir)) {
+    fs.mkdirSync(destDir, { recursive: true });
+  }
+
+  const files = fs.readdirSync(srcDir);
+  for (const file of files) {
+    fs.copyFileSync(path.join(srcDir, file), path.join(destDir, file));
+  }
+}
+
 export function installDixiExtras(projectDir: string, stack: DixiStack | null): void {
   const family = getDixiStackFamily(stack);
 
@@ -438,37 +440,6 @@ export function installDixiExtras(projectDir: string, stack: DixiStack | null): 
     console.log('[dixi] skeleton arquitetural: stack não reconhecida — skeleton não disponível para esta stack');
   }
 
-  // Copy /pstld:* slash commands to .claude/commands/pstld/ (idempotent — overwrites)
-  const pstldCommandsDir = path.join(projectDir, '.claude', 'commands', 'pstld');
-  if (!fs.existsSync(pstldCommandsDir)) {
-    fs.mkdirSync(pstldCommandsDir, { recursive: true });
-  }
-  if (fs.existsSync(PSTLD_COMMANDS_SRC)) {
-    const files = fs.readdirSync(PSTLD_COMMANDS_SRC);
-    for (const file of files) {
-      fs.copyFileSync(
-        path.join(PSTLD_COMMANDS_SRC, file),
-        path.join(pstldCommandsDir, file)
-      );
-    }
-  }
-
-  // Copy pstld-* skills to .claude/skills/<name>/SKILL.md (idempotent — overwrites)
-  if (fs.existsSync(PSTLD_SKILLS_SRC)) {
-    const skillFiles = fs.readdirSync(PSTLD_SKILLS_SRC).filter(f => f.endsWith('.md'));
-    for (const file of skillFiles) {
-      const skillName = file.replace(/\.md$/, '');
-      const skillDir = path.join(projectDir, '.claude', 'skills', skillName);
-      if (!fs.existsSync(skillDir)) {
-        fs.mkdirSync(skillDir, { recursive: true });
-      }
-      fs.copyFileSync(
-        path.join(PSTLD_SKILLS_SRC, file),
-        path.join(skillDir, 'SKILL.md')
-      );
-    }
-  }
-
   // Copy hooks to .claude/hooks/ (brownfield-safe: skip if file already exists)
   const hooksDestDir = path.join(projectDir, '.claude', 'hooks');
   if (!fs.existsSync(hooksDestDir)) {
@@ -486,4 +457,8 @@ export function installDixiExtras(projectDir: string, stack: DixiStack | null): 
 
   // Merge .claude/settings.json with hook registrations (never overwrite existing config)
   mergeSettingsHooks(path.join(projectDir, '.claude', 'settings.json'));
+
+  // Copy Dixi-aware /ps:* overrides and exclusive /pstld:* commands (always overwrite)
+  const commandsBase = path.join(packageRoot, 'pscode', 'content', 'dixi', 'commands');
+  copyDixiCommands(projectDir, path.join(commandsBase, 'ps'), 'ps');
 }

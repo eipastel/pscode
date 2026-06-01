@@ -330,9 +330,9 @@ describe('installDixiClaudeMd', () => {
   });
 });
 
-// ── installDixiExtras — pstld slash commands ─────────────────────────────────
+// ── installDixiExtras — ps command overrides ──────────────────────────────────
 
-describe('installDixiExtras — pstld slash commands', () => {
+describe('installDixiExtras — ps command overrides', () => {
   let projectDir: string;
 
   beforeEach(async () => {
@@ -345,47 +345,45 @@ describe('installDixiExtras — pstld slash commands', () => {
     vi.restoreAllMocks();
   });
 
-  it('cria .claude/commands/pstld/ após installDixiExtras', () => {
+  it('3.1 cria .claude/commands/ps/propose.md após installDixiExtras', () => {
     installDixiExtras(projectDir, 'java-maven');
-    expect(fsSync.existsSync(path.join(projectDir, '.claude', 'commands', 'pstld'))).toBe(true);
+    expect(fsSync.existsSync(path.join(projectDir, '.claude', 'commands', 'ps', 'propose.md'))).toBe(true);
   });
 
-  it('copia os 7 arquivos de comando para .claude/commands/pstld/', () => {
+  it('3.2 cria todos os 6 arquivos ps/ após installDixiExtras', () => {
     installDixiExtras(projectDir, 'java-maven');
-
-    const pstldDir = path.join(projectDir, '.claude', 'commands', 'pstld');
-    expect(fsSync.existsSync(path.join(pstldDir, 'rfc.md'))).toBe(true);
-    expect(fsSync.existsSync(path.join(pstldDir, 'arch-check.md'))).toBe(true);
-    expect(fsSync.existsSync(path.join(pstldDir, 'adr.md'))).toBe(true);
-    expect(fsSync.existsSync(path.join(pstldDir, 'jira-sync.md'))).toBe(true);
-    expect(fsSync.existsSync(path.join(pstldDir, 'dod.md'))).toBe(true);
-    expect(fsSync.existsSync(path.join(pstldDir, 'jira-draft.md'))).toBe(true);
-    expect(fsSync.existsSync(path.join(pstldDir, 'jira-setup.md'))).toBe(true);
+    const psDir = path.join(projectDir, '.claude', 'commands', 'ps');
+    ['propose.md', 'explore.md', 'apply.md', 'complete.md', 'draft.md', 'trello-setup.md'].forEach(f => {
+      expect(fsSync.existsSync(path.join(psDir, f))).toBe(true);
+    });
   });
 
-  it('é idempotente — segunda chamada não corrompe nem duplica arquivos', () => {
+  it('3.2b não cria .claude/commands/pstld/ após installDixiExtras', () => {
     installDixiExtras(projectDir, 'java-maven');
-    installDixiExtras(projectDir, 'java-maven');
-
-    const pstldDir = path.join(projectDir, '.claude', 'commands', 'pstld');
-    const files = fsSync.readdirSync(pstldDir);
-    const mdFiles = files.filter(f => f.endsWith('.md'));
-    expect(mdFiles).toHaveLength(7);
-    expect(fsSync.existsSync(path.join(pstldDir, 'rfc.md'))).toBe(true);
+    expect(fsSync.existsSync(path.join(projectDir, '.claude', 'commands', 'pstld'))).toBe(false);
   });
 
-  it('instala os comandos para stack === null (projeto sem stack detectada)', () => {
-    installDixiExtras(projectDir, null);
+  it('3.3 sobrescreve arquivo existente em .claude/commands/ps/', () => {
+    const psDir = path.join(projectDir, '.claude', 'commands', 'ps');
+    fsSync.mkdirSync(psDir, { recursive: true });
+    fsSync.writeFileSync(path.join(psDir, 'propose.md'), '# versão antiga');
 
-    const pstldDir = path.join(projectDir, '.claude', 'commands', 'pstld');
-    expect(fsSync.existsSync(pstldDir)).toBe(true);
-    expect(fsSync.existsSync(path.join(pstldDir, 'rfc.md'))).toBe(true);
-    expect(fsSync.existsSync(path.join(pstldDir, 'arch-check.md'))).toBe(true);
-    expect(fsSync.existsSync(path.join(pstldDir, 'adr.md'))).toBe(true);
-    expect(fsSync.existsSync(path.join(pstldDir, 'jira-sync.md'))).toBe(true);
-    expect(fsSync.existsSync(path.join(pstldDir, 'dod.md'))).toBe(true);
-    expect(fsSync.existsSync(path.join(pstldDir, 'jira-draft.md'))).toBe(true);
-    expect(fsSync.existsSync(path.join(pstldDir, 'jira-setup.md'))).toBe(true);
+    installDixiExtras(projectDir, 'java-maven');
+
+    const content = fsSync.readFileSync(path.join(psDir, 'propose.md'), 'utf-8');
+    expect(content).not.toBe('# versão antiga');
+    expect(content).toContain('Dixi');
+  });
+
+  it('3.4 arquivos sem versão Dixi em .claude/commands/ps/ não são alterados', () => {
+    const psDir = path.join(projectDir, '.claude', 'commands', 'ps');
+    fsSync.mkdirSync(psDir, { recursive: true });
+    fsSync.writeFileSync(path.join(psDir, 'sync.md'), '# sync original');
+
+    installDixiExtras(projectDir, 'java-maven');
+
+    const content = fsSync.readFileSync(path.join(psDir, 'sync.md'), 'utf-8');
+    expect(content).toBe('# sync original');
   });
 });
 
