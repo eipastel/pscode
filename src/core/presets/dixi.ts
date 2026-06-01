@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import { parse as parseYaml } from 'yaml';
+import { PSCODE_DIR_NAME } from '../config.js';
 
 export type DixiStack = 'java-maven' | 'java-gradle' | 'next' | 'react' | 'node' | 'python';
 export type DixiStackFamily = 'java' | 'react' | 'node' | 'python';
@@ -96,13 +97,44 @@ export function copyKitFiles(
 }
 
 /**
- * Copies all files from srcDir into <destRoot>/pastelsdd/context/, skipping files that already exist.
+ * Best-effort, non-destructive migration of the legacy `pastelsdd/` output dir
+ * to the canonical `pscode/` dir. Moves `pastelsdd/jira.yaml` and
+ * `pastelsdd/context/` to their `pscode/` equivalents only when the destination
+ * does not already exist (never overwrites). No-op when there is nothing to move.
+ */
+export function migrateLegacyPastelsddDir(projectDir: string): void {
+  const legacyDir = path.join(projectDir, 'pastelsdd');
+  if (!fs.existsSync(legacyDir)) return;
+
+  const targets = ['jira.yaml', 'context'];
+  let moved = false;
+
+  for (const entry of targets) {
+    const legacyPath = path.join(legacyDir, entry);
+    const destPath = path.join(projectDir, PSCODE_DIR_NAME, entry);
+    if (fs.existsSync(legacyPath) && !fs.existsSync(destPath)) {
+      fs.mkdirSync(path.dirname(destPath), { recursive: true });
+      fs.renameSync(legacyPath, destPath);
+      moved = true;
+    }
+  }
+
+  if (moved) {
+    console.log(
+      `Dixi: conteúdo legado migrado de pastelsdd/ para ${PSCODE_DIR_NAME}/. ` +
+      `Você pode remover o diretório pastelsdd/ manualmente após conferir.`
+    );
+  }
+}
+
+/**
+ * Copies all files from srcDir into <destRoot>/<PSCODE_DIR_NAME>/context/, skipping files that already exist.
  * Creates the destination directory if needed.
  */
 export function copyContextDocs(destRoot: string, srcDir: string): void {
   if (!fs.existsSync(srcDir)) return;
 
-  const contextDir = path.join(destRoot, 'pastelsdd', 'context');
+  const contextDir = path.join(destRoot, PSCODE_DIR_NAME, 'context');
   if (!fs.existsSync(contextDir)) {
     fs.mkdirSync(contextDir, { recursive: true });
   }
@@ -367,8 +399,11 @@ export function installDixiExtras(projectDir: string, stack: DixiStack | null): 
   const contentBase = path.join(packageRoot, 'pscode', 'content', 'dixi', 'context');
   const kitBase = path.join(packageRoot, 'pscode', 'content', 'dixi', 'kit');
 
-  // Task 4.5: Ensure pastelsdd/context/ exists in the client repo
-  const contextDir = path.join(projectDir, 'pastelsdd', 'context');
+  // Best-effort migration of the legacy pastelsdd/ dir before writing context
+  migrateLegacyPastelsddDir(projectDir);
+
+  // Task 4.5: Ensure <PSCODE_DIR_NAME>/context/ exists in the client repo
+  const contextDir = path.join(projectDir, PSCODE_DIR_NAME, 'context');
   if (!fs.existsSync(contextDir)) {
     fs.mkdirSync(contextDir, { recursive: true });
   }

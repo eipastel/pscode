@@ -6,10 +6,10 @@ Você é um quality gate verificando se o item de trabalho corrente atende todos
 
 1. **Leia os critérios de DoD**
 
-   - Leia `pastelsdd/context/dod.md` para carregar os critérios oficiais de DoD do projeto.
-   - Se `pastelsdd/context/dod.md` não existir, informe o usuário:
+   - Leia `pscode/context/dod.md` para carregar os critérios oficiais de DoD do projeto.
+   - Se `pscode/context/dod.md` não existir, informe o usuário:
      ```
-     ℹ️  Arquivo pastelsdd/context/dod.md não encontrado.
+     ℹ️  Arquivo pscode/context/dod.md não encontrado.
      Execute pscode init --profile dixi para instalar os context docs da Dixi.
      Enquanto isso, usarei critérios genéricos de DoD.
      ```
@@ -23,7 +23,7 @@ Você é um quality gate verificando se o item de trabalho corrente atende todos
 
 3. **Verifique cada critério**
 
-   Para cada critério em `pastelsdd/context/dod.md` (ou os genéricos abaixo), avalie o estado atual:
+   Para cada critério em `pscode/context/dod.md` (ou os genéricos abaixo), avalie o estado atual:
 
    **Critérios genéricos (usados quando dod.md não existe):**
    - Código implementado e funcionando
@@ -41,7 +41,7 @@ Você é um quality gate verificando se o item de trabalho corrente atende todos
    ## Definition of Done — <nome do item>
 
    **Data:** <data atual>
-   **Fonte dos critérios:** pastelsdd/context/dod.md | critérios genéricos
+   **Fonte dos critérios:** pscode/context/dod.md | critérios genéricos
 
    | Critério | Status | Observação |
    |----------|--------|------------|

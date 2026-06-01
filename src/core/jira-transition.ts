@@ -1,6 +1,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { parse as parseYaml } from 'yaml';
+import { PSCODE_DIR_NAME } from './config.js';
 
 interface JiraConfig {
   project_key?: string;
@@ -17,7 +18,7 @@ export interface JiraTransitionResult {
 }
 
 export async function readJiraConfig(projectDir: string): Promise<JiraConfig | null> {
-  const jiraYamlPath = path.join(projectDir, 'pastelsdd', 'jira.yaml');
+  const jiraYamlPath = path.join(projectDir, PSCODE_DIR_NAME, 'jira.yaml');
   try {
     const content = await fs.readFile(jiraYamlPath, 'utf-8');
     return parseYaml(content) as JiraConfig;

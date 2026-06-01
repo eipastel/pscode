@@ -192,7 +192,7 @@ describe('jira-context', () => {
   });
 
   it('5.3 — prompt com ticket + jira.yaml presente → stdout com contexto, exit 0', async () => {
-    const jiraDir = path.join(dir, 'pastelsdd');
+    const jiraDir = path.join(dir, 'pscode');
     await fs.mkdir(jiraDir, { recursive: true });
     await fs.writeFile(
       path.join(jiraDir, 'jira.yaml'),

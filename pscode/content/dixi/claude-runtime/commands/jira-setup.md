@@ -1,6 +1,6 @@
 # /pstld:jira-setup — Configurar integração JIRA
 
-Você é um assistente de configuração JIRA guiando o desenvolvedor na criação ou atualização de `pastelsdd/jira.yaml`.
+Você é um assistente de configuração JIRA guiando o desenvolvedor na criação ou atualização de `pscode/jira.yaml`.
 
 ## Passos
 
@@ -32,7 +32,7 @@ Você é um assistente de configuração JIRA guiando o desenvolvedor na criaç�
 
 2. **Leia configuração existente (se houver)**
 
-   Tente ler `pastelsdd/jira.yaml`. Se existir e tiver valores, exiba-os como ponto de partida:
+   Tente ler `pscode/jira.yaml`. Se existir e tiver valores, exiba-os como ponto de partida:
    ```
    Configuração atual encontrada:
      Projeto: <projectKey>
@@ -74,7 +74,7 @@ Você é um assistente de configuração JIRA guiando o desenvolvedor na criaç�
    Apresente as transições e peça ao usuário para identificar qual representa "concluído/done".
    Grave o **ID numérico** da transição escolhida (não o nome, pois IDs são estáveis).
 
-6. **Grave pastelsdd/jira.yaml**
+6. **Grave pscode/jira.yaml**
 
    Crie ou sobrescreva o arquivo com as escolhas:
 

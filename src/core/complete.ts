@@ -11,6 +11,7 @@ import {
 } from './specs-apply.js';
 import { readChangeMetadata } from '../utils/change-metadata.js';
 import { readJiraConfig, tryTransitionJiraIssue } from './jira-transition.js';
+import { PSCODE_DIR_NAME } from './config.js';
 
 /**
  * Recursively copy a directory. Used when fs.rename fails (e.g. EPERM on Windows).
@@ -272,7 +273,7 @@ export class CompleteCommand {
           }
         } else {
           console.log(chalk.yellow(
-            `JIRA: jiraIssueKey "${changeMetadata.jiraIssueKey}" encontrado, mas transitions.done não está configurado em pastelsdd/jira.yaml. ` +
+            `JIRA: jiraIssueKey "${changeMetadata.jiraIssueKey}" encontrado, mas transitions.done não está configurado em ${PSCODE_DIR_NAME}/jira.yaml. ` +
             `Execute /pstld:jira-setup para configurar.`
           ));
         }

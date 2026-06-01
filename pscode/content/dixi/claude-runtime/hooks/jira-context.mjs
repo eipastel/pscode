@@ -25,7 +25,7 @@ if (!ticketMatch) {
   process.exit(0);
 }
 
-const jiraYamlPath = join(cwd, 'pastelsdd', 'jira.yaml');
+const jiraYamlPath = join(cwd, 'pscode', 'jira.yaml');
 if (!existsSync(jiraYamlPath)) {
   process.exit(0);
 }

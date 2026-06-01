@@ -10,6 +10,7 @@ import {
   copyContextDocs,
   installDixiExtras,
   installDixiClaudeMd,
+  migrateLegacyPastelsddDir,
 } from '../../../src/core/presets/dixi.js';
 import { InitCommand } from '../../../src/core/init.js';
 
@@ -155,13 +156,13 @@ describe('copyContextDocs', () => {
     await fs.rm(srcDir, { recursive: true, force: true });
   });
 
-  it('cria pastelsdd/context/ e copia arquivos do srcDir', async () => {
+  it('cria pscode/context/ e copia arquivos do srcDir', async () => {
     await writeFile(srcDir, 'commits.md', '# Commits');
     await writeFile(srcDir, 'dod.md', '# DoD');
 
     copyContextDocs(destDir, srcDir);
 
-    const contextDir = path.join(destDir, 'pastelsdd', 'context');
+    const contextDir = path.join(destDir, 'pscode', 'context');
     expect(fsSync.existsSync(contextDir)).toBe(true);
     expect(fsSync.existsSync(path.join(contextDir, 'commits.md'))).toBe(true);
     expect(fsSync.existsSync(path.join(contextDir, 'dod.md'))).toBe(true);
@@ -169,7 +170,7 @@ describe('copyContextDocs', () => {
 
   it('pula arquivo que já existe (brownfield-safe)', async () => {
     await writeFile(srcDir, 'commits.md', '# Novo conteúdo');
-    const contextDir = path.join(destDir, 'pastelsdd', 'context');
+    const contextDir = path.join(destDir, 'pscode', 'context');
     await fs.mkdir(contextDir, { recursive: true });
     await writeFile(contextDir, 'commits.md', '# Conteúdo original');
 
@@ -183,9 +184,64 @@ describe('copyContextDocs', () => {
     expect(() => copyContextDocs(destDir, path.join(destDir, 'inexistente'))).not.toThrow();
   });
 
-  it('cria pastelsdd/context/ mesmo quando srcDir está vazio', async () => {
+  it('cria pscode/context/ mesmo quando srcDir está vazio', async () => {
     copyContextDocs(destDir, srcDir);
-    expect(fsSync.existsSync(path.join(destDir, 'pastelsdd', 'context'))).toBe(true);
+    expect(fsSync.existsSync(path.join(destDir, 'pscode', 'context'))).toBe(true);
+  });
+});
+
+// ── migrateLegacyPastelsddDir ─────────────────────────────────────────────────
+
+describe('migrateLegacyPastelsddDir', () => {
+  let projectDir: string;
+
+  beforeEach(async () => {
+    projectDir = await makeTempDir();
+    vi.spyOn(console, 'log').mockImplementation(() => {});
+  });
+
+  afterEach(async () => {
+    await fs.rm(projectDir, { recursive: true, force: true });
+    vi.restoreAllMocks();
+  });
+
+  it('move pastelsdd/jira.yaml e pastelsdd/context/ para pscode/ quando o destino não existe', async () => {
+    const legacyDir = path.join(projectDir, 'pastelsdd');
+    await fs.mkdir(path.join(legacyDir, 'context'), { recursive: true });
+    await fs.writeFile(path.join(legacyDir, 'jira.yaml'), 'project_key: "OLD"\n');
+    await fs.writeFile(path.join(legacyDir, 'context', 'architecture.md'), '# legado');
+
+    migrateLegacyPastelsddDir(projectDir);
+
+    const movedJira = path.join(projectDir, 'pscode', 'jira.yaml');
+    const movedDoc = path.join(projectDir, 'pscode', 'context', 'architecture.md');
+    expect(fsSync.existsSync(movedJira)).toBe(true);
+    expect(fsSync.existsSync(movedDoc)).toBe(true);
+    expect(fsSync.readFileSync(movedJira, 'utf-8')).toContain('OLD');
+    // o caminho legado não permanece após o rename
+    expect(fsSync.existsSync(path.join(legacyDir, 'jira.yaml'))).toBe(false);
+    expect(fsSync.existsSync(path.join(legacyDir, 'context'))).toBe(false);
+  });
+
+  it('não sobrescreve quando o destino em pscode/ já existe', async () => {
+    const legacyDir = path.join(projectDir, 'pastelsdd');
+    await fs.mkdir(legacyDir, { recursive: true });
+    await fs.writeFile(path.join(legacyDir, 'jira.yaml'), 'project_key: "LEGADO"\n');
+
+    const pscodeDir = path.join(projectDir, 'pscode');
+    await fs.mkdir(pscodeDir, { recursive: true });
+    await fs.writeFile(path.join(pscodeDir, 'jira.yaml'), 'project_key: "ATUAL"\n');
+
+    migrateLegacyPastelsddDir(projectDir);
+
+    // destino preservado, legado intocado
+    expect(fsSync.readFileSync(path.join(pscodeDir, 'jira.yaml'), 'utf-8')).toContain('ATUAL');
+    expect(fsSync.existsSync(path.join(legacyDir, 'jira.yaml'))).toBe(true);
+  });
+
+  it('é no-op quando não existe diretório pastelsdd/', () => {
+    expect(() => migrateLegacyPastelsddDir(projectDir)).not.toThrow();
+    expect(fsSync.existsSync(path.join(projectDir, 'pscode'))).toBe(false);
   });
 });
 
@@ -204,10 +260,10 @@ describe('installDixiExtras — context docs', () => {
     vi.restoreAllMocks();
   });
 
-  it('projeto Java recebe shared/ + java/ em pastelsdd/context/', () => {
+  it('projeto Java recebe shared/ + java/ em pscode/context/', () => {
     installDixiExtras(projectDir, 'java-maven');
 
-    const contextDir = path.join(projectDir, 'pastelsdd', 'context');
+    const contextDir = path.join(projectDir, 'pscode', 'context');
     expect(fsSync.existsSync(contextDir)).toBe(true);
     // shared docs
     expect(fsSync.existsSync(path.join(contextDir, 'commits.md'))).toBe(true);
@@ -223,10 +279,10 @@ describe('installDixiExtras — context docs', () => {
     expect(arch).toContain('Hexagonal');
   });
 
-  it('projeto React recebe shared/ + react/ em pastelsdd/context/', () => {
+  it('projeto React recebe shared/ + react/ em pscode/context/', () => {
     installDixiExtras(projectDir, 'next');
 
-    const contextDir = path.join(projectDir, 'pastelsdd', 'context');
+    const contextDir = path.join(projectDir, 'pscode', 'context');
     // shared docs
     expect(fsSync.existsSync(path.join(contextDir, 'commits.md'))).toBe(true);
     // react docs
@@ -240,14 +296,14 @@ describe('installDixiExtras — context docs', () => {
     const consoleSpy = vi.spyOn(console, 'log');
     installDixiExtras(projectDir, null);
 
-    const contextDir = path.join(projectDir, 'pastelsdd', 'context');
+    const contextDir = path.join(projectDir, 'pscode', 'context');
     expect(fsSync.existsSync(path.join(contextDir, 'commits.md'))).toBe(true);
     expect(fsSync.existsSync(path.join(contextDir, 'architecture.md'))).toBe(false);
     expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Stack não detectada'));
   });
 
   it('arquivo existente não é sobrescrito (brownfield-safe)', () => {
-    const contextDir = path.join(projectDir, 'pastelsdd', 'context');
+    const contextDir = path.join(projectDir, 'pscode', 'context');
     fsSync.mkdirSync(contextDir, { recursive: true });
     fsSync.writeFileSync(path.join(contextDir, 'commits.md'), '# Customizado pelo time');
 
@@ -281,7 +337,7 @@ describe('installDixiClaudeMd', () => {
     const content = fsSync.readFileSync(claudeMd, 'utf-8');
     expect(content).toContain('<!-- dixi-constitutional -->');
     expect(content).toContain('Arquitetura Hexagonal');
-    expect(content).toContain('pastelsdd/context/java/architecture.md');
+    expect(content).toContain('pscode/context/java/architecture.md');
   });
 
   it('cria CLAUDE.md com template React quando family é react', () => {
@@ -292,7 +348,7 @@ describe('installDixiClaudeMd', () => {
     const content = fsSync.readFileSync(claudeMd, 'utf-8');
     expect(content).toContain('<!-- dixi-constitutional -->');
     expect(content).toContain('Feature-Sliced Design');
-    expect(content).toContain('pastelsdd/context/react/architecture.md');
+    expect(content).toContain('pscode/context/react/architecture.md');
   });
 
   it('faz append em CLAUDE.md existente sem marcador', () => {
