@@ -18,6 +18,7 @@ import {
   getTrelloSetupSkillTemplate,
   getTrelloDraftSkillTemplate,
   getHandoffSkillTemplate,
+  getGrillMeSkillTemplate,
   getPsExploreCommandTemplate,
   getPsNewCommandTemplate,
   getPsContinueCommandTemplate,
@@ -31,6 +32,7 @@ import {
   getTrelloSetupCommandTemplate,
   getTrelloDraftCommandTemplate,
   getHandoffCommandTemplate,
+  getGrillMeCommandTemplate,
   type SkillTemplate,
 } from '../templates/skill-templates.js';
 import type { CommandContent } from '../command-generation/index.js';
@@ -74,6 +76,7 @@ export function getSkillTemplates(workflowFilter?: readonly string[]): SkillTemp
     { template: getTrelloDraftSkillTemplate(), dirName: 'pscode-trello-draft', workflowId: 'draft' },
     // Productivity workflows
     { template: getHandoffSkillTemplate(), dirName: 'pscode-handoff', workflowId: 'handoff' },
+    { template: getGrillMeSkillTemplate(), dirName: 'pscode-grill-me', workflowId: 'grill-me' },
   ];
 
   if (!workflowFilter) return all;
@@ -104,6 +107,7 @@ export function getCommandTemplates(workflowFilter?: readonly string[]): Command
     { template: getTrelloDraftCommandTemplate(), id: 'draft' },
     // Productivity workflows
     { template: getHandoffCommandTemplate(), id: 'handoff' },
+    { template: getGrillMeCommandTemplate(), id: 'grill-me' },
   ];
 
   if (!workflowFilter) return all;

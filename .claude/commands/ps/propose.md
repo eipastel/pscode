@@ -31,6 +31,18 @@ When ready to implement, run /ps:apply
 
    **IMPORTANT**: Do NOT proceed without understanding what the user wants to build.
 
+1b. **Fase de grill — interrogue o plano antes de gerar artefatos**
+
+   Antes de criar a change e gerar os artefatos, conduza a **fase de grill** para garantir que a proposta reflita o que realmente deve existir — não apenas a descrição inicial. Aplique o mesmo comportamento da skill `grill-me` (`/ps:grill-me`):
+
+   - Faça **uma pergunta por vez** — nunca despeje várias perguntas juntas. Aguarde a resposta antes da próxima.
+   - Acompanhe **cada** pergunta com a **sua resposta recomendada** e um motivo curto. Quando houver opções discretas, use a **ferramenta AskUserQuestion** com a recomendação como primeira opção ("(Recomendada)").
+   - **Explore o código quando há evidência**: se uma pergunta pode ser respondida pelo próprio repositório (convenções, padrões, features semelhantes), investigue o código em vez de perguntar. Só pergunte ao usuário decisões de produto, prioridades, trade-offs e intenção.
+   - Navegue a árvore de decisão progressivamente, resolvendo dependências; não repergunte o que já foi respondido pelo código ou por uma resposta anterior.
+   - Encerre quando houver **entendimento compartilhado** e apresente um resumo curto (o que será construído, decisões com motivos, fora de escopo) antes de seguir.
+
+   Os artefatos gerados a partir do Passo 2 SHALL refletir esse entendimento refinado.
+
 2. **Create the change directory**
    ```bash
    pscode new change "<name>"

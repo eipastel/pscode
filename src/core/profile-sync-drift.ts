@@ -27,6 +27,7 @@ export const WORKFLOW_TO_SKILL_DIR: Record<WorkflowId, string> = {
   'draft': 'pscode-trello-draft',
   // Productivity workflows
   'handoff': 'pscode-handoff',
+  'grill-me': 'pscode-grill-me',
   // Dixi-specific workflows
   'rfc': 'pscode-dixi-rfc',
   'design': 'pscode-dixi-design',

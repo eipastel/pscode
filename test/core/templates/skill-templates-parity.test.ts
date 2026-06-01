@@ -37,7 +37,7 @@ const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
   getFfChangeSkillTemplate: '900ccf0782ec1a9024ad4a8b890e34db4e7302222bd1b71613c8c858984126fd',
   getNewChangeSkillTemplate: 'cd6a0b88659afcabe73581646e8d9b1accb2f48df547faa7c5d0e44d77ece0aa',
   getOnboardSkillTemplate: '2db2164f9a052903709e1312175e34aeffb9d38e2c205cf9f985130013110b33',
-  getProposeSkillTemplate: '6d0075a19dc1ff15d646e2d039fb1131156d399e0c6794b686762e4f98aa92dc',
+  getProposeSkillTemplate: '2df25f87f31a1c5ba43a88757835c4d894a49647dead7fc78376d056fc8c0c56',
   getPsApplyCommandTemplate: 'c75efd8b81ff877ba08c03463ff521eb3f7924cb230d8d95386f4ea431b0fdef',
   getPsCompleteCommandTemplate: '74db9b5f7f40e8e3b1360872a74969b1e5676c02eea69ea672d74c5a7c96598f',
   getPsBulkArchiveCommandTemplate: '1464df49ad5bf07a550d34f6950495e5ca397f6eb7a8690bcc0993c8e4136b74',
@@ -46,7 +46,7 @@ const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
   getPsFfCommandTemplate: 'ef272952e2e01b96ed6e49abef147e8808d6186896d61cea60ce7ebcd947eabc',
   getPsNewCommandTemplate: 'fdb348e81411ff65d722ab90a218155ed301712ef44b6621124dbad726959895',
   getPsOnboardCommandTemplate: 'f01a5baae071c51e5991e10024abef089a35c222c0bbc8be3c2f8dd580d48091',
-  getPsProposeCommandTemplate: 'd527c961486c2113e2843acb431b500b34797cd1a140947b51f2b73b12bb533b',
+  getPsProposeCommandTemplate: '64110994ba8c58be601aa73b617d539c9eb754c6a072f5c6f9e400fdd752b14c',
   getPsVerifyCommandTemplate: 'ff5444b1f84b2de82e3c56b105f384bdd61e58251257b183087c5c92a608e7ec',
   getVerifyChangeSkillTemplate: 'fb57bd2789816164ae3ffae404442456377e590cb7fe0a7a266eb1841c29ca5c',
 };
@@ -60,7 +60,7 @@ const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
   'pscode-ff-change': 'b16f044a89d3f675317500407dc9c4adfff8e788fb8a36b9441191a67221360c',
   'pscode-new-change': 'bc876dbb82313189b89fc6a1076f29b2ebae749bc4f0bceca06480ea97de292e',
   'pscode-onboard': '21fee8182d0b868c743cfde2fc4e21d7f8c12e0fec7e34b3641453eae1510fa6',
-  'pscode-propose': 'fb49b8d89719d4b2617fc0ac6e1df397693f8e80dd670a1b71572f35ffc993b9',
+  'pscode-propose': '17f51fbb4a527390f8b1d680c3eae84769bf3d7b8615b90b138b1e8366e853e2',
   'pscode-verify-change': '93f85208b848b63b1baebd1e0165dc676a4b9b53b865b74aa811db9d2a9d5b8d',
 };
 
