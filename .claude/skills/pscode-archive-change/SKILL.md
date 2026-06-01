@@ -1,0 +1,216 @@
+---
+name: pscode-archive-change
+description: Complete a completed change. Use when the user wants to finalize and complete a change after implementation is complete.
+license: MIT
+compatibility: Requires pscode CLI.
+metadata:
+  author: pscode
+  version: "1.0"
+  generatedBy: "2.1.1"
+---
+
+Complete a change.
+
+**Input**: Optionally specify a change name (e.g., `/ps:complete add-auth`). If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
+
+**Steps**
+
+1. **If no change name provided, prompt for selection**
+
+   Run `pscode list --json` to get available changes. Use the **AskUserQuestion tool** to let the user select.
+
+   Show only active changes (not already archived).
+   Include the schema used for each change if available.
+
+   **IMPORTANT**: Do NOT guess or auto-select a change. Always let the user choose.
+
+2. **Check artifact completion status**
+
+   Run `pscode status --change "<name>" --json` to check artifact completion.
+
+   Parse the JSON to understand:
+   - `schemaName`: The workflow being used
+   - `planningHome`, `changeRoot`, `artifactPaths`, and `actionContext`: path and scope context
+   - `artifacts`: List of artifacts with their status (`done` or other)
+
+   If status reports `actionContext.mode: "workspace-planning"`, explain that workspace archive is not supported in this slice and STOP.
+
+   **If any artifacts are not `done`:**
+   - Display warning listing incomplete artifacts
+   - Use **AskUserQuestion tool** to confirm user wants to proceed
+   - Proceed if user confirms
+
+3. **Check task completion status**
+
+   Read the tasks file (typically `tasks.md`) to check for incomplete tasks.
+
+   Count tasks marked with `- [ ]` (incomplete) vs `- [x]` (complete).
+
+   **If incomplete tasks found:**
+   - Display warning showing count of incomplete tasks
+   - Use **AskUserQuestion tool** to confirm user wants to proceed
+   - Proceed if user confirms
+
+   **If no tasks file exists:** Proceed without task-related warning.
+
+4. **Assess delta spec sync state**
+
+   Use `artifactPaths.specs.existingOutputPaths` from status JSON to check for delta specs. If none exist, proceed without sync prompt.
+
+   **If delta specs exist:**
+   - Compare each delta spec with its corresponding main spec at `pscode/specs/<capability>/spec.md`
+   - Determine what changes would be applied (adds, modifications, removals, renames)
+   - Show a combined summary before prompting
+
+   **Prompt options:**
+   - If changes needed: "Sync now (recommended)", "Archive without syncing"
+   - If already synced: "Archive now", "Sync anyway", "Cancel"
+
+   If user chooses sync, use Task tool (subagent_type: "general-purpose", prompt: "Use Skill tool to invoke pscode-sync-specs for change '<name>'. Delta spec analysis: <include the analyzed delta spec summary>"). Proceed to archive regardless of choice.
+
+5. **Perform the archive**
+
+   Create an `archive` directory under `planningHome.changesDir` if it doesn't exist:
+   ```bash
+   mkdir -p "<planningHome.changesDir>/archive"
+   ```
+
+   Generate target name using current date: `YYYY-MM-DD-<change-name>`
+
+   **Check if target already exists:**
+   - If yes: Fail with error, suggest renaming existing archive or using different date
+   - If no: Move `changeRoot` to the archive directory
+
+   ```bash
+   mv "<changeRoot>" "<planningHome.changesDir>/archive/YYYY-MM-DD-<name>"
+   ```
+
+6. **Trello Integration — move card to "Concluído" (optional)**
+
+   Use the **Read tool** (NOT a shell command) to read `pscode/trello.yaml` from the current working directory.
+   The Read tool is cross-platform and works on Windows, macOS, and Linux — never use `cat` or shell commands to read this file.
+   If the Read tool returns an error (file not found), skip all Trello steps.
+
+   Otherwise parse and extract `boardId`, `lists.done` (and optionally `lists.testing`, `lists.deploy`, `lists.developing`, `lists.ready`, `lists.refining`, `lists.backlog`).
+
+   Search for the change's card across all configured lists in reverse-workflow order:
+   `deploy` → `testing` → `developing` → `ready` → `refining` → `backlog`.
+   Stop as soon as a matching card is found.
+
+   **If `lists.done` is configured:**
+   - **Card found:** move it to `lists.done` and mark as complete:
+     ```tool
+     mcp__claude_ai_Trello_Custom__update_card  { card_id: "<id>", list_id: "<lists.done.id>", dueComplete: true }
+     ```
+   - **No card found:** create one in `lists.done`:
+     ```tool
+     mcp__claude_ai_Trello_Custom__create_card
+       list_id: "<lists.done.id>"
+       name: "<human-readable change name in Portuguese>"
+       desc: "Concluida via /ps:complete"
+     ```
+     Then mark it complete.
+
+   Assign current user:
+   ```tool
+   mcp__claude_ai_Trello_Custom__get_me
+   mcp__claude_ai_Trello_Custom__add_card_member  { card_id: "<cardId>", member_id: "<me.id>" }
+   ```
+
+   Mark any checklist items as complete:
+   ```tool
+   mcp__claude_ai_Trello_Custom__get_card_checklists  { card_id: "<cardId>" }
+   ```
+   For each checklist item not already complete, call:
+   ```tool
+   mcp__claude_ai_Trello_Custom__update_checkitem  { card_id: "<cardId>", checklist_id: "<clId>", checkitem_id: "<itemId>", state: "complete" }
+   ```
+
+   Add a completion comment in Portuguese:
+   ```tool
+   mcp__claude_ai_Trello_Custom__add_comment
+     card_id: "<cardId>"
+     text: |
+       Change concluida via /ps:complete
+
+       Change: <change-name>
+       Schema: <schema-name>
+       Arquivada em: <archive-path>
+       Specs: <sincronizado / sem delta specs / sync pulado>
+       Tasks: <N>/<N> concluidas
+
+       Fluxo encerrado. Nenhuma acao adicional necessaria.
+   ```
+
+   If any Trello call fails, continue — Trello is auxiliary, never blocking.
+
+7. **Display summary**
+
+   Show archive completion summary including:
+   - Change name
+   - Schema that was used
+   - Archive location
+   - Spec sync status (synced / sync skipped / no delta specs)
+   - Note about any warnings (incomplete artifacts/tasks)
+   - Trello: mention if card was moved to "Concluído"
+
+**Output On Success**
+
+```
+## Archive Complete
+
+**Change:** <change-name>
+**Schema:** <schema-name>
+**Archived to:** <archive-path>
+**Specs:** ✓ Synced to main specs
+**Trello:** Card moved to ✅ Concluído    ← only shown if Trello is configured
+
+All artifacts complete. All tasks complete.
+```
+
+**Output On Success With Warnings**
+
+```
+## Archive Complete (with warnings)
+
+**Change:** <change-name>
+**Schema:** <schema-name>
+**Archived to:** <archive-path>
+**Specs:** Sync skipped (user chose to skip)
+**Trello:** Card moved to ✅ Concluído    ← only shown if Trello is configured
+
+**Warnings:**
+- Archived with 2 incomplete artifacts
+- Archived with 3 incomplete tasks
+- Delta spec sync was skipped
+
+Review the archive if this was not intentional.
+```
+
+**Output On Error (Archive Exists)**
+
+```
+## Archive Failed
+
+**Change:** <change-name>
+**Target:** <archive-path>
+
+Target archive directory already exists.
+
+**Options:**
+1. Rename the existing archive
+2. Delete the existing archive if it's a duplicate
+3. Wait until a different date to archive
+```
+
+**Guardrails**
+- Always prompt for change selection if not provided
+- Use artifact graph (pscode status --json) for completion checking
+- Don't block archive on warnings — just inform and confirm
+- Preserve .pscode.yaml when moving to archive (it moves with the directory)
+- Show clear summary of what happened
+- If sync is requested, use pscode-sync-specs approach (agent-driven)
+- If delta specs exist, always run the sync assessment and show the combined summary before prompting
+- If Trello tools fail, continue normally — Trello is auxiliary, not blocking
+- All content written to Trello must be in Portuguese
+

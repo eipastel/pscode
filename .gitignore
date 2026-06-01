@@ -141,9 +141,7 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
 
-# Claude
-.claude/
-CLAUDE.md
+# macOS
 .DS_Store
 
 # Pnpm
