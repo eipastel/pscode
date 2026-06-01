@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildNextStepComment,
+  buildNextStepReminder,
   getNextStepCommentInstructionBlock,
 } from '../../../src/core/templates/workflows/trello-next-step-comment.js';
 
@@ -68,5 +69,19 @@ describe('getNextStepCommentInstructionBlock', () => {
   it('keeps the auxiliary, non-blocking guidance', () => {
     const block = getNextStepCommentInstructionBlock('<título do card>', '/ps:complete');
     expect(block).toContain('auxiliary, never blocking');
+  });
+});
+
+describe('buildNextStepReminder', () => {
+  it('names the placeholder and the command so the argument is never dropped', () => {
+    const reminder = buildNextStepReminder('<card title>', '/ps:apply');
+    expect(reminder).toContain('<card title>');
+    expect(reminder).toContain('/ps:apply');
+    expect(reminder).toContain('must always');
+  });
+
+  it('normalizes a command missing the leading slash', () => {
+    const reminder = buildNextStepReminder('<card title>', 'ps:complete');
+    expect(reminder).toContain('/ps:complete');
   });
 });

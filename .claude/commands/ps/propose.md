@@ -213,6 +213,7 @@ update the card with the refinement content **before** asking for approval.
    ```
 
 2. **Add a refinement comment** in Portuguese (if `cardId` exists):
+   **IMPORTANT**: Replace `<card title>` below with the actual card title — the command **must always** include the quoted title argument, never post `/ps:apply` by itself.
    ```tool
    mcp__claude_ai_Trello_Custom__add_comment
      card_id: "<cardId>"
@@ -269,6 +270,7 @@ Now just move the card and register the explicit approval.
    ```
 
 2. **Add a final Trello comment** (if cardId exists):
+   **IMPORTANT**: Replace `<card title>` below with the actual card title — the command **must always** include the quoted title argument, never post `/ps:apply` by itself.
    ```tool
    mcp__claude_ai_Trello_Custom__add_comment
      card_id: "<cardId>"

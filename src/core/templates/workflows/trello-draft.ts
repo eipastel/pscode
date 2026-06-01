@@ -152,10 +152,6 @@ Save the returned card \`id\` as \`cardId\` and \`url\` as \`cardUrl\`.
 
 ## Step 7 — Add next-step comment
 
-Add a comment to the card with the command to take this task to the next stage,
-with the card title (\`<title>\` from Step 3) pre-filled as the quoted argument so
-it is ready to copy and paste.
-
 ${getNextStepCommentInstructionBlock('<title>', '/ps:propose')}
 
 ---

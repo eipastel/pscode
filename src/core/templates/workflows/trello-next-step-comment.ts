@@ -78,6 +78,20 @@ ${command} "${argument}"
 }
 
 /**
+ * Returns a one-line reminder telling the agent to substitute the placeholder
+ * title with the real card title before posting, so the embedded next-step
+ * command is never left without its quoted argument. Use it right before tool
+ * blocks that interpolate `buildNextStepComment` output directly (propose, apply).
+ *
+ * @param cardName    The placeholder shown in the generated command (e.g. "<card title>").
+ * @param nextCommand The command to advance the workflow (e.g. "/ps:apply").
+ */
+export function buildNextStepReminder(cardName: string, nextCommand: string): string {
+  const command = normalizeCommand(nextCommand);
+  return `**IMPORTANT**: Replace \`${cardName}\` below with the actual card title — the command **must always** include the quoted title argument, never post \`${command}\` by itself.`;
+}
+
+/**
  * Returns the instruction block embedded inside a workflow skill template. It
  * tells the AI agent to post a next-step comment built via `buildNextStepComment`,
  * with the card title pre-filled as the command argument.
@@ -90,16 +104,18 @@ export function getNextStepCommentInstructionBlock(
   cardName: string,
   nextCommand: string,
 ): string {
+  const command = normalizeCommand(nextCommand);
   const comment = buildNextStepComment(cardName, nextCommand);
   const indented = comment
     .split('\n')
     .map((line) => (line.length > 0 ? `    ${line}` : ''))
     .join('\n');
 
-  return `## Step — Add next-step comment
+  return `Post a comment on the card with the ready-to-paste command for the next stage,
+using \`buildNextStepComment\` so the card title is pre-filled as the quoted argument.
 
-Post a comment on the card with the ready-to-paste command for the next stage,
-using \`buildNextStepComment\` so the card title is pre-filled as the quoted argument:
+**IMPORTANT**: Replace \`${cardName}\` with the actual card title from Step 3. The command
+**must always** include the quoted title argument — never post \`${command}\` by itself.
 
 \`\`\`tool
 mcp__claude_ai_Trello_Custom__add_comment

@@ -28,7 +28,7 @@ import {
 import { generateSkillContent } from '../../../src/core/shared/skill-generation.js';
 
 const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
-  getApplyChangeSkillTemplate: '848680f426a3761e412f50ca0a668d690befff7c2dee0b41c3985656a3e59cd6',
+  getApplyChangeSkillTemplate: '9ba4b2b078bcd3b47895cc30b5b00e042b360546dea8732cfe46e01f5a1c36a4',
   getCompleteChangeSkillTemplate: '13f00c3a3fc13d29a4d81a199f9c993c8fc691a10ef12a3739d3fe2520d4b09e',
   getBulkArchiveChangeSkillTemplate: '9a625b7b199ac465654d3c3d89b812f8a7ae6a4e2cca60010a8c03293a1ff801',
   getContinueChangeSkillTemplate: '4bcce8b5109e8fe489782b5415d318816457b43db315b0747063ee35f4dc4e77',
@@ -37,8 +37,8 @@ const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
   getFfChangeSkillTemplate: '900ccf0782ec1a9024ad4a8b890e34db4e7302222bd1b71613c8c858984126fd',
   getNewChangeSkillTemplate: 'cd6a0b88659afcabe73581646e8d9b1accb2f48df547faa7c5d0e44d77ece0aa',
   getOnboardSkillTemplate: '2db2164f9a052903709e1312175e34aeffb9d38e2c205cf9f985130013110b33',
-  getProposeSkillTemplate: '4cbf9c2a1e56c83b380f0e6cefe6987d82cb54f2bca475994e92bbf65af778e5',
-  getPsApplyCommandTemplate: '5f0bdc25e3624a7158eaf0a3cb603ccfb79457ed80ef5fc26a2739827d5502b4',
+  getProposeSkillTemplate: '6d0075a19dc1ff15d646e2d039fb1131156d399e0c6794b686762e4f98aa92dc',
+  getPsApplyCommandTemplate: 'c75efd8b81ff877ba08c03463ff521eb3f7924cb230d8d95386f4ea431b0fdef',
   getPsCompleteCommandTemplate: '74db9b5f7f40e8e3b1360872a74969b1e5676c02eea69ea672d74c5a7c96598f',
   getPsBulkArchiveCommandTemplate: '1464df49ad5bf07a550d34f6950495e5ca397f6eb7a8690bcc0993c8e4136b74',
   getPsContinueCommandTemplate: 'dca3927fa00bf0a7135c6cc99f75b2908e80a38bb495ec5f3e5888743e0f1e6d',
@@ -46,13 +46,13 @@ const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
   getPsFfCommandTemplate: 'ef272952e2e01b96ed6e49abef147e8808d6186896d61cea60ce7ebcd947eabc',
   getPsNewCommandTemplate: 'fdb348e81411ff65d722ab90a218155ed301712ef44b6621124dbad726959895',
   getPsOnboardCommandTemplate: 'f01a5baae071c51e5991e10024abef089a35c222c0bbc8be3c2f8dd580d48091',
-  getPsProposeCommandTemplate: 'e932afc4fa68eec7efa725a95189b45369cbeba933b4215ec2a0e9db12148d3b',
+  getPsProposeCommandTemplate: 'd527c961486c2113e2843acb431b500b34797cd1a140947b51f2b73b12bb533b',
   getPsVerifyCommandTemplate: 'ff5444b1f84b2de82e3c56b105f384bdd61e58251257b183087c5c92a608e7ec',
   getVerifyChangeSkillTemplate: 'fb57bd2789816164ae3ffae404442456377e590cb7fe0a7a266eb1841c29ca5c',
 };
 
 const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
-  'pscode-apply-change': 'ad1364bb1cf4125b24924491745a4b7e7dc02fc5e7204e28d299e6b1a3d23f29',
+  'pscode-apply-change': 'b4c78829a73d9ccb692b0ce09afa94c5049c3239ea2834f113b568e7d1bfcdcc',
   'pscode-archive-change': '6488e283714cb475040f23cf534f497ce2b3af43d7d06288e1a86459015a3294',
   'pscode-bulk-archive-change': 'b09bc4dbad8eaa9d4682b28b3bbbc521948a397a0495f832cd3121a03703a863',
   'pscode-continue-change': '2839984327a5ec7af43795bf7abc808074c3424a26f6c717dba31e0fc7d922b1',
@@ -60,7 +60,7 @@ const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
   'pscode-ff-change': 'b16f044a89d3f675317500407dc9c4adfff8e788fb8a36b9441191a67221360c',
   'pscode-new-change': 'bc876dbb82313189b89fc6a1076f29b2ebae749bc4f0bceca06480ea97de292e',
   'pscode-onboard': '21fee8182d0b868c743cfde2fc4e21d7f8c12e0fec7e34b3641453eae1510fa6',
-  'pscode-propose': '85ac0bd2b950a9d51a1767ed953b7d3f5e05e274de32be188e7176b951538ea3',
+  'pscode-propose': 'fb49b8d89719d4b2617fc0ac6e1df397693f8e80dd670a1b71572f35ffc993b9',
   'pscode-verify-change': '93f85208b848b63b1baebd1e0165dc676a4b9b53b865b74aa811db9d2a9d5b8d',
 };
 
