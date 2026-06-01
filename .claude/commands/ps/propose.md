@@ -12,7 +12,7 @@ I'll create a change with artifacts:
 - design.md (how)
 - tasks.md (implementation steps)
 
-After artifacts are created, a **refinement validation loop** runs: the user reviews the plan, gives feedback, and when satisfied the Trello card is moved to Ready to Dev.
+After artifacts are created, a **refinement validation loop** runs: the Trello card is updated with the refined plan, the user reviews it, gives feedback, and when satisfied the card is moved to Ready to Dev.
 
 When ready to implement, run /ps:apply
 
@@ -190,22 +190,10 @@ Para iniciar a implementação quando aprovado:
 
 ---
 
-### Step R2 — Ask for user approval
+### Step R1b — Update Trello card (before asking for approval)
 
-Use **AskUserQuestion** to ask:
-
-> "A implementação e o planejamento estão de acordo com o esperado?"
-
-Options:
-- ✅ Sim, está refinada — mover para Ready to Dev
-- 🔄 Não, quero ajustar o plano
-- ❌ Cancelar (manter em refinamento)
-
-**Do NOT update the Trello card description or add any comment before the user approves.**
-
----
-
-### Step R2a — If APPROVED (Sim, está refinada)
+So the user can use the Trello card itself as a visual reference when deciding,
+update the card with the refinement content **before** asking for approval.
 
 1. **Update Trello card description** (if `cardId` exists):
    Build the description from the artifacts already read in Step R1:
@@ -224,7 +212,7 @@ Options:
        **Artefatos:** pscode/changes/<name>/
    ```
 
-2. **Add a comment** in Portuguese (if `cardId` exists):
+2. **Add a refinement comment** in Portuguese (if `cardId` exists):
    ```tool
    mcp__claude_ai_Trello_Custom__add_comment
      card_id: "<cardId>"
@@ -248,14 +236,39 @@ Options:
        _Aguardando aprovação para mover para Ready to Dev._
    ```
 
-3. **Move the Trello card to the ready list** (if `lists.ready` is configured and `cardId` exists):
+If any Trello call fails, continue — Trello is auxiliary, never blocking.
+
+---
+
+### Step R2 — Ask for user approval
+
+Use **AskUserQuestion** to ask:
+
+> "A implementação e o planejamento estão de acordo com o esperado?"
+
+Options:
+- ✅ Sim, está refinada — mover para Ready to Dev
+- 🔄 Não, quero ajustar o plano
+- ❌ Cancelar (manter em refinamento)
+
+At this point the Trello card already reflects the current refinement (Step R1b),
+so the user can review it before deciding.
+
+---
+
+### Step R2a — If APPROVED (Sim, está refinada)
+
+The card description and refinement comment were already added in Step R1b.
+Now just move the card and register the explicit approval.
+
+1. **Move the Trello card to the ready list** (if `lists.ready` is configured and `cardId` exists):
    ```tool
    mcp__claude_ai_Trello_Custom__update_card
      card_id: "<cardId>"
      list_id: "<lists.ready.id>"
    ```
 
-4. **Add a final Trello comment** (if cardId exists):
+2. **Add a final Trello comment** (if cardId exists):
    ```tool
    mcp__claude_ai_Trello_Custom__add_comment
      card_id: "<cardId>"
@@ -273,7 +286,7 @@ Options:
        ```
    ```
 
-5. **Show success message:**
+3. **Show success message:**
    ```markdown
    ## ✅ Pronto para desenvolvimento!
 
@@ -298,9 +311,9 @@ Options:
    - Changes to technical approach → update `design.md`
    - Changes to tasks → update `tasks.md`
 
-3. **Go back to Step R1** and show the updated refinement summary.
+3. **Go back to Step R1** and show the updated refinement summary, then **re-run Step R1b**
+   so the Trello card description and comment reflect the adjusted plan before asking again.
    Keep looping until the user approves or cancels.
-   **Do NOT update the Trello description or add comments until the user approves.**
 
 ---
 
