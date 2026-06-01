@@ -5,7 +5,7 @@ compatibility: Works with any pscode project.
 metadata:
   author: pscode
   version: "1.0"
-  generatedBy: "2.1.1"
+  generatedBy: "2.2.0"
 ---
 
 Write a handoff document summarising the current conversation so a fresh agent can continue the work. Save to the temporary directory of the user's OS — not the current workspace.
