@@ -5,7 +5,7 @@
  * templates file into workflow-focused modules.
  */
 import type { SkillTemplate, CommandTemplate } from '../types.js';
-import { buildNextStepComment } from './trello-next-step-comment.js';
+import { buildNextStepComment, buildNextStepReminder } from './trello-next-step-comment.js';
 
 export function getApplyChangeSkillTemplate(): SkillTemplate {
   return {
@@ -35,6 +35,7 @@ function getApplyInstructions(): string {
     .split('\n')
     .map((line) => (line.length > 0 ? `          ${line}` : ''))
     .join('\n');
+  const completeReminder = buildNextStepReminder('<card title>', '/ps:complete');
 
   return `Implement tasks from a Pscode change.
 
@@ -208,6 +209,7 @@ function getApplyInstructions(): string {
       mcp__claude_ai_Trello_Custom__update_card  { card_id: "<cardId>", list_id: "<lists.deploy.id>" }
       \`\`\`
    b. Add a comment in Portuguese:
+      ${completeReminder}
       \`\`\`tool
       mcp__claude_ai_Trello_Custom__add_comment
         card_id: "<cardId>"

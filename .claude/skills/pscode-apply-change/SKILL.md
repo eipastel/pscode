@@ -180,6 +180,7 @@ Implement tasks from a Pscode change.
       mcp__claude_ai_Trello_Custom__update_card  { card_id: "<cardId>", list_id: "<lists.deploy.id>" }
       ```
    b. Add a comment in Portuguese:
+      **IMPORTANT**: Replace `<card title>` below with the actual card title — the command **must always** include the quoted title argument, never post `/ps:complete` by itself.
       ```tool
       mcp__claude_ai_Trello_Custom__add_comment
         card_id: "<cardId>"
