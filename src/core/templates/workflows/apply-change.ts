@@ -12,7 +12,6 @@ export function getApplyChangeSkillTemplate(): SkillTemplate {
     name: 'pscode-apply-change',
     description: 'Implement tasks from an Pscode change. Use when the user wants to start implementing, continue implementation, or work through tasks.',
     instructions: getApplyInstructions(),
-    license: 'MIT',
     compatibility: 'Requires pscode CLI.',
     metadata: { author: 'pscode', version: '1.0' },
   };

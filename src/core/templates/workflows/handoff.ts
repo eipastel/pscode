@@ -12,7 +12,6 @@ export function getHandoffSkillTemplate(): SkillTemplate {
     description:
       'Compact the current conversation into a handoff document for another agent to pick up. Use when the user wants to hand off work to a new session or agent.',
     instructions: getHandoffInstructions(),
-    license: 'MIT',
     compatibility: 'Works with any pscode project.',
     metadata: { author: 'pscode', version: '1.0' },
   };

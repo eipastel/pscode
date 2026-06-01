@@ -73,7 +73,6 @@ After completing the steps, summarize:
 - If the name is invalid (not kebab-case), ask for a valid name
 - If a change with that name already exists, suggest continuing that change instead
 - Pass --schema if using a non-default workflow`,
-    license: 'MIT',
     compatibility: 'Requires pscode CLI.',
     metadata: { author: 'pscode', version: '1.0' },
   };

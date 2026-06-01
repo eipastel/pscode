@@ -148,7 +148,6 @@ export function generateSkillContent(
   return `---
 name: ${template.name}
 description: ${template.description}
-license: ${template.license || 'MIT'}
 compatibility: ${template.compatibility || 'Requires pscode CLI.'}
 metadata:
   author: ${template.metadata?.author || 'pscode'}
