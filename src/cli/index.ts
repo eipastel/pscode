@@ -106,7 +106,9 @@ program
   .option('--tools <tools>', toolsOptionDescription)
   .option('--force', 'Auto-cleanup legacy files without prompting')
   .option('--profile <profile>', 'Workflow profile to use (core, full, trello)')
-  .action(async (targetPath = '.', options?: { tools?: string; force?: boolean; profile?: string }) => {
+  .option('--pr', 'Enable PR workflow config without interactive prompts (uses defaults: branch=feat/{change-name}, title=[{type}] {change-name})')
+  .option('--no-pr', 'Disable PR workflow config without interactive prompts')
+  .action(async (targetPath = '.', options?: { tools?: string; force?: boolean; profile?: string; pr?: boolean }) => {
     try {
       // Validate that the path is a valid directory
       const resolvedPath = path.resolve(targetPath);
@@ -132,6 +134,7 @@ program
         tools: options?.tools,
         force: options?.force,
         profile: options?.profile,
+        pr: options?.pr,
       });
       await initCommand.execute(targetPath);
     } catch (error) {

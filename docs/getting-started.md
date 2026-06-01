@@ -6,19 +6,19 @@ This guide explains how Pscode works after you've installed and initialized it. 
 
 Pscode helps you and your AI coding assistant agree on what to build before any code is written.
 
-**Default quick path (core profile):**
+**Default quick path (standard profile):**
 
 ```text
-/ps:propose ──► /ps:apply ──► /ps:sync ──► /ps:complete
+/ps:propose ──► /ps:apply ──► /ps:complete
 ```
 
-**Expanded path (custom workflow selection):**
+**Expanded path (optional workflow selection):**
 
 ```text
 /ps:new ──► /ps:ff or /ps:continue ──► /ps:apply ──► /ps:verify ──► /ps:complete
 ```
 
-The default global profile is `core`, which includes `propose`, `explore`, `apply`, `sync`, and `archive`. You can enable the expanded workflow commands with `pscode config profile` and then `pscode update`.
+The default global profile is `standard`, which includes `propose`, `explore`, `apply`, `complete`, `trello-setup`, and `draft`. You can enable the expanded workflow commands with `pscode config profile` and then `pscode update`.
 
 ## What Pscode Creates
 

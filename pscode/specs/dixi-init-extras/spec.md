@@ -5,23 +5,42 @@ Defines the extra initialization logic executed when `pscode init` runs with `--
 ## Requirements
 
 ### Requirement: Executar lógica extra do profile dixi durante pscode init
-O sistema SHALL, quando `profile === 'dixi'` e após a instalação de workflows padrão, chamar `detectDixiStack`, logar o resultado, chamar `installDixiExtras(projectDir, stack)` e gravar `.pscode-dixi.yaml` na raiz do `projectDir`.
+O sistema SHALL, quando `profile === 'dixi'` e após a instalação de workflows padrão, chamar `detectDixiStack`, logar o resultado, chamar `installDixiExtras(projectDir, stack)`, gravar `.pscode-dixi.yaml` na raiz do `projectDir`, e gravar `pscode/config.yaml` com `schema: pstld-workflow`.
 
 #### Scenario: Init com profile dixi em projeto Java/Maven
 - **WHEN** `pscode init --profile dixi` é executado em um diretório contendo `pom.xml`
-- **THEN** o sistema loga `"Dixi: stack detectada — Java/Maven"`, chama `installDixiExtras` e grava `.pscode-dixi.yaml`
+- **THEN** o sistema loga `"Dixi: stack detectada — Java/Maven"`, chama `installDixiExtras`, grava `.pscode-dixi.yaml` e grava `pscode/config.yaml` com `schema: pstld-workflow`
 
 #### Scenario: Init com profile dixi em projeto Next.js
 - **WHEN** `pscode init --profile dixi` é executado em um diretório contendo `next.config.js`
-- **THEN** o sistema loga `"Dixi: stack detectada — Next.js"`, chama `installDixiExtras` e grava `.pscode-dixi.yaml`
+- **THEN** o sistema loga `"Dixi: stack detectada — Next.js"`, chama `installDixiExtras`, grava `.pscode-dixi.yaml` e grava `pscode/config.yaml` com `schema: pstld-workflow`
 
 #### Scenario: Init com profile dixi sem stack detectada
 - **WHEN** `pscode init --profile dixi` é executado em um diretório sem arquivos de configuração reconhecidos
-- **THEN** o sistema loga `"Dixi: stack não detectada, usando configuração genérica"`, chama `installDixiExtras(projectDir, null)` e grava `.pscode-dixi.yaml` com `stack: null`
+- **THEN** o sistema loga `"Dixi: stack não detectada, usando configuração genérica"`, chama `installDixiExtras(projectDir, null)`, grava `.pscode-dixi.yaml` com `stack: null` e grava `pscode/config.yaml` com `schema: pstld-workflow`
 
 #### Scenario: Init com profile diferente de dixi não aciona extras
 - **WHEN** `pscode init --profile standard` é executado
-- **THEN** `detectDixiStack` e `installDixiExtras` NÃO são chamados e `.pscode-dixi.yaml` NÃO é gerado
+- **THEN** `detectDixiStack` e `installDixiExtras` NÃO são chamados, `.pscode-dixi.yaml` NÃO é gerado, e `pscode/config.yaml` é gravado com `schema: spec-driven`
+
+### Requirement: config.yaml gerado com schema correto para o profile dixi
+O sistema SHALL gravar `schema: pstld-workflow` no `pscode/config.yaml` quando o profile ativo for `dixi`, em vez do valor padrão `spec-driven`.
+
+#### Scenario: config.yaml contém pstld-workflow após init com dixi
+- **WHEN** `pscode init --profile dixi` é executado e `pscode/config.yaml` ainda não existe
+- **THEN** o arquivo `pscode/config.yaml` é criado com `schema: pstld-workflow`
+
+#### Scenario: config.yaml contém spec-driven após init sem profile dixi
+- **WHEN** `pscode init` é executado sem `--profile dixi` (ou com `--profile standard`) e `pscode/config.yaml` ainda não existe
+- **THEN** o arquivo `pscode/config.yaml` é criado com `schema: spec-driven`
+
+#### Scenario: config.yaml existente não é sobrescrito
+- **WHEN** `pscode init --profile dixi` é executado e `pscode/config.yaml` já existe
+- **THEN** o arquivo existente NÃO é modificado (comportamento idêntico ao atual)
+
+#### Scenario: Log exibe schema real utilizado
+- **WHEN** `pscode init --profile dixi` é executado e o `config.yaml` é criado
+- **THEN** a mensagem de log exibe `schema: pstld-workflow` (e não `spec-driven`)
 
 ### Requirement: Gravar arquivo .pscode-dixi.yaml na raiz do projeto
 O sistema SHALL criar o arquivo `.pscode-dixi.yaml` na raiz do projeto cliente com os campos `stack`, `family` e `detectedAt` (ISO 8601), sobrescrevendo se já existir.
@@ -35,27 +54,15 @@ O sistema SHALL criar o arquivo `.pscode-dixi.yaml` na raiz do projeto cliente c
 - **THEN** `.pscode-dixi.yaml` é criado com `stack: null`, `family: null` e `detectedAt` com timestamp atual
 
 ### Requirement: installDixiExtras como ponto de extensão placeholder
-O sistema SHALL fornecer a função `installDixiExtras(projectDir, stack)` que cria `.claude/commands/pstld/` no `projectDir` e copia os 7 arquivos de slash command dixi: `rfc.md`, `arch-check.md`, `adr.md`, `jira-sync.md`, `dod.md`, `jira-draft.md` e `jira-setup.md`.
+O sistema SHALL fornecer a função `installDixiExtras(projectDir, stack)` que copia context docs de stack para `pastelsdd/context/` **e** instala overrides de comandos `/ps:*` e comandos exclusivos `/pstld:*` no adapter Claude do `projectDir`.
 
-#### Scenario: Instalação completa dos 7 slash commands
+#### Scenario: installDixiExtras instala context docs e command overrides
 - **WHEN** `installDixiExtras(projectDir, 'java-maven')` é chamado
-- **THEN** o diretório `.claude/commands/pstld/` é criado no `projectDir` e os 7 arquivos (`rfc.md`, `arch-check.md`, `adr.md`, `jira-sync.md`, `dod.md`, `jira-draft.md`, `jira-setup.md`) são copiados para ele
+- **THEN** o sistema SHALL copiar os context docs Java para `pastelsdd/context/` e copiar os command overrides Dixi para `.claude/commands/ps/` e `.claude/commands/pstld/`
 
-#### Scenario: Instalação com stack nula instala todos os comandos
+#### Scenario: installDixiExtras com stack nula instala apenas shared docs e commands
 - **WHEN** `installDixiExtras(projectDir, null)` é chamado
-- **THEN** os mesmos 7 arquivos são instalados independentemente da stack, pois os comandos são agnósticos de stack
-
-#### Scenario: Comandos jira-draft e jira-setup presentes após instalação
-- **WHEN** `installDixiExtras` é executado com sucesso
-- **THEN** `jira-draft.md` e `jira-setup.md` existem em `.claude/commands/pstld/` do projeto cliente
-
-#### Scenario: Instalação é idempotente — reexecução não duplica nem corrompe arquivos
-- **WHEN** `installDixiExtras` for chamado mais de uma vez no mesmo projectDir
-- **THEN** `.claude/commands/pstld/` SHALL conter exatamente os 7 arquivos sem duplicatas ou arquivos corrompidos
-
-#### Scenario: Instalação funciona independentemente da stack detectada
-- **WHEN** `installDixiExtras` for chamado com qualquer valor de stack (java-maven, next, react, node, null)
-- **THEN** os 7 arquivos de comando SHALL ser copiados — a instalação dos commands não depende de family
+- **THEN** o sistema SHALL copiar apenas os context docs shared para `pastelsdd/context/`, logar aviso de stack não detectada, e ainda assim instalar os command overrides em `.claude/commands/ps/` e `.claude/commands/pstld/`
 
 ### Requirement: Instalação dos hooks durante pscode init --profile dixi
 O comando `pscode init --profile dixi` SHALL copiar `arch-guard.mjs` e `jira-context.mjs` para `.claude/hooks/` no repo do cliente.

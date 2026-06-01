@@ -30,22 +30,23 @@ OPSX (fluid actions):
 
 ## Two Modes
 
-### Default Quick Path (`core` profile)
+### Default Quick Path (`standard` profile)
 
-New installs default to `core`, which provides:
+New installs default to `standard`, which provides:
 - `/ps:propose`
 - `/ps:explore`
 - `/ps:apply`
-- `/ps:sync`
 - `/ps:complete`
+- `/ps:trello-setup`
+- `/ps:draft`
 
 Typical flow:
 
 ```text
-/ps:propose ──► /ps:apply ──► /ps:sync ──► /ps:complete
+/ps:propose ──► /ps:apply ──► /ps:complete
 ```
 
-### Expanded/Full Workflow (custom selection)
+### Expanded/Full Workflow (optional selection)
 
 If you want explicit scaffold-and-build commands (`/ps:new`, `/ps:continue`, `/ps:ff`, `/ps:verify`, `/ps:bulk-archive`, `/ps:onboard`), enable them with:
 
@@ -434,7 +435,7 @@ For full command details and options, see [Commands](commands.md).
 
 | Command | Purpose | When to Use |
 |---------|---------|-------------|
-| `/ps:propose` | Create change + planning artifacts | Fast default path (`core` profile) |
+| `/ps:propose` | Create change + planning artifacts | Fast default path (`standard` profile) |
 | `/ps:explore` | Think through ideas | Unclear requirements, investigation |
 | `/ps:new` | Start a change scaffold | Expanded mode, explicit artifact control |
 | `/ps:continue` | Create next artifact | Expanded mode, step-by-step artifact creation |

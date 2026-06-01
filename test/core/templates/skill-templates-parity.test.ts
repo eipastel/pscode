@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, test } from 'vitest';
 
 import {
   type SkillTemplate,
@@ -28,7 +28,7 @@ import {
 import { generateSkillContent } from '../../../src/core/shared/skill-generation.js';
 
 const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
-  getApplyChangeSkillTemplate: '7a42d44157e912cf345dde3d99e1450d8b104e7dec53cdc3acf2d69fc693fb78',
+  getApplyChangeSkillTemplate: '0648e7d6924c8bb91c4d59566c4e2a6e0124fd8d015423ccabf9886ab693cad0',
   getCompleteChangeSkillTemplate: '2bad0e2858404e2b7fa3f3e18ff5e09d7aaf2a957cfffca7b38a876292234dae',
   getBulkArchiveChangeSkillTemplate: '3f4a389b095f277e299c922d46b6ec9ee17ca2cb3cff92c7aa809c665b9164fb',
   getContinueChangeSkillTemplate: 'cd188f08fa20612ffe445bac0c31bc111149582fc6250e6ea6923ef3198ec660',
@@ -38,7 +38,7 @@ const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
   getNewChangeSkillTemplate: '693fe8ead94dabb7cc5e308c48170f5cc16afd8de2987d357d2cb17bc563ec3a',
   getOnboardSkillTemplate: '19c3d9a9c2ae1d6dce05a3fef2849dcd8012cd90be4dce44543de6a993eaff64',
   getProposeSkillTemplate: 'f239bf463d95a2d7f8ee4a5a065d2e4e4783bafa0d58a48891802d75acfda7f7',
-  getPsApplyCommandTemplate: '390bfc1eb803490f5abc1fc834d9e475d6548d557ed0e482242cea8379643fcc',
+  getPsApplyCommandTemplate: '11880017c7b2d604386b248552897df4ec81369e93f6bfbd900574ebd6f7f68a',
   getPsCompleteCommandTemplate: '74db9b5f7f40e8e3b1360872a74969b1e5676c02eea69ea672d74c5a7c96598f',
   getPsBulkArchiveCommandTemplate: '1464df49ad5bf07a550d34f6950495e5ca397f6eb7a8690bcc0993c8e4136b74',
   getPsContinueCommandTemplate: 'dca3927fa00bf0a7135c6cc99f75b2908e80a38bb495ec5f3e5888743e0f1e6d',
@@ -52,7 +52,7 @@ const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
 };
 
 const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
-  'pscode-apply-change': 'daea2fe6d6ea38f92eb498834e5cbb1ef22816f2eebcd44d46f4b67bb0b87191',
+  'pscode-apply-change': '7b395a603d7d2cfb04b192963c6d1c429bbc71a7065a28be840a6fbc104f8d00',
   'pscode-archive-change': '984a5bc32c2e35cf0f18800dfd2fa10827668ea2aeb9adcf4a37651d193c2d3a',
   'pscode-bulk-archive-change': 'b9c04ef1f7a0ae77f9614f53a6f3d66d98eab9473a199948690556f6df65a744',
   'pscode-continue-change': '653da27ffeb149d013dae46e5c5798b7d069853df4a8e86eef6be6e7cb8fc473',
@@ -141,6 +141,27 @@ describe('skill templates split parity', () => {
     );
 
     expect(actualHashes).toEqual(EXPECTED_GENERATED_SKILL_CONTENT_HASHES);
+  });
+
+  describe('apply skill PR config integration', () => {
+    it('apply skill instructs agent to read pscode/config.yaml', () => {
+      const content = generateSkillContent(getApplyChangeSkillTemplate(), 'TEST');
+      expect(content).toContain('pscode/config.yaml');
+      expect(content).toContain('pr.enabled: true');
+    });
+
+    it('apply skill includes PR disabled fallback instruction', () => {
+      const content = generateSkillContent(getApplyChangeSkillTemplate(), 'TEST');
+      expect(content).toContain('pr.enabled: false');
+      expect(content).toContain('continue normally without any PR instructions');
+    });
+
+    it('apply skill includes branch pattern instruction when PR enabled', () => {
+      const content = generateSkillContent(getApplyChangeSkillTemplate(), 'TEST');
+      expect(content).toContain('pr.branch.pattern');
+      expect(content).toContain('pr.title.template');
+      expect(content).toContain('pr.description.template');
+    });
   });
 
   it('guards unsupported workspace workflows from repo-local fallback edits', () => {

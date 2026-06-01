@@ -54,8 +54,11 @@ import { getGlobalConfig, type Delivery } from './global-config.js';
 import { getProfileWorkflows, isValidProfile, DEFAULT_PROFILE, type ProfileName, PROFILES, ALL_WORKFLOWS } from './profiles.js';
 import { detectDixiStack, getDixiStackFamily, getDixiStackLabel, installDixiExtras } from './presets/dixi.js';
 import { stringify as stringifyYaml } from 'yaml';
+import { parse as parseYaml } from 'yaml';
 import { getAvailableTools } from './available-tools.js';
 import { migrateIfNeeded } from './migration.js';
+import { runPrInitPrompt } from './pr-init-prompt.js';
+import type { PrConfig } from './project-config.js';
 
 const require = createRequire(import.meta.url);
 const { version: PSCODE_VERSION } = require('../../package.json');
@@ -104,6 +107,7 @@ type InitCommandOptions = {
   force?: boolean;
   interactive?: boolean;
   profile?: string;
+  pr?: boolean;
 };
 
 // -----------------------------------------------------------------------------
@@ -115,12 +119,14 @@ export class InitCommand {
   private readonly force: boolean;
   private readonly interactiveOption?: boolean;
   private readonly profileOverride?: string;
+  private readonly prFlag?: boolean;
 
   constructor(options: InitCommandOptions = {}) {
     this.toolsArg = options.tools;
     this.force = options.force ?? false;
     this.interactiveOption = options.interactive;
     this.profileOverride = options.profile;
+    this.prFlag = options.pr;
   }
 
   async execute(targetPath: string): Promise<void> {
@@ -171,6 +177,9 @@ export class InitCommand {
     // Trello integration setup (interactive mode only)
     const trelloConfigured = await this.handleTrelloSetup(pscodePath);
 
+    // PR workflow setup (interactive or via flags)
+    const prConfig = await this.handlePrSetup(pscodePath, extendMode);
+
     // Generate skills and commands for each tool
     const results = await this.generateSkillsAndCommands(projectPath, validatedTools);
 
@@ -184,7 +193,7 @@ export class InitCommand {
     }
 
     // Create config.yaml if needed
-    const configStatus = await this.createConfig(pscodePath, extendMode);
+    const configStatus = await this.createConfig(pscodePath, extendMode, prConfig ?? undefined);
 
     // Display success message
     this.displaySuccessMessage(projectPath, validatedTools, results, configStatus, trelloConfigured);
@@ -570,6 +579,57 @@ export class InitCommand {
   }
 
   // ═══════════════════════════════════════════════════════════
+  // PR WORKFLOW SETUP
+  // ═══════════════════════════════════════════════════════════
+
+  private async handlePrSetup(pscodePath: string, extendMode: boolean): Promise<PrConfig | null> {
+    // --pr flag: enable PR without prompts (default values)
+    if (this.prFlag === true) {
+      return {
+        enabled: true,
+        branch: { pattern: 'feat/{change-name}' },
+        title: { template: '[{type}] {change-name}' },
+        description: { template: '## O que foi feito\n\n\n## Como testar\n\n\n## Referências\n' },
+        comments: { linkInTask: true },
+      };
+    }
+
+    // --no-pr flag: disable PR without prompts
+    if (this.prFlag === false) {
+      return { enabled: false };
+    }
+
+    // Non-interactive mode with no flag: skip PR config
+    if (!this.canPromptInteractively()) {
+      return null;
+    }
+
+    // Interactive mode: if config exists, ask if user wants to reconfigure PR
+    if (extendMode) {
+      const configPath = path.join(pscodePath, 'config.yaml');
+      const configYmlPath = path.join(pscodePath, 'config.yml');
+      const configExists = fs.existsSync(configPath) || fs.existsSync(configYmlPath);
+
+      if (configExists) {
+        const { confirm } = await import('@inquirer/prompts');
+        const wantsReconfigure = await confirm({
+          message: 'Reconfigurar preferências de PR?',
+          default: false,
+        });
+        if (!wantsReconfigure) {
+          return null; // Preserve existing PR config
+        }
+      }
+    }
+
+    try {
+      return await runPrInitPrompt();
+    } catch {
+      return null;
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════
   // DIRECTORY STRUCTURE
   // ═══════════════════════════════════════════════════════════
 
@@ -716,13 +776,29 @@ export class InitCommand {
   // CONFIG FILE
   // ═══════════════════════════════════════════════════════════
 
-  private async createConfig(pscodePath: string, extendMode: boolean): Promise<'created' | 'exists' | 'skipped'> {
+  private async createConfig(pscodePath: string, extendMode: boolean, prConfig?: PrConfig): Promise<'created' | 'exists' | 'updated' | 'skipped'> {
     const configPath = path.join(pscodePath, 'config.yaml');
     const configYmlPath = path.join(pscodePath, 'config.yml');
     const configYamlExists = fs.existsSync(configPath);
     const configYmlExists = fs.existsSync(configYmlPath);
 
     if (configYamlExists || configYmlExists) {
+      // If PR config was provided, merge it into the existing file
+      if (prConfig !== undefined) {
+        try {
+          const existingPath = configYamlExists ? configPath : configYmlPath;
+          const raw = parseYaml(fs.readFileSync(existingPath, 'utf-8')) as Record<string, unknown> | null;
+          const existingSchema = (raw && typeof raw.schema === 'string') ? raw.schema : DEFAULT_SCHEMA;
+          const globalConfig = getGlobalConfig();
+          const resolvedProfile = this.resolveProfileOverride() ?? (isValidProfile(globalConfig.profile ?? '') ? globalConfig.profile as ProfileName : DEFAULT_PROFILE);
+          const schema = existingSchema || (resolvedProfile === 'dixi' ? 'pstld-workflow' : DEFAULT_SCHEMA);
+          const yamlContent = serializeConfig({ schema, pr: prConfig });
+          await FileSystemUtils.writeFile(configPath, yamlContent);
+          return 'updated';
+        } catch {
+          return 'exists';
+        }
+      }
       return 'exists';
     }
 
@@ -730,7 +806,7 @@ export class InitCommand {
       const globalConfig = getGlobalConfig();
       const resolvedProfile = this.resolveProfileOverride() ?? (isValidProfile(globalConfig.profile ?? '') ? globalConfig.profile as ProfileName : DEFAULT_PROFILE);
       const schema = resolvedProfile === 'dixi' ? 'pstld-workflow' : DEFAULT_SCHEMA;
-      const yamlContent = serializeConfig({ schema });
+      const yamlContent = serializeConfig({ schema, pr: prConfig });
       await FileSystemUtils.writeFile(configPath, yamlContent);
       return 'created';
     } catch {
@@ -753,7 +829,7 @@ export class InitCommand {
       removedCommandCount: number;
       removedSkillCount: number;
     },
-    configStatus: 'created' | 'exists' | 'skipped',
+    configStatus: 'created' | 'exists' | 'updated' | 'skipped',
     trelloConfigured = false
   ): void {
     console.log();
@@ -809,6 +885,8 @@ export class InitCommand {
       const profileForSchema = this.resolveProfileOverride() ?? (isValidProfile(globalCfgForSchema.profile ?? '') ? globalCfgForSchema.profile as ProfileName : DEFAULT_PROFILE);
       const createdSchema = profileForSchema === 'dixi' ? 'pstld-workflow' : DEFAULT_SCHEMA;
       console.log(`Config: pscode/config.yaml (schema: ${createdSchema})`);
+    } else if (configStatus === 'updated') {
+      console.log(`Config: pscode/config.yaml (updated with PR config)`);
     } else if (configStatus === 'exists') {
       // Show actual filename (config.yaml or config.yml)
       const configYaml = path.join(projectPath, PSCODE_DIR_NAME, 'config.yaml');

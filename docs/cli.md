@@ -81,7 +81,7 @@ These options work with all commands:
 
 Initialize Pscode in your project. Creates the folder structure and configures AI tool integrations.
 
-Default behavior uses global config defaults: profile `core`, delivery `both`, workflows `propose, explore, apply, sync, complete`.
+Default behavior uses global config defaults: profile `standard`, delivery `both`, workflows `propose, explore, apply, complete, trello-setup, draft`.
 
 ```
 pscode init [path] [options]
@@ -99,11 +99,9 @@ pscode init [path] [options]
 |--------|-------------|
 | `--tools <list>` | Configure AI tools non-interactively. Use `all`, `none`, or comma-separated list |
 | `--force` | Auto-cleanup legacy files without prompting |
-| `--profile <profile>` | Override global profile for this init run (`core` or `custom`) |
+| `--profile <profile>` | Override global profile for this init run (`standard` or `dixi`) |
 
-`--profile custom` uses whatever workflows are currently selected in global config (`pscode config profile`).
-
-**Supported tool IDs (`--tools`):** `amazon-q`, `antigravity`, `auggie`, `bob`, `claude`, `cline`, `codex`, `forgecode`, `codebuddy`, `continue`, `costrict`, `crush`, `cursor`, `factory`, `gemini`, `github-copilot`, `iflow`, `junie`, `kilocode`, `kimi`, `kiro`, `opencode`, `pi`, `qoder`, `lingma`, `qwen`, `roocode`, `trae`, `windsurf`
+**Supported tool IDs (`--tools`):** `claude`, `codex`, `cursor`, `gemini`, `github-copilot`
 
 **Examples:**
 
@@ -121,7 +119,7 @@ pscode init --tools claude,cursor
 pscode init --tools all
 
 # Override profile for this run
-pscode init --profile core
+pscode init --profile standard
 
 # Skip prompts and auto-cleanup legacy files
 pscode init --force
@@ -1155,7 +1153,7 @@ pscode config edit
 pscode config profile
 
 # Fast preset: switch workflows to core (keeps delivery mode)
-pscode config profile core
+pscode config profile standard
 ```
 
 `pscode config profile` starts with a current-state summary, then lets you choose:

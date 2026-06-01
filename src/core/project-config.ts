@@ -3,6 +3,16 @@ import path from 'path';
 import { parse as parseYaml } from 'yaml';
 import { z } from 'zod';
 
+export const PrConfigSchema = z.object({
+  enabled: z.boolean(),
+  branch: z.object({ pattern: z.string() }).optional(),
+  title: z.object({ template: z.string() }).optional(),
+  description: z.object({ template: z.string() }).optional(),
+  comments: z.object({ linkInTask: z.boolean() }).optional(),
+});
+
+export type PrConfig = z.infer<typeof PrConfigSchema>;
+
 /**
  * Zod schema for project configuration.
  *
@@ -38,6 +48,9 @@ export const ProjectConfigSchema = z.object({
     )
     .optional()
     .describe('Per-artifact rules, keyed by artifact ID'),
+
+  // Optional: PR workflow configuration
+  pr: PrConfigSchema.optional().describe('PR workflow configuration'),
 });
 
 export type ProjectConfig = z.infer<typeof ProjectConfigSchema>;
@@ -110,6 +123,20 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
         }
       } else {
         console.warn(`Invalid 'context' field in config (must be string)`);
+      }
+    }
+
+    // Parse pr field using Zod safeParse
+    if (raw.pr !== undefined) {
+      if (typeof raw.pr === 'object' && raw.pr !== null) {
+        const prResult = PrConfigSchema.safeParse(raw.pr);
+        if (prResult.success) {
+          config.pr = prResult.data;
+        } else {
+          console.warn(`Invalid 'pr' field in config: ${prResult.error.issues.map((i) => i.message).join(', ')}`);
+        }
+      } else {
+        console.warn(`Invalid 'pr' field in config (must be object)`);
       }
     }
 

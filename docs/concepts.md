@@ -703,7 +703,7 @@ pscode/
 │                              PSCODE FLOW                                   │
 │                                                                              │
 │   ┌────────────────┐                                                         │
-│   │  1. START      │  /ps:propose (core) or /ps:new (expanded)           │
+│   │  1. START      │  /ps:propose (standard) or /ps:new (expanded)       │
 │   │     CHANGE     │                                                         │
 │   └───────┬────────┘                                                         │
 │           │                                                                  │

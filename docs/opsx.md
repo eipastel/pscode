@@ -65,7 +65,7 @@ pscode init
 
 This creates skills in `.claude/skills/` (or equivalent) that AI coding assistants auto-detect.
 
-By default, Pscode uses the `core` workflow profile (`propose`, `explore`, `apply`, `sync`, `archive`). If you want the expanded workflow commands (`new`, `continue`, `ff`, `verify`, `bulk-archive`, `onboard`), configure them with `pscode config profile` and apply with `pscode update`.
+By default, Pscode uses the `standard` workflow profile (`propose`, `explore`, `apply`, `complete`, `trello-setup`, `draft`). If you want the expanded workflow commands (`new`, `continue`, `ff`, `verify`, `bulk-archive`, `onboard`), configure them with `pscode config profile` and apply with `pscode update`.
 
 During setup, you'll be prompted to create a **project config** (`pscode/config.yaml`). This is optional but recommended.
 
@@ -313,7 +313,7 @@ Think of it like git branches:
 ## Architecture Deep Dive
 
 This section explains how OPSX works under the hood and how it compares to the legacy workflow.
-Examples in this section use the expanded command set (`new`, `continue`, etc.); default `core` users can map the same flow to `propose → apply → sync → archive`.
+Examples in this section use the expanded command set (`new`, `continue`, etc.); default `standard` users can map the same flow to `propose → apply → complete`.
 
 ### Philosophy: Phases vs Actions
 

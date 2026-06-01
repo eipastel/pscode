@@ -1,0 +1,114 @@
+name: Release
+
+# Dispara quando um PR é fechado na main. Só publica de fato se o PR
+# foi MERGEADO e tinha a label "release". Assim não há mais o
+# "Version Packages" PR intermediário: mergeou com a label, libera tudo.
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: >
+      github.repository == 'eipastel/pscode' &&
+      github.event.pull_request.merged == true &&
+      contains(github.event.pull_request.labels.*.name, 'release')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ secrets.GH_PAT }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - run: pnpm install --frozen-lockfile
+
+      # Se não houver changesets pendentes, não há o que liberar: encerra cedo.
+      - name: Check for pending changesets
+        id: check
+        run: |
+          if pnpm exec changeset status --output=release.json >/dev/null 2>&1 && \
+             [ "$(node -p "require('./release.json').releases.length")" != "0" ]; then
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            echo "Nenhum changeset pendente — nada para publicar."
+          fi
+          rm -f release.json
+
+      - name: Configure git
+        if: steps.check.outputs.has_changes == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      # Aplica os bumps de versão, atualiza CHANGELOG e consome os .changeset/*.md
+      - name: Version packages
+        if: steps.check.outputs.has_changes == 'true'
+        run: pnpm exec changeset version
+
+      - name: Read new version
+        if: steps.check.outputs.has_changes == 'true'
+        id: version
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Commit version bump
+        if: steps.check.outputs.has_changes == 'true'
+        run: |
+          git add -A
+          git commit -m "chore(release): v${{ steps.version.outputs.version }} [skip ci]"
+          git push origin HEAD:main
+
+      # release:ci = check:pack-version && changeset publish (publica no npm + cria git tags)
+      - name: Publish to npm
+        if: steps.check.outputs.has_changes == 'true'
+        run: pnpm run release:ci
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # Cria o GitHub Release a partir da tag gerada pelo changeset publish,
+      # usando o trecho recém-adicionado ao CHANGELOG como corpo.
+      - name: Create GitHub Release
+        if: steps.check.outputs.has_changes == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          TAG="@thiagodiogo/pscode@${VERSION}"
+          node -e '
+            const fs = require("fs");
+            const v = process.env.VERSION;
+            const cl = fs.readFileSync("CHANGELOG.md", "utf8").split("\n");
+            const start = cl.findIndex(l => l.startsWith("## " + v));
+            let body = "";
+            if (start !== -1) {
+              const rest = cl.slice(start + 1);
+              const end = rest.findIndex(l => l.startsWith("## "));
+              body = rest.slice(0, end === -1 ? undefined : end).join("\n").trim();
+            }
+            fs.writeFileSync("RELEASE_NOTES.md", body || ("Release v" + v));
+          '
+          gh release create "$TAG" \
+            --title "v${VERSION}" \
+            --notes-file RELEASE_NOTES.md \
+            --target main

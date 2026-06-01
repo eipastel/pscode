@@ -482,6 +482,114 @@ rules:
     });
   });
 
+  describe('pr config', () => {
+    it('should parse pr.enabled: true with all optional fields', () => {
+      const configDir = path.join(tempDir, 'pscode');
+      fs.mkdirSync(configDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(configDir, 'config.yaml'),
+        `schema: spec-driven
+pr:
+  enabled: true
+  branch:
+    pattern: "feat/{change-name}"
+  title:
+    template: "[{type}] {change-name}"
+  description:
+    template: |
+      ## O que foi feito
+
+      ## Como testar
+  comments:
+    linkInTask: true
+`
+      );
+
+      const config = readProjectConfig(tempDir);
+
+      expect(config?.pr).toEqual({
+        enabled: true,
+        branch: { pattern: 'feat/{change-name}' },
+        title: { template: '[{type}] {change-name}' },
+        description: { template: '## O que foi feito\n\n## Como testar\n' },
+        comments: { linkInTask: true },
+      });
+      expect(consoleWarnSpy).not.toHaveBeenCalled();
+    });
+
+    it('should parse pr.enabled: false with no optional fields', () => {
+      const configDir = path.join(tempDir, 'pscode');
+      fs.mkdirSync(configDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(configDir, 'config.yaml'),
+        `schema: spec-driven\npr:\n  enabled: false\n`
+      );
+
+      const config = readProjectConfig(tempDir);
+
+      expect(config?.pr).toEqual({ enabled: false });
+      expect(consoleWarnSpy).not.toHaveBeenCalled();
+    });
+
+    it('should return null for pr when pr field is absent', () => {
+      const configDir = path.join(tempDir, 'pscode');
+      fs.mkdirSync(configDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(configDir, 'config.yaml'),
+        `schema: spec-driven\n`
+      );
+
+      const config = readProjectConfig(tempDir);
+
+      expect(config?.pr).toBeUndefined();
+    });
+
+    it('should warn and skip pr when enabled is not a boolean', () => {
+      const configDir = path.join(tempDir, 'pscode');
+      fs.mkdirSync(configDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(configDir, 'config.yaml'),
+        `schema: spec-driven\npr:\n  enabled: "yes"\n`
+      );
+
+      const config = readProjectConfig(tempDir);
+
+      expect(config?.pr).toBeUndefined();
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining("Invalid 'pr' field in config")
+      );
+    });
+
+    it('should warn and skip pr when pr is not an object', () => {
+      const configDir = path.join(tempDir, 'pscode');
+      fs.mkdirSync(configDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(configDir, 'config.yaml'),
+        `schema: spec-driven\npr: true\n`
+      );
+
+      const config = readProjectConfig(tempDir);
+
+      expect(config?.pr).toBeUndefined();
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining("Invalid 'pr' field in config (must be object)")
+      );
+    });
+
+    it('should parse pr with only required field (enabled)', () => {
+      const configDir = path.join(tempDir, 'pscode');
+      fs.mkdirSync(configDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(configDir, 'config.yaml'),
+        `schema: spec-driven\npr:\n  enabled: true\n`
+      );
+
+      const config = readProjectConfig(tempDir);
+
+      expect(config?.pr).toEqual({ enabled: true });
+    });
+  });
+
   describe('validateConfigRules', () => {
     it('should return no warnings for valid artifact IDs', () => {
       const rules = {

@@ -84,8 +84,8 @@ Don't worry about getting it perfect. We're still learning what works best here,
 
 Both `pscode init` and `pscode update` detect legacy files and guide you through the same cleanup process. Use whichever fits your situation:
 
-- New installs default to profile `core` (`propose`, `explore`, `apply`, `sync`, `archive`).
-- Migrated installs preserve your previously installed workflows by writing a `custom` profile when needed.
+- New installs default to profile `standard` (`propose`, `explore`, `apply`, `complete`, `trello-setup`, `draft`).
+- Migrated installs preserve your previously installed workflows; run `pscode config profile` to review selections.
 
 ### Using `pscode init`
 
@@ -280,7 +280,7 @@ The AI will help you identify what's essential vs. what can be trimmed.
 
 Command availability is profile-dependent:
 
-**Default (`core` profile):**
+**Default (`standard` profile):**
 
 | Command | Purpose |
 |---------|---------|
@@ -558,7 +558,7 @@ project/
 │   └── config.yaml               # NEW: Project configuration
 ├── .claude/
 │   └── skills/                   # NEW: OPSX skills
-│       ├── pscode-propose/     # default core profile
+│       ├── pscode-propose/     # default standard profile
 │       ├── pscode-explore/
 │       ├── pscode-apply-change/
 │       ├── pscode-sync-specs/
@@ -577,7 +577,7 @@ project/
 ### Command Cheatsheet
 
 ```text
-/ps:propose      Start quickly (default core profile)
+/ps:propose      Start quickly (default standard profile)
 /ps:apply        Implement tasks
 /ps:complete      Finish and archive
 

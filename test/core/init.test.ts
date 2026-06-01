@@ -5,14 +5,19 @@ import os from 'os';
 import { InitCommand } from '../../src/core/init.js';
 import { saveGlobalConfig, getGlobalConfig } from '../../src/core/global-config.js';
 
-const { confirmMock, showWelcomeScreenMock, searchableMultiSelectMock } = vi.hoisted(() => ({
+const { confirmMock, showWelcomeScreenMock, searchableMultiSelectMock, runPrInitPromptMock } = vi.hoisted(() => ({
   confirmMock: vi.fn(),
   showWelcomeScreenMock: vi.fn().mockResolvedValue(undefined),
   searchableMultiSelectMock: vi.fn(),
+  runPrInitPromptMock: vi.fn(),
 }));
 
 vi.mock('@inquirer/prompts', () => ({
   confirm: confirmMock,
+}));
+
+vi.mock('../../src/core/pr-init-prompt.js', () => ({
+  runPrInitPrompt: runPrInitPromptMock,
 }));
 
 vi.mock('../../src/ui/welcome-screen.js', () => ({
@@ -785,6 +790,75 @@ describe('InitCommand - profile and detection features', () => {
     const jiraContent = await fs.readFile(jiraYamlPath, 'utf-8');
     expect(jiraContent).toContain('MYPROJ');
     expect(jiraContent).toContain('configured: true');
+  });
+
+  describe('PR workflow config', () => {
+    beforeEach(() => {
+      runPrInitPromptMock.mockReset();
+    });
+
+    it('should write pr.enabled: true in config.yaml when --pr flag is used', async () => {
+      const initCommand = new InitCommand({ tools: 'claude', force: true, pr: true });
+      await initCommand.execute(testDir);
+
+      const configPath = path.join(testDir, 'pscode', 'config.yaml');
+      const content = await fs.readFile(configPath, 'utf-8');
+      expect(content).toContain('pr:');
+      expect(content).toContain('enabled: true');
+      expect(content).toContain('pattern: feat/{change-name}');
+    });
+
+    it('should write pr.enabled: false in config.yaml when --no-pr flag is used', async () => {
+      const initCommand = new InitCommand({ tools: 'claude', force: true, pr: false });
+      await initCommand.execute(testDir);
+
+      const configPath = path.join(testDir, 'pscode', 'config.yaml');
+      const content = await fs.readFile(configPath, 'utf-8');
+      expect(content).toContain('pr:');
+      expect(content).toContain('enabled: false');
+    });
+
+    it('should not include pr section when no --pr/--no-pr flag and non-interactive', async () => {
+      const initCommand = new InitCommand({ tools: 'claude', force: true });
+      await initCommand.execute(testDir);
+
+      const configPath = path.join(testDir, 'pscode', 'config.yaml');
+      const content = await fs.readFile(configPath, 'utf-8');
+      expect(content).not.toContain('enabled:');
+    });
+
+    it('should update pr section in existing config.yaml when --pr flag used on re-run', async () => {
+      // First run: create config without PR
+      const initCommand1 = new InitCommand({ tools: 'claude', force: true });
+      await initCommand1.execute(testDir);
+
+      // Second run: add PR config
+      const initCommand2 = new InitCommand({ tools: 'claude', force: true, pr: true });
+      await initCommand2.execute(testDir);
+
+      const configPath = path.join(testDir, 'pscode', 'config.yaml');
+      const content = await fs.readFile(configPath, 'utf-8');
+      expect(content).toContain('schema:');
+      expect(content).toContain('pr:');
+      expect(content).toContain('enabled: true');
+    });
+
+    it('should call runPrInitPrompt in interactive mode with no flags', async () => {
+      const prConfig = { enabled: true, branch: { pattern: 'feature/{change-name}' }, title: { template: '{change-name}' }, description: { template: '## Summary' }, comments: { linkInTask: false } };
+      runPrInitPromptMock.mockResolvedValue(prConfig);
+      // confirmMock: handles "Reconfigurar PR?" and Trello prompts
+      confirmMock.mockResolvedValue(false);
+      searchableMultiSelectMock.mockResolvedValue(['claude']);
+
+      const initCommand = new InitCommand({ force: true });
+      vi.spyOn(initCommand as any, 'canPromptInteractively').mockReturnValue(true);
+      await initCommand.execute(testDir);
+
+      expect(runPrInitPromptMock).toHaveBeenCalled();
+      const configPath = path.join(testDir, 'pscode', 'config.yaml');
+      const content = await fs.readFile(configPath, 'utf-8');
+      expect(content).toContain('feature/{change-name}');
+    });
   });
 });
 

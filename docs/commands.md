@@ -6,7 +6,7 @@ For workflow patterns and when to use each command, see [Workflows](workflows.md
 
 ## Quick Reference
 
-### Default Quick Path (`core` profile)
+### Default Quick Path (`standard` profile)
 
 | Command | Purpose |
 |---------|---------|
@@ -27,7 +27,7 @@ For workflow patterns and when to use each command, see [Workflows](workflows.md
 | `/ps:bulk-archive` | Archive multiple changes at once |
 | `/ps:onboard` | Guided tutorial through the complete workflow |
 
-The default global profile is `core`. To enable expanded workflow commands, run `pscode config profile`, select workflows, then run `pscode update` in your project.
+The default global profile is `standard`. To enable expanded workflow commands, run `pscode config profile`, select workflows, then run `pscode update` in your project.
 
 ---
 
@@ -35,7 +35,7 @@ The default global profile is `core`. To enable expanded workflow commands, run 
 
 ### `/ps:propose`
 
-Create a new change and generate planning artifacts in one step. This is the default start command in the `core` profile.
+Create a new change and generate planning artifacts in one step. This is the default start command in the `standard` profile.
 
 **Syntax:**
 ```text
@@ -128,7 +128,7 @@ AI:  Ready when you are. Run /ps:propose add-jwt-auth to begin.
 
 Start a new change scaffold. Creates the change folder and waits for you to generate artifacts with `/ps:continue` or `/ps:ff`.
 
-This command is part of the expanded workflow set (not included in the default `core` profile).
+This command is part of the expanded workflow set (not included in the default `standard` profile).
 
 **Syntax:**
 ```
@@ -616,10 +616,9 @@ Different AI tools use slightly different command syntax. Use the format that ma
 |------|----------------|
 | Claude Code | `/ps:propose`, `/ps:apply` |
 | Cursor | `/pastel-propose`, `/pastel-apply` |
-| Windsurf | `/pastel-propose`, `/pastel-apply` |
 | Copilot (IDE) | `/pastel-propose`, `/pastel-apply` |
-| Kimi CLI | Skill-based invocations such as `/skill:pscode-propose`, `/skill:pscode-apply-change` (no generated `pastel-*` command files) |
-| Trae | Skill-based invocations such as `/pscode-propose`, `/pscode-apply-change` (no generated `pastel-*` command files) |
+| Gemini CLI | `/pastel-propose`, `/pastel-apply` |
+| Codex | Use prompt files from `$CODEX_HOME/prompts/` |
 
 The intent is the same across tools, but how commands are surfaced can differ by integration.
 
