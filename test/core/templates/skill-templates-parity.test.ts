@@ -16,22 +16,22 @@ import {
 import { generateSkillContent } from '../../../src/core/shared/skill-generation.js';
 
 const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
-  getApplyChangeSkillTemplate: '9ba4b2b078bcd3b47895cc30b5b00e042b360546dea8732cfe46e01f5a1c36a4',
+  getApplyChangeSkillTemplate: 'c5ce88e14875831586cb50e5e24a5a4c8c9994282ecabd6334bcd08b28dcb1bf',
   getCompleteChangeSkillTemplate: 'e932374cb314b00a77854536619c1044e21367431f49124776b26f3b5e179bfe',
   getExploreSkillTemplate: '883766675e50ab0f1e8ddea8d35083523dad24f7358107659d670d4e6569e1cb',
   getFeedbackSkillTemplate: '37cc46fb58f8390f6cb47d4221bfd729ea45692903f19ef5dc932b6a6e04c24a',
-  getProposeSkillTemplate: '2df25f87f31a1c5ba43a88757835c4d894a49647dead7fc78376d056fc8c0c56',
-  getPsApplyCommandTemplate: 'c75efd8b81ff877ba08c03463ff521eb3f7924cb230d8d95386f4ea431b0fdef',
+  getProposeSkillTemplate: '5ab0ffe2466a2a383cd551f6d47110137926ee3091285bf5a43a09320adc5cf5',
+  getPsApplyCommandTemplate: 'a9bde78b28366d2bb76a08a7daf88d7a82c06145eb6e7df59d378e2db082464a',
   getPsCompleteCommandTemplate: '74db9b5f7f40e8e3b1360872a74969b1e5676c02eea69ea672d74c5a7c96598f',
   getPsExploreCommandTemplate: 'bfd0f5505ee60d50fb9b7f1ecb3ffa933d801d86136786e78c4fa4f60a1acabe',
-  getPsProposeCommandTemplate: '64110994ba8c58be601aa73b617d539c9eb754c6a072f5c6f9e400fdd752b14c',
+  getPsProposeCommandTemplate: '317f6e0c2547864f95c9adc72ecd90b325059b367a740fff7c8777ada05643ea',
 };
 
 const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
-  'pscode-apply-change': 'b4c78829a73d9ccb692b0ce09afa94c5049c3239ea2834f113b568e7d1bfcdcc',
+  'pscode-apply-change': '2eaec08f697edf2e3a1ab20c0cac7d1935639bfcfd70aab80bd589094045594b',
   'pscode-complete-change': 'c90b597d7f5f3f78c6ee6416b79587fbd71f4224949a4014d2941cd105c48b80',
   'pscode-explore': 'e99fb2a097f7f6a5d7c2f3f5e8b4f59c8d1f979f971b91613409a3978fe503d3',
-  'pscode-propose': '17f51fbb4a527390f8b1d680c3eae84769bf3d7b8615b90b138b1e8366e853e2',
+  'pscode-propose': 'd8c4c26313b0fd3fa4bfaef81508ed6a846ce11748f047726ae2a022903c0f55',
 };
 
 function stableStringify(value: unknown): string {
@@ -113,6 +113,51 @@ describe('skill templates split parity', () => {
       expect(content).toContain('pr.branch.pattern');
       expect(content).toContain('pr.title.template');
       expect(content).toContain('pr.description.template');
+    });
+  });
+
+  describe('PR auto-draft integration', () => {
+    it('propose skill asks once about opening the draft PR when PR enabled', () => {
+      const content = generateSkillContent(getProposeSkillTemplate(), 'TEST');
+      expect(content).toContain('pr.enabled: true');
+      expect(content).toContain('Quer abrir o Pull Request em DRAFT agora?');
+      expect(content).toContain('gh pr create --draft');
+    });
+
+    it('propose skill leaves PR opening to apply when user declines or PR disabled', () => {
+      const content = generateSkillContent(getProposeSkillTemplate(), 'TEST');
+      expect(content).toContain('left to `/ps:apply`');
+      expect(content).toContain('PR_OPENED');
+    });
+
+    it('apply skill opens a draft PR automatically when none exists', () => {
+      const content = generateSkillContent(getApplyChangeSkillTemplate(), 'TEST');
+      expect(content).toContain('open one in **DRAFT automatically, without asking the user**');
+      expect(content).toContain('gh pr view --json state');
+      expect(content).toContain('gh pr create --draft');
+    });
+
+    it('apply skill continues on the existing PR without opening another', () => {
+      const content = generateSkillContent(getApplyChangeSkillTemplate(), 'TEST');
+      expect(content).toContain('do NOT open another');
+    });
+
+    it('both skills describe non-blocking PR failure handling', () => {
+      const proposeContent = generateSkillContent(getProposeSkillTemplate(), 'TEST');
+      const applyContent = generateSkillContent(getApplyChangeSkillTemplate(), 'TEST');
+      for (const content of [proposeContent, applyContent]) {
+        expect(content).toContain('--draft');
+        expect(content).toContain('gh auth login');
+        expect(content).toMatch(/do NOT block|não-bloqueante/);
+      }
+    });
+
+    it('both skills comment the PR link on the tracker when linkInTask is enabled', () => {
+      const proposeContent = generateSkillContent(getProposeSkillTemplate(), 'TEST');
+      const applyContent = generateSkillContent(getApplyChangeSkillTemplate(), 'TEST');
+      for (const content of [proposeContent, applyContent]) {
+        expect(content).toContain('pr.comments.linkInTask: true');
+      }
     });
   });
 

@@ -43,11 +43,51 @@ When ready to implement, run /ps:apply
 
    Os artefatos gerados a partir do Passo 2 SHALL refletir esse entendimento refinado.
 
+1c. **PR Integration — abrir PR draft no início (opcional)**
+
+   Use the **Read tool** (NOT a shell command) to read `pscode/config.yaml` from the current working directory.
+   If the Read tool returns an error (file not found), or `pr.enabled` is not `true`, **skip this step entirely** — no PR, no branch, no checkpoint commits — and continue to Step 2. Opening the PR is then left to `/ps:apply`. Set `PR_OPENED = false`.
+
+   **If `pscode/config.yaml` exists and `pr.enabled: true`:**
+
+   Ask **once**, using the **AskUserQuestion tool**, whether to open the draft PR now:
+   > "Quer abrir o Pull Request em DRAFT agora? O PR nasce em draft e cresce junto com o refinamento."
+   > - ✅ Sim, abrir o PR draft agora (Recomendada)
+   > - ❌ Não, deixar para o apply
+
+   **If the user declines (Não):** continue the normal flow from Step 2 without any PR steps. Do NOT create a branch or commit automatically. The PR will be opened later by `/ps:apply`. Set `PR_OPENED = false`.
+
+   **If the user accepts (Sim):** proceed **without asking for any further authorization**:
+   1. Resolve the branch name from `pr.branch.pattern`, substituting `{change-name}` with the change name, `{type}` with feat/fix/chore (infer from the change; default `feat`), and `{ticket}` with the ticket ID if available.
+   2. Create and switch to the branch: `git checkout -b <branch>`.
+   3. Create the change scaffold (this is Step 2): `pscode new change "<name>"`.
+   4. Stage and commit the scaffold: `git add -A && git commit -m "chore(<name>): scaffold change"`.
+   5. Push and set upstream: `git push -u origin <branch>`.
+   6. Open the PR in **DRAFT**, deriving the title from `pr.title.template` and the body from `pr.description.template` (substitute `{change-name}`/`{type}`/`{ticket}`):
+      `gh pr create --draft --title "<resolved title>" --body "<resolved description>"`.
+   7. Capture the PR URL from the `gh` output, save it as `prUrl`, and set `PR_OPENED = true`.
+
+   **Comentário do link no tracker:** after the PR is opened, if `pr.comments.linkInTask: true` and a Trello `cardId` exists, comment the PR link on the card:
+   ```tool
+   mcp__claude_ai_Trello_Custom__add_comment
+     card_id: "<cardId>"
+     text: |
+       🔀 Pull Request (DRAFT) aberto: <prUrl>
+   ```
+   The `cardId` is resolved in Step 3 — if it is not available yet when the PR is opened, post this comment right after Step 3 instead.
+
+   **Tratamento de falha (não-bloqueante):** if `gh` or `git` fails — `gh` not installed, not authenticated, or no GitHub remote — **do NOT block**:
+   - Clearly state what failed and how to fix it (e.g., "instale o `gh` CLI", "rode `gh auth login`", "configure um remote GitHub").
+   - Ask whether the user wants the agent to resolve it in parallel (e.g., run `gh auth login`).
+   - **Continue the propose flow regardless.** Any branch already created and local commits are preserved; set `PR_OPENED = true` only if the PR was actually opened.
+
 2. **Create the change directory**
    ```bash
    pscode new change "<name>"
    ```
    This creates a scaffolded change in the planning home resolved by the CLI with `.pscode.yaml`.
+
+   **If you already created the change scaffold in Step 1c** (PR accepted), skip this step — the change directory already exists.
 
 3. **Trello Integration (optional)**
 
@@ -168,6 +208,14 @@ When ready to implement, run /ps:apply
    ```bash
    pscode status --change "<name>"
    ```
+
+7. **Checkpoint commit — após gerar os artefatos (only if `PR_OPENED = true`)**
+
+   If a draft PR was opened in Step 1c, commit and push the generated artifacts as a checkpoint so the PR reflects the refined plan:
+   ```bash
+   git add -A && git commit -m "docs(<name>): add planning artifacts" && git push
+   ```
+   If `PR_OPENED = false`, skip — no automatic commits. Failures here are non-blocking (same handling as Step 1c).
 
 ---
 
@@ -325,7 +373,14 @@ Now just move the card and register the explicit approval.
    - Changes to technical approach → update `design.md`
    - Changes to tasks → update `tasks.md`
 
-3. **Go back to Step R1** and show the updated refinement summary, then **re-run Step R1b**
+3. **Checkpoint commit — após o ajuste (only if `PR_OPENED = true`)**:
+   If a draft PR was opened in Step 1c, commit and push the adjusted artifacts as a checkpoint:
+   ```bash
+   git add -A && git commit -m "docs(<name>): refine plan" && git push
+   ```
+   If `PR_OPENED = false`, skip. Failures here are non-blocking (same handling as Step 1c).
+
+4. **Go back to Step R1** and show the updated refinement summary, then **re-run Step R1b**
    so the Trello card description and comment reflect the adjusted plan before asking again.
    Keep looping until the user approves or cancels.
 
