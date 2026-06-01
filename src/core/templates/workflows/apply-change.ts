@@ -129,10 +129,35 @@ function getApplyInstructions(): string {
    > - Descrição do PR: use o template definido em \`pr.description.template\`
    > - Ao abrir o PR: \`<"comente o link do PR nesta task" se pr.comments.linkInTask: true, senão omita>\`
 
-   The agent MUST create the branch with the configured pattern before making any code changes.
    Template variables available: \`{change-name}\` = current change name, \`{type}\` = feat/fix/chore, \`{ticket}\` = ticket ID if available.
 
-   **If \`pscode/config.yaml\` does not exist, or \`pr.enabled: false\`, or file not found:** continue normally without any PR instructions.
+   **Detect whether a PR already exists for this change** (it may have been opened in \`/ps:propose\`). Resolve the branch name from \`pr.branch.pattern\`, then check the current branch and its PR:
+   \`\`\`bash
+   git checkout <branch>   # if it already exists; otherwise it will be created below
+   gh pr view --json state,url
+   \`\`\`
+
+   - **If a PR already exists** (the \`gh pr view\` returns an open PR): do NOT open another — just continue working on the existing PR. Save its URL as \`prUrl\`.
+
+   - **If NO PR exists:** open one in **DRAFT automatically, without asking the user**:
+     1. Create the branch with the configured \`pr.branch.pattern\` if it does not exist yet (\`git checkout -b <branch>\`) — the agent MUST be on this branch before making any code changes.
+     2. Commit any pending planning artifacts: \`git add -A && git commit -m "chore(<change-name>): planning artifacts"\` (skip if nothing to commit).
+     3. Push and set upstream: \`git push -u origin <branch>\`.
+     4. Open the PR in DRAFT, deriving the title from \`pr.title.template\` and the body from \`pr.description.template\`:
+        \`gh pr create --draft --title "<resolved title>" --body "<resolved description>"\`.
+     5. Capture the PR URL as \`prUrl\`.
+
+   **Comentário do link no tracker:** after opening a PR (or detecting an existing one just opened), if \`pr.comments.linkInTask: true\` and a Trello \`cardId\` was saved in Step 2, comment the PR link on the card:
+   \`\`\`tool
+   mcp__claude_ai_Trello_Custom__add_comment
+     card_id: "<cardId>"
+     text: |
+       🔀 Pull Request (DRAFT): <prUrl>
+   \`\`\`
+
+   **Tratamento de falha (não-bloqueante):** if \`gh\` or \`git\` fails — \`gh\` not installed, not authenticated, or no GitHub remote — **do NOT block**: state what failed and how to fix it (e.g., \`gh auth login\`), ask whether the user wants the agent to resolve it in parallel, and **continue the implementation regardless**. The branch and local commits are preserved.
+
+   **If \`pscode/config.yaml\` does not exist, or \`pr.enabled: false\`, or file not found:** continue normally without any PR instructions — no branch, no PR.
 
 6. **Show current progress**
 
