@@ -1,5 +1,11 @@
 ﻿# @thiagodiogo/pastelsdd
 
+## 2.6.0
+
+### Minor Changes
+
+- [#16](https://github.com/eipastel/pscode/pull/16) [`8e175cb`](https://github.com/eipastel/pscode/commit/8e175cb178378bf8155234afbaba839bf7742cfb) Thanks [@eipastel](https://github.com/eipastel)! - `/ps:complete` agora sincroniza os delta specs e arquiva a change automaticamente, sem prompts de confirmação. Os passos de artefatos/tasks incompletos viram warnings informativos (não bloqueiam), o sync de delta specs é feito inline pelo agente (sem depender da skill inexistente `pscode-sync-specs`) e a única interação restante é a seleção da change quando nenhum nome é informado.
+
 ## 2.5.0
 
 ### Minor Changes
