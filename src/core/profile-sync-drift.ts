@@ -13,14 +13,8 @@ type WorkflowId = (typeof ALL_WORKFLOWS)[number];
  */
 export const WORKFLOW_TO_SKILL_DIR: Record<WorkflowId, string> = {
   'explore': 'pscode-explore',
-  'new': 'pscode-new-change',
-  'continue': 'pscode-continue-change',
   'apply': 'pscode-apply-change',
-  'ff': 'pscode-ff-change',
-  'complete': 'pscode-archive-change',
-  'bulk-archive': 'pscode-bulk-archive-change',
-  'verify': 'pscode-verify-change',
-  'onboard': 'pscode-onboard',
+  'complete': 'pscode-complete-change',
   'propose': 'pscode-propose',
   // Trello-specific workflows
   'trello-setup': 'pscode-trello-setup',
@@ -28,14 +22,6 @@ export const WORKFLOW_TO_SKILL_DIR: Record<WorkflowId, string> = {
   // Productivity workflows
   'handoff': 'pscode-handoff',
   'grill-me': 'pscode-grill-me',
-  // Dixi-specific workflows
-  'rfc': 'pscode-dixi-rfc',
-  'design': 'pscode-dixi-design',
-  'tasks': 'pscode-dixi-tasks',
-  'arch-check': 'pscode-dixi-arch-check',
-  'adr': 'pscode-dixi-adr',
-  'jira-sync': 'pscode-dixi-jira-sync',
-  'dod': 'pscode-dixi-dod',
 };
 
 function toKnownWorkflows(workflows: readonly string[]): WorkflowId[] {

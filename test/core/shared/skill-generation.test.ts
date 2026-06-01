@@ -8,9 +8,9 @@ import {
 
 describe('skill-generation', () => {
   describe('getSkillTemplates', () => {
-    it('should return all 14 skill templates', () => {
+    it('should return all 8 skill templates', () => {
       const templates = getSkillTemplates();
-      expect(templates).toHaveLength(14);
+      expect(templates).toHaveLength(8);
     });
 
     it('should have unique directory names', () => {
@@ -25,19 +25,15 @@ describe('skill-generation', () => {
       const dirNames = templates.map(t => t.dirName);
 
       expect(dirNames).toContain('pscode-explore');
-      expect(dirNames).toContain('pscode-new-change');
-      expect(dirNames).toContain('pscode-continue-change');
       expect(dirNames).toContain('pscode-apply-change');
-      expect(dirNames).toContain('pscode-ff-change');
-      expect(dirNames).toContain('pscode-archive-change');
-      expect(dirNames).toContain('pscode-bulk-archive-change');
-      expect(dirNames).toContain('pscode-verify-change');
-      expect(dirNames).toContain('pscode-onboard');
+      expect(dirNames).toContain('pscode-complete-change');
       expect(dirNames).toContain('pscode-propose');
       expect(dirNames).toContain('pscode-trello-setup');
       expect(dirNames).toContain('pscode-trello-draft');
       expect(dirNames).toContain('pscode-handoff');
       expect(dirNames).toContain('pscode-grill-me');
+      expect(dirNames).not.toContain('pscode-archive-change');
+      expect(dirNames).not.toContain('pscode-new-change');
     });
 
     it('should have valid template structure', () => {
@@ -91,9 +87,9 @@ describe('skill-generation', () => {
   });
 
   describe('getCommandTemplates', () => {
-    it('should return all 14 command templates', () => {
+    it('should return all 8 command templates', () => {
       const templates = getCommandTemplates();
-      expect(templates).toHaveLength(14);
+      expect(templates).toHaveLength(8);
     });
 
     it('should have unique IDs', () => {
@@ -108,19 +104,15 @@ describe('skill-generation', () => {
       const ids = templates.map(t => t.id);
 
       expect(ids).toContain('explore');
-      expect(ids).toContain('new');
-      expect(ids).toContain('continue');
       expect(ids).toContain('apply');
-      expect(ids).toContain('ff');
       expect(ids).toContain('complete');
-      expect(ids).toContain('bulk-archive');
-      expect(ids).toContain('verify');
-      expect(ids).toContain('onboard');
       expect(ids).toContain('propose');
       expect(ids).toContain('trello-setup');
       expect(ids).toContain('draft');
       expect(ids).toContain('handoff');
       expect(ids).toContain('grill-me');
+      expect(ids).not.toContain('new');
+      expect(ids).not.toContain('verify');
     });
 
     it('should filter by workflow IDs when provided', () => {
@@ -148,9 +140,9 @@ describe('skill-generation', () => {
   });
 
   describe('getCommandContents', () => {
-    it('should return all 14 command contents', () => {
+    it('should return all 8 command contents', () => {
       const contents = getCommandContents();
-      expect(contents).toHaveLength(14);
+      expect(contents).toHaveLength(8);
     });
 
     it('should have valid content structure', () => {

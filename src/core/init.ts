@@ -48,6 +48,7 @@ import {
   getSkillTemplates,
   getCommandContents,
   generateSkillContent,
+  pruneOrphansForTool,
   type ToolSkillStatus,
 } from './shared/index.js';
 import { getGlobalConfig, type Delivery } from './global-config.js';
@@ -72,32 +73,6 @@ const DEFAULT_SCHEMA = 'spec-driven';
 const PROGRESS_SPINNER = {
   interval: 80,
   frames: ['░░░', '▒░░', '▒▒░', '▒▒▒', '▓▒▒', '▓▓▒', '▓▓▓', '▒▓▓', '░▒▓'],
-};
-
-const WORKFLOW_TO_SKILL_DIR: Record<string, string> = {
-  'explore': 'pscode-explore',
-  'new': 'pscode-new-change',
-  'continue': 'pscode-continue-change',
-  'apply': 'pscode-apply-change',
-  'ff': 'pscode-ff-change',
-  'complete': 'pscode-archive-change',
-  'bulk-archive': 'pscode-bulk-archive-change',
-  'verify': 'pscode-verify-change',
-  'onboard': 'pscode-onboard',
-  'propose': 'pscode-propose',
-  // Trello-specific workflows
-  'trello-setup': 'pscode-trello-setup',
-  'draft': 'pscode-trello-draft',
-  // Productivity workflows
-  'handoff': 'pscode-handoff',
-  // Dixi-specific workflows
-  'rfc': 'pscode-dixi-rfc',
-  'design': 'pscode-dixi-design',
-  'tasks': 'pscode-dixi-tasks',
-  'arch-check': 'pscode-dixi-arch-check',
-  'adr': 'pscode-dixi-adr',
-  'jira-sync': 'pscode-dixi-jira-sync',
-  'dod': 'pscode-dixi-dod',
 };
 
 // -----------------------------------------------------------------------------
@@ -728,11 +703,6 @@ export class InitCommand {
             await FileSystemUtils.writeFile(skillFile, skillContent);
           }
         }
-        if (!shouldGenerateSkills) {
-          const skillsDir = path.join(projectPath, tool.skillsDir, 'skills');
-          removedSkillCount += await this.removeSkillDirs(skillsDir);
-        }
-
         // Generate commands if delivery includes commands
         if (shouldGenerateCommands) {
           const adapter = CommandAdapterRegistry.get(tool.value);
@@ -747,9 +717,12 @@ export class InitCommand {
             commandsSkipped.push(tool.value);
           }
         }
-        if (!shouldGenerateCommands) {
-          removedCommandCount += await this.removeCommandFiles(projectPath, tool.value);
-        }
+
+        // Prune by filesystem scan: drop any Pscode-managed artifact not desired
+        // for the active profile/delivery, including orphans of removed workflows.
+        const pruned = pruneOrphansForTool(projectPath, tool.value, workflows, delivery);
+        removedSkillCount += pruned.removedSkillDirs;
+        removedCommandCount += pruned.removedCommandFiles;
 
         spinner.succeed(`Setup complete for ${tool.name}`);
 
@@ -907,9 +880,6 @@ export class InitCommand {
     if (activeWorkflows.includes('propose')) {
       console.log(chalk.bold('Getting started:'));
       console.log('  Start your first change: /ps:propose "your idea"');
-    } else if (activeWorkflows.includes('new')) {
-      console.log(chalk.bold('Getting started:'));
-      console.log('  Start your first change: /ps:new "your idea"');
     } else {
       console.log("Done. Run 'pscode config profile' to switch profiles.");
     }
@@ -1006,46 +976,4 @@ export class InitCommand {
     }).start();
   }
 
-  private async removeSkillDirs(skillsDir: string): Promise<number> {
-    let removed = 0;
-
-    for (const workflow of ALL_WORKFLOWS) {
-      const dirName = WORKFLOW_TO_SKILL_DIR[workflow];
-      if (!dirName) continue;
-
-      const skillDir = path.join(skillsDir, dirName);
-      try {
-        if (fs.existsSync(skillDir)) {
-          await fs.promises.rm(skillDir, { recursive: true, force: true });
-          removed++;
-        }
-      } catch {
-        // Ignore errors
-      }
-    }
-
-    return removed;
-  }
-
-  private async removeCommandFiles(projectPath: string, toolId: string): Promise<number> {
-    let removed = 0;
-    const adapter = CommandAdapterRegistry.get(toolId);
-    if (!adapter) return 0;
-
-    for (const workflow of ALL_WORKFLOWS) {
-      const cmdPath = adapter.getFilePath(workflow);
-      const fullPath = path.isAbsolute(cmdPath) ? cmdPath : path.join(projectPath, cmdPath);
-
-      try {
-        if (fs.existsSync(fullPath)) {
-          await fs.promises.unlink(fullPath);
-          removed++;
-        }
-      } catch {
-        // Ignore errors
-      }
-    }
-
-    return removed;
-  }
 }

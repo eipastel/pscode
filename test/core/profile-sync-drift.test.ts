@@ -89,12 +89,13 @@ describe('profile sync drift detection', () => {
   });
 
   it('detects drift when extra workflows are installed for both delivery', () => {
+    // Install all active workflows, then desire a subset that excludes one of
+    // them — the installed-but-undesired workflow should register as drift.
     setupCoreSkills(tempDir);
     setupCoreCommands(tempDir);
-    writeSkill(tempDir, 'new');
-    writeCommand(tempDir, 'new');
+    const desiredSubset = CORE_WORKFLOWS.filter((w) => w !== 'grill-me');
 
-    const hasDrift = hasProjectConfigDrift(tempDir, CORE_WORKFLOWS, 'both');
+    const hasDrift = hasProjectConfigDrift(tempDir, desiredSubset, 'both');
     expect(hasDrift).toBe(true);
   });
 });

@@ -130,7 +130,7 @@ describe('InitCommand', () => {
         'pscode-propose',
         'pscode-explore',
         'pscode-apply-change',
-        'pscode-archive-change',
+        'pscode-complete-change',
       ];
 
       for (const skillName of coreSkillNames) {

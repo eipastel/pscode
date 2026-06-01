@@ -90,8 +90,7 @@ describe('config profile interactive flow', () => {
       'pscode-propose',
       'pscode-explore',
       'pscode-apply-change',
-      'pscode-sync-specs',
-      'pscode-archive-change',
+      'pscode-complete-change',
       'pscode-trello-setup',
       'pscode-trello-draft',
       'pscode-handoff',
@@ -109,16 +108,6 @@ describe('config profile interactive flow', () => {
       fs.mkdirSync(path.dirname(commandPath), { recursive: true });
       fs.writeFileSync(commandPath, `# ${commandId}\n`, 'utf-8');
     }
-  }
-
-  function addExtraVerifyWorkflowArtifacts(projectDir: string): void {
-    const verifySkillPath = path.join(projectDir, '.claude', 'skills', 'pscode-verify-change', 'SKILL.md');
-    fs.mkdirSync(path.dirname(verifySkillPath), { recursive: true });
-    fs.writeFileSync(verifySkillPath, 'name: pscode-verify-change\n', 'utf-8');
-
-    const verifyCommandPath = path.join(projectDir, '.claude', 'commands', 'ps', 'verify.md');
-    fs.mkdirSync(path.dirname(verifyCommandPath), { recursive: true });
-    fs.writeFileSync(verifyCommandPath, '# verify\n', 'utf-8');
   }
 
   function setupWorkspaceState(
@@ -298,21 +287,6 @@ describe('config profile interactive flow', () => {
 
     expect(consoleLogSpy).toHaveBeenCalledWith('No changes.');
     expect(confirm).not.toHaveBeenCalled();
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Warning: Global config is not applied to this project.'));
-  });
-
-  it('keep action should warn when project has extra workflows beyond active profile', async () => {
-    const { saveGlobalConfig } = await import('../../src/core/global-config.js');
-    const { select } = await getPromptMocks();
-
-    saveGlobalConfig({ featureFlags: {}, profile: 'standard', delivery: 'both' });
-    setupSyncedCoreBothArtifacts(tempDir);
-    addExtraVerifyWorkflowArtifacts(tempDir);
-    select.mockResolvedValueOnce('keep');
-
-    await runConfigCommand(['profile']);
-
-    expect(consoleLogSpy).toHaveBeenCalledWith('No changes.');
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Warning: Global config is not applied to this project.'));
   });
 
