@@ -17,19 +17,19 @@ import { generateSkillContent } from '../../../src/core/shared/skill-generation.
 
 const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
   getApplyChangeSkillTemplate: 'c5ce88e14875831586cb50e5e24a5a4c8c9994282ecabd6334bcd08b28dcb1bf',
-  getCompleteChangeSkillTemplate: '9de7b7b89f3f81ecdbd944e2450d7375fcbe93439bbea4bf6368ee7423503d5d',
+  getCompleteChangeSkillTemplate: '768bea27f406315280d0e12bfd312a82185fea86a13dd030ac8b11424f04550b',
   getExploreSkillTemplate: '883766675e50ab0f1e8ddea8d35083523dad24f7358107659d670d4e6569e1cb',
   getFeedbackSkillTemplate: '37cc46fb58f8390f6cb47d4221bfd729ea45692903f19ef5dc932b6a6e04c24a',
   getProposeSkillTemplate: '5ab0ffe2466a2a383cd551f6d47110137926ee3091285bf5a43a09320adc5cf5',
   getPsApplyCommandTemplate: 'a9bde78b28366d2bb76a08a7daf88d7a82c06145eb6e7df59d378e2db082464a',
-  getPsCompleteCommandTemplate: '4a1f7c39ec3df780f8c7665fd58d8f2774e29c91c821ea36394345d092d051e5',
+  getPsCompleteCommandTemplate: '13fcb6aca5056d15cd6a85d2217505b85a6cf8c8ff9efe6f90c8cb67afc46150',
   getPsExploreCommandTemplate: 'bfd0f5505ee60d50fb9b7f1ecb3ffa933d801d86136786e78c4fa4f60a1acabe',
   getPsProposeCommandTemplate: '317f6e0c2547864f95c9adc72ecd90b325059b367a740fff7c8777ada05643ea',
 };
 
 const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
   'pscode-apply-change': '2eaec08f697edf2e3a1ab20c0cac7d1935639bfcfd70aab80bd589094045594b',
-  'pscode-complete-change': '814b331817505a6f2b905b87e8152cd6cb54726e8c69a0b86a65e19eab165587',
+  'pscode-complete-change': '14d11255cb32342f8d40e24486a4753b76b352a9b668b7f1ccd397aa975b6e68',
   'pscode-explore': 'e99fb2a097f7f6a5d7c2f3f5e8b4f59c8d1f979f971b91613409a3978fe503d3',
   'pscode-propose': 'd8c4c26313b0fd3fa4bfaef81508ed6a846ce11748f047726ae2a022903c0f55',
 };
@@ -199,6 +199,60 @@ describe('skill templates split parity', () => {
         // The "user chose to skip" sync state no longer exists
         expect(content, label).not.toContain('Sync skipped (user chose to skip)');
         expect(content, label).not.toContain('Delta spec sync was skipped');
+      }
+    });
+  });
+
+  describe('complete promotes the PR out of draft with user confirmation', () => {
+    const completeContents: Array<[string, string]> = [
+      ['pscode-complete-change skill', getCompleteChangeSkillTemplate().instructions],
+      ['ps:complete command', getPsCompleteCommandTemplate().content],
+    ];
+
+    it('reads pscode/config.yaml and checks the PR state when pr.enabled', () => {
+      for (const [label, content] of completeContents) {
+        expect(content, label).toContain('PR Integration');
+        expect(content, label).toContain('pscode/config.yaml');
+        expect(content, label).toContain('pr.enabled');
+        expect(content, label).toContain('pr.branch.pattern');
+        expect(content, label).toContain('gh pr view --json state,isDraft,url');
+      }
+    });
+
+    it('commits and pushes the complete changes before asking', () => {
+      for (const [label, content] of completeContents) {
+        expect(content, label).toContain('git add -A && git commit');
+        expect(content, label).toContain('git push');
+      }
+    });
+
+    it('asks the user once and promotes via gh pr ready, never merging', () => {
+      for (const [label, content] of completeContents) {
+        expect(content, label).toContain('AskUserQuestion');
+        expect(content, label).toContain('Sim, tirar de draft');
+        expect(content, label).toContain('gh pr ready');
+        expect(content, label).toContain('NEVER run `gh pr merge`');
+      }
+    });
+
+    it('skips the PR step silently when guards are not met', () => {
+      for (const [label, content] of completeContents) {
+        expect(content, label).toContain('skip this entire step');
+        expect(content, label).toContain('already out of draft');
+      }
+    });
+
+    it('treats gh/git failures as non-blocking', () => {
+      for (const [label, content] of completeContents) {
+        expect(content, label).toContain('gh auth login');
+        expect(content, label).toMatch(/do NOT block|não-bloqueante/);
+      }
+    });
+
+    it('allows a second interactive point for the PR promotion guardrail', () => {
+      for (const [label, content] of completeContents) {
+        expect(content, label).toContain('Interactive points are limited to TWO');
+        expect(content, label).toContain('Never merge the PR in complete');
       }
     });
   });
