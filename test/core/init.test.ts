@@ -92,6 +92,8 @@ describe('InitCommand', () => {
 
       const content = await fs.readFile(configPath, 'utf-8');
       expect(content).toContain('schema: pstld-workflow');
+      // Profile is persisted so `pscode update` is project-aware
+      expect(content).toContain('profile: dixi');
     });
 
     it('should create config.yaml with spec-driven schema when profile is standard', async () => {
@@ -104,6 +106,7 @@ describe('InitCommand', () => {
 
       const content = await fs.readFile(configPath, 'utf-8');
       expect(content).toContain('schema: spec-driven');
+      expect(content).toContain('profile: standard');
     });
 
     it('should not overwrite existing config.yaml regardless of profile', async () => {

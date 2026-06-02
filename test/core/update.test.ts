@@ -1500,6 +1500,67 @@ More user content after markers.
       )).toBe(false);
     });
 
+    it('should use the project profile from config.yaml even when the global profile differs', async () => {
+      // Global says standard, but the project was initialized as dixi.
+      setMockConfig({
+        featureFlags: {},
+        profile: 'standard',
+        delivery: 'both',
+      });
+
+      await fs.writeFile(
+        path.join(testDir, 'pscode', 'config.yaml'),
+        'schema: pstld-workflow\nprofile: dixi\n'
+      );
+
+      const skillsDir = path.join(testDir, '.claude', 'skills');
+      await fs.mkdir(path.join(skillsDir, 'pscode-explore'), { recursive: true });
+      await fs.writeFile(path.join(skillsDir, 'pscode-explore', 'SKILL.md'), 'old');
+
+      await updateCommand.execute(testDir);
+
+      // dixi profile is JIRA-native — trello-setup must NOT be generated
+      expect(await FileSystemUtils.fileExists(
+        path.join(skillsDir, 'pscode-trello-setup', 'SKILL.md')
+      )).toBe(false);
+      expect(await FileSystemUtils.fileExists(
+        path.join(testDir, '.claude', 'commands', 'ps', 'trello-setup.md')
+      )).toBe(false);
+
+      // dixi still includes the core workflows
+      expect(await FileSystemUtils.fileExists(
+        path.join(skillsDir, 'pscode-apply-change', 'SKILL.md')
+      )).toBe(true);
+    });
+
+    it('should infer the dixi profile from the schema when config.yaml has no profile field', async () => {
+      // Legacy project: initialized before profile was persisted, global = standard.
+      setMockConfig({
+        featureFlags: {},
+        profile: 'standard',
+        delivery: 'both',
+      });
+
+      await fs.writeFile(
+        path.join(testDir, 'pscode', 'config.yaml'),
+        'schema: pstld-workflow\n'
+      );
+
+      const skillsDir = path.join(testDir, '.claude', 'skills');
+      await fs.mkdir(path.join(skillsDir, 'pscode-explore'), { recursive: true });
+      await fs.writeFile(path.join(skillsDir, 'pscode-explore', 'SKILL.md'), 'old');
+
+      await updateCommand.execute(testDir);
+
+      // Inferred dixi → no trello-setup
+      expect(await FileSystemUtils.fileExists(
+        path.join(skillsDir, 'pscode-trello-setup', 'SKILL.md')
+      )).toBe(false);
+      expect(await FileSystemUtils.fileExists(
+        path.join(skillsDir, 'pscode-apply-change', 'SKILL.md')
+      )).toBe(true);
+    });
+
     it('should respect skills-only delivery setting', async () => {
       setMockConfig({
         featureFlags: {},

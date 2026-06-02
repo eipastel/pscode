@@ -12,6 +12,11 @@ export function serializeConfig(config: Partial<ProjectConfig>): string {
 
   // Schema (required)
   lines.push(`schema: ${config.schema}`);
+
+  // Profile (optional) — persisted so `pscode update` is project-aware
+  if (config.profile !== undefined) {
+    lines.push(`profile: ${config.profile}`);
+  }
   lines.push('');
 
   // PR workflow config (if present)

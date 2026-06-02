@@ -6,6 +6,8 @@ import {
   getProfileWorkflows,
   isValidProfile,
   DEFAULT_PROFILE,
+  inferProfileFromSchema,
+  resolveProfile,
 } from '../../src/core/profiles.js';
 
 describe('profiles', () => {
@@ -101,6 +103,66 @@ describe('profiles', () => {
   describe('DEFAULT_PROFILE', () => {
     it('should be a valid profile', () => {
       expect(isValidProfile(DEFAULT_PROFILE)).toBe(true);
+    });
+  });
+
+  describe('inferProfileFromSchema', () => {
+    it('maps the pstld-workflow schema to the dixi profile', () => {
+      expect(inferProfileFromSchema('pstld-workflow')).toBe('dixi');
+    });
+
+    it('returns null for the default schema', () => {
+      expect(inferProfileFromSchema('spec-driven')).toBeNull();
+    });
+
+    it('returns null when schema is undefined', () => {
+      expect(inferProfileFromSchema(undefined)).toBeNull();
+    });
+  });
+
+  describe('resolveProfile', () => {
+    it('prefers an explicit override above everything else', () => {
+      expect(
+        resolveProfile({
+          override: 'standard',
+          projectProfile: 'dixi',
+          projectSchema: 'pstld-workflow',
+          globalProfile: 'dixi',
+        })
+      ).toBe('standard');
+    });
+
+    it('uses the project profile when there is no override', () => {
+      expect(
+        resolveProfile({ projectProfile: 'dixi', globalProfile: 'standard' })
+      ).toBe('dixi');
+    });
+
+    it('infers dixi from the schema when no explicit profile is stored', () => {
+      expect(
+        resolveProfile({ projectSchema: 'pstld-workflow', globalProfile: 'standard' })
+      ).toBe('dixi');
+    });
+
+    it('falls back to the global profile when the project has no profile/schema signal', () => {
+      expect(
+        resolveProfile({ projectSchema: 'spec-driven', globalProfile: 'dixi' })
+      ).toBe('dixi');
+    });
+
+    it('falls back to DEFAULT_PROFILE when nothing resolves', () => {
+      expect(resolveProfile({})).toBe(DEFAULT_PROFILE);
+    });
+
+    it('ignores invalid override/project/global values', () => {
+      expect(
+        resolveProfile({
+          override: 'bogus',
+          projectProfile: 'nope',
+          projectSchema: 'spec-driven',
+          globalProfile: 'also-bad',
+        })
+      ).toBe(DEFAULT_PROFILE);
     });
   });
 });

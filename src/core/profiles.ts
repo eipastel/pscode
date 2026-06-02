@@ -46,3 +46,40 @@ export function getProfileWorkflows(profile: ProfileName): readonly WorkflowId[]
 export function isValidProfile(name: string): name is ProfileName {
   return name in PROFILES;
 }
+
+/**
+ * Infer the profile that owns a given workflow schema.
+ *
+ * Lets `pscode update` recover the profile for projects initialized before the
+ * profile was persisted into `pscode/config.yaml` (the dixi profile is the only
+ * one that uses the `pstld-workflow` schema).
+ */
+export function inferProfileFromSchema(schema: string | undefined): ProfileName | null {
+  return schema === 'pstld-workflow' ? 'dixi' : null;
+}
+
+/**
+ * Resolve the effective profile for a project, in precedence order:
+ * 1. explicit `--profile` override
+ * 2. profile persisted in `pscode/config.yaml`
+ * 3. profile inferred from the project's schema
+ * 4. global config profile
+ * 5. {@link DEFAULT_PROFILE}
+ *
+ * This is what makes `pscode update` project-aware: a dixi project is updated as
+ * dixi regardless of the machine-wide global profile.
+ */
+export function resolveProfile(sources: {
+  override?: string;
+  projectProfile?: string;
+  projectSchema?: string;
+  globalProfile?: string;
+}): ProfileName {
+  const { override, projectProfile, projectSchema, globalProfile } = sources;
+  if (override && isValidProfile(override)) return override;
+  if (projectProfile && isValidProfile(projectProfile)) return projectProfile;
+  const inferred = inferProfileFromSchema(projectSchema);
+  if (inferred) return inferred;
+  if (globalProfile && isValidProfile(globalProfile)) return globalProfile;
+  return DEFAULT_PROFILE;
+}

@@ -41,6 +41,14 @@ export const ProjectConfigSchema = z.object({
     .optional()
     .describe('Project context injected into all artifact instructions'),
 
+  // Optional: the workflow profile this project was initialized with.
+  // Persisted by `pscode init` so `pscode update` is project-aware (does not
+  // depend on the machine-wide global profile).
+  profile: z
+    .string()
+    .optional()
+    .describe('The workflow profile this project uses (e.g., "dixi")'),
+
   // Optional: per-artifact rules (additive to schema's built-in guidance)
   rules: z
     .record(
@@ -105,6 +113,15 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
       config.schema = schemaResult.data;
     } else if (raw.schema !== undefined) {
       console.warn(`Invalid 'schema' field in config (must be non-empty string)`);
+    }
+
+    // Parse profile field using Zod
+    const profileField = z.string().min(1);
+    const profileResult = profileField.safeParse(raw.profile);
+    if (profileResult.success) {
+      config.profile = profileResult.data;
+    } else if (raw.profile !== undefined) {
+      console.warn(`Invalid 'profile' field in config (must be non-empty string)`);
     }
 
     // Parse context field with size limit

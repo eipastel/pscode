@@ -68,6 +68,39 @@ rules:
         expect(consoleWarnSpy).not.toHaveBeenCalled();
       });
 
+      it('should parse the profile field when present', () => {
+        const configDir = path.join(tempDir, 'pscode');
+        fs.mkdirSync(configDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(configDir, 'config.yaml'),
+          'schema: pstld-workflow\nprofile: dixi\n'
+        );
+
+        const config = readProjectConfig(tempDir);
+
+        expect(config).toEqual({
+          schema: 'pstld-workflow',
+          profile: 'dixi',
+        });
+        expect(consoleWarnSpy).not.toHaveBeenCalled();
+      });
+
+      it('should warn and skip an empty profile field', () => {
+        const configDir = path.join(tempDir, 'pscode');
+        fs.mkdirSync(configDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(configDir, 'config.yaml'),
+          'schema: spec-driven\nprofile: ""\n'
+        );
+
+        const config = readProjectConfig(tempDir);
+
+        expect(config).toEqual({ schema: 'spec-driven' });
+        expect(consoleWarnSpy).toHaveBeenCalledWith(
+          expect.stringContaining("Invalid 'profile' field")
+        );
+      });
+
       it('should return partial config when schema is invalid', () => {
         const configDir = path.join(tempDir, 'pscode');
         fs.mkdirSync(configDir, { recursive: true });

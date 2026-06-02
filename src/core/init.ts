@@ -54,7 +54,7 @@ import {
   type ToolSkillStatus,
 } from './shared/index.js';
 import { getGlobalConfig, type Delivery } from './global-config.js';
-import { getProfileWorkflows, isValidProfile, DEFAULT_PROFILE, type ProfileName, PROFILES, ALL_WORKFLOWS } from './profiles.js';
+import { getProfileWorkflows, resolveProfile, isValidProfile, DEFAULT_PROFILE, type ProfileName, PROFILES, ALL_WORKFLOWS } from './profiles.js';
 import { detectDixiStack, getDixiStackFamily, getDixiStackLabel, installDixiExtras, migrateLegacyPastelsddDir } from './presets/dixi.js';
 import { stringify as stringifyYaml } from 'yaml';
 import { parse as parseYaml } from 'yaml';
@@ -822,10 +822,18 @@ export class InitCommand {
           const existingPath = configYamlExists ? configPath : configYmlPath;
           const raw = parseYaml(fs.readFileSync(existingPath, 'utf-8')) as Record<string, unknown> | null;
           const existingSchema = (raw && typeof raw.schema === 'string') ? raw.schema : DEFAULT_SCHEMA;
+          const existingProfile = (raw && typeof raw.profile === 'string') ? raw.profile : undefined;
           const globalConfig = getGlobalConfig();
-          const resolvedProfile = this.resolveProfileOverride() ?? (isValidProfile(globalConfig.profile ?? '') ? globalConfig.profile as ProfileName : DEFAULT_PROFILE);
+          // Don't downgrade an existing project: infer the profile from its
+          // persisted profile/schema before falling back to the global profile.
+          const resolvedProfile = resolveProfile({
+            override: this.profileOverride,
+            projectProfile: existingProfile,
+            projectSchema: existingSchema,
+            globalProfile: globalConfig.profile,
+          });
           const schema = existingSchema || (resolvedProfile === 'dixi' ? 'pstld-workflow' : DEFAULT_SCHEMA);
-          const yamlContent = serializeConfig({ schema, pr: prConfig });
+          const yamlContent = serializeConfig({ schema, profile: resolvedProfile, pr: prConfig });
           await FileSystemUtils.writeFile(configPath, yamlContent);
           return 'updated';
         } catch {
@@ -839,7 +847,7 @@ export class InitCommand {
       const globalConfig = getGlobalConfig();
       const resolvedProfile = this.resolveProfileOverride() ?? (isValidProfile(globalConfig.profile ?? '') ? globalConfig.profile as ProfileName : DEFAULT_PROFILE);
       const schema = resolvedProfile === 'dixi' ? 'pstld-workflow' : DEFAULT_SCHEMA;
-      const yamlContent = serializeConfig({ schema, pr: prConfig });
+      const yamlContent = serializeConfig({ schema, profile: resolvedProfile, pr: prConfig });
       await FileSystemUtils.writeFile(configPath, yamlContent);
       return 'created';
     } catch {
