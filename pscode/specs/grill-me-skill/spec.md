@@ -5,15 +5,22 @@ Defines the `grill-me` workflow: a structured interrogation of a plan, generated
 ## Requirements
 
 ### Requirement: Workflow grill-me gerado como skill e command
-O sistema SHALL disponibilizar um workflow `grill-me` que é gerado como skill (`pscode-grill-me`) e command (`/ps:grill-me`) para cada ferramenta de IA configurada, seguindo o mesmo pipeline de geração dos demais workflows.
+O sistema SHALL disponibilizar `grill-me` **apenas como skill** (`pscode-grill-me`)
+para cada ferramenta de IA configurada, em ambos os perfis. O comando `/ps:grill-me`
+NÃO SHALL mais ser gerado. A skill é auto-invocada quando o agente precisa interrogar
+um plano, sem depender de um slash command dedicado.
 
-#### Scenario: grill-me presente no pipeline de geração
+#### Scenario: grill-me presente apenas como skill no pipeline de geração
 - **WHEN** os templates de skill e de command são enumerados
-- **THEN** existe uma entrada com `workflowId`/`id` igual a `grill-me`, com `dirName` `pscode-grill-me`
+- **THEN** existe uma entrada de skill com `dirName` `pscode-grill-me`, e NENHUMA entrada de command com `id` igual a `grill-me`
 
-#### Scenario: Mapeamento de diretório registrado
-- **WHEN** o código resolve `WORKFLOW_TO_SKILL_DIR['grill-me']`
-- **THEN** o valor retornado é `pscode-grill-me`
+#### Scenario: Skill grill-me gerada em ambos os perfis
+- **WHEN** `pscode init` é executado com `--profile standard` e com `--profile dixi`
+- **THEN** o skill dir `pscode-grill-me` SHALL ser gerado nos dois perfis
+
+#### Scenario: Comando /ps:grill-me não é gerado
+- **WHEN** `pscode init` é executado em qualquer perfil
+- **THEN** o arquivo `.claude/commands/ps/grill-me.md` NÃO SHALL existir
 
 ### Requirement: Interrogação conduzida uma pergunta por vez
 A skill `grill-me` SHALL conduzir a entrevista fazendo uma pergunta por vez, nunca despejando todas as perguntas de uma só vez, e SHALL avançar pela árvore de decisão resolvendo dependências entre decisões progressivamente.
