@@ -5,7 +5,7 @@ compatibility: Works with any pscode project.
 metadata:
   author: pscode
   version: "1.0"
-  generatedBy: "2.10.0"
+  generatedBy: "2.11.0"
 ---
 
 ## Asking the user
