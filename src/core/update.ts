@@ -39,6 +39,14 @@ import { isInteractive } from '../utils/interactive.js';
 import { getGlobalConfig, type Delivery } from './global-config.js';
 import { getProfileWorkflows, resolveProfile, type ProfileName, PROFILES, ALL_WORKFLOWS } from './profiles.js';
 import { readProjectConfig } from './project-config.js';
+import {
+  detectDixiStack,
+  readRecordedDixiStack,
+  getDixiStackFamily,
+  installDixiCommands,
+  getDixiPsCommandIds,
+} from './presets/dixi.js';
+import { stringify as stringifyYaml } from 'yaml';
 import { getAvailableTools } from './available-tools.js';
 import {
   getCommandConfiguredTools,
@@ -109,6 +117,10 @@ export class UpdateCommand {
     const desiredWorkflows = [...getProfileWorkflows(profile)];
     const shouldGenerateSkills = delivery !== 'commands';
     const shouldGenerateCommands = delivery !== 'skills';
+    // Dixi installs extra /ps:* commands (e.g. jira-setup) whose ids are not
+    // workflow ids; tell the pruner to keep them so they survive an update.
+    const isDixi = profile === 'dixi';
+    const extraCommandIds = isDixi ? getDixiPsCommandIds() : [];
 
     // 4. Detect and handle legacy artifacts + upgrade legacy tools using effective config
     const newlyConfiguredTools = await this.handleLegacyCleanup(
@@ -160,7 +172,7 @@ export class UpdateCommand {
 
       // Even when up to date, prune orphan artifacts (e.g. skills/commands of
       // workflows deleted or renamed in a previous version) by filesystem scan.
-      const pruned = pruneOrphans(resolvedProjectPath, configuredTools, desiredWorkflows, delivery);
+      const pruned = pruneOrphans(resolvedProjectPath, configuredTools, desiredWorkflows, delivery, extraCommandIds);
       if (pruned.removedSkillDirs > 0) {
         console.log(chalk.dim(`Removed: ${pruned.removedSkillDirs} orphan skill directories`));
       }
@@ -233,7 +245,7 @@ export class UpdateCommand {
         // Prune by filesystem scan: remove any Pscode-managed skill dir or
         // command file that is not desired for the active profile/delivery —
         // including orphans of workflows deleted or renamed in the enum.
-        const pruned = pruneOrphansForTool(resolvedProjectPath, toolId, desiredWorkflows, delivery);
+        const pruned = pruneOrphansForTool(resolvedProjectPath, toolId, desiredWorkflows, delivery, extraCommandIds);
         if (shouldGenerateSkills) {
           removedDeselectedSkillCount += pruned.removedSkillDirs;
         } else {
@@ -254,6 +266,14 @@ export class UpdateCommand {
           error: error instanceof Error ? error.message : String(error)
         });
       }
+    }
+
+    // 10b. Dixi profile: re-apply the stack-aware extras on top of the base
+    // generation. The base generation writes the *standard* /ps:* commands, so
+    // without this an update on a dixi project would silently downgrade them to
+    // the Trello-flavored versions and drop the /pstld:* commands.
+    if (isDixi && updatedTools.length > 0) {
+      this.applyDixiCommandOverrides(resolvedProjectPath);
     }
 
     // 11. Summary
@@ -304,6 +324,28 @@ export class UpdateCommand {
 
     console.log();
     console.log(chalk.dim('Restart your IDE for changes to take effect.'));
+  }
+
+  /**
+   * Re-applies the dixi profile command overrides after the base generation.
+   * The base generation writes the *standard* /ps:* commands, so without this an
+   * update on a dixi project would silently downgrade them to the Trello-flavored
+   * versions and drop the /pstld:* commands. The one-time scaffolding (skeleton,
+   * kit, hooks, CLAUDE.md) is brownfield-safe and persists across updates, so it
+   * is intentionally NOT re-run here.
+   */
+  private applyDixiCommandOverrides(projectPath: string): void {
+    installDixiCommands(projectPath);
+    console.log(chalk.dim('Dixi: comandos /ps:* (JIRA-aware) e /pstld:* reaplicados.'));
+
+    // Self-heal the recorded stack for projects predating a detection fix (e.g.
+    // Gradle Kotlin DSL); never downgrade a known stack to a null re-detection.
+    const stack = readRecordedDixiStack(projectPath) ?? detectDixiStack(projectPath);
+    if (stack !== null) {
+      const family = getDixiStackFamily(stack);
+      const yamlContent = stringifyYaml({ stack, family, detectedAt: new Date().toISOString() });
+      fs.writeFileSync(path.join(projectPath, '.pscode-dixi.yaml'), yamlContent);
+    }
   }
 
   /**
