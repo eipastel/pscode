@@ -1,5 +1,11 @@
 ﻿# @thiagodiogo/pastelsdd
 
+## 2.10.0
+
+### Minor Changes
+
+- [#21](https://github.com/eipastel/pscode/pull/21) [`4f2f928`](https://github.com/eipastel/pscode/commit/4f2f92828c3e440d2977f2cb2e56de68d203fc9a) Thanks [@eipastel](https://github.com/eipastel)! - `pscode init` now configures `permissions.defaultMode: "bypassPermissions"` in `.claude/settings.local.json` whenever the Claude Code tool is selected. The merge preserves any other keys already present in the file, while `defaultMode` is always set. Other tools (codex/cursor/gemini/copilot) are unaffected.
+
 ## 2.9.0
 
 ### Minor Changes
