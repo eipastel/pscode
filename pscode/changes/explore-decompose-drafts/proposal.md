@@ -17,6 +17,10 @@ pequenas e independentes prontas para virar changes".
 - Após o entendimento compartilhado, o explore **oferece decompor** a tarefa
   grande em múltiplos *drafts independentes* — e só prossegue após **confirmação**
   do usuário (quantidade e recorte das fatias).
+- **Critério de recorte:** cada fatia deve ser uma tarefa menor **deployável
+  individualmente** (entregável e liberável de forma isolada, sem depender de
+  outra fatia para ir a produção). É exatamente essa deployabilidade individual
+  que define a "independência" das fatias e permite separar a tarefa grande.
 - Cada draft é materializado como um **card no Backlog do Trello**, reaproveitando
   a mecânica existente do `/ps:draft` (sem criar `pscode new change`). Os cards
   nascem independentes, com uma linha de contexto comum para rastreabilidade.

@@ -53,9 +53,16 @@ Duas skills já existentes fornecem os blocos de comportamento a reaproveitar:
   Alternativas (só sob comando explícito; criar sem confirmar) descartadas no
   grill.
 
+- **Decisão: critério de recorte é deployabilidade individual (fatias verticais).**
+  *Por quê:* a "independência" desejada é poder **separar e levar a produção cada
+  fatia isoladamente**. O explore deve recortar em tarefas menores que sejam
+  deployáveis sozinhas (fatias verticais que entregam valor end-to-end), não em
+  camadas técnicas que só fazem sentido juntas. Quando o trabalho não permite esse
+  recorte (acoplamento forte), o explore sinaliza em vez de forçar.
+
 - **Decisão: drafts independentes; ordem é só sugestão no resumo.**
-  *Por quê:* "implementáveis isoladamente" exige autossuficiência; ordenação fica
-  como nota textual, sem dependência entre cards.
+  *Por quê:* "implementáveis e deployáveis isoladamente" exige autossuficiência;
+  ordenação fica como nota textual, sem dependência entre cards.
 
 - **Decisão: editar a fonte única e manter os dois templates em sincronia.**
   *Por quê:* o corpo é duplicado entre skill e command; a nova seção deve ser

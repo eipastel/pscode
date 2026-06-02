@@ -1,6 +1,6 @@
 ## 1. Adicionar seção de Decomposição em Drafts ao explore
 
-- [ ] 1.1 Em `src/core/templates/workflows/explore.ts`, adicionar ao corpo da skill (`getExploreSkillTemplate`) uma seção "Decomposição em Drafts" cobrindo: detecção de trabalho grande, fase de entendimento estilo grill-me, oferta + confirmação, e criação de um card por fatia
+- [ ] 1.1 Em `src/core/templates/workflows/explore.ts`, adicionar ao corpo da skill (`getExploreSkillTemplate`) uma seção "Decomposição em Drafts" cobrindo: detecção de trabalho grande, fase de entendimento estilo grill-me, critério de recorte (fatias menores deployáveis individualmente / verticais), oferta + confirmação, e criação de um card por fatia
 - [ ] 1.2 Replicar a mesma seção, idêntica, no corpo do command (`getPsExploreCommandTemplate`) para manter skill e command em sincronia
 - [ ] 1.3 Detalhar na seção a mecânica de criação do card reaproveitando o fluxo do `/ps:draft` (Backlog, descrição com contexto comum, próximo passo `/ps:propose`, sem atribuir membro)
 - [ ] 1.4 Documentar o degrade gracioso quando `pscode/trello.yaml` não existe (exibir fatias no chat, orientar `/ps:trello-setup`, nunca bloquear)

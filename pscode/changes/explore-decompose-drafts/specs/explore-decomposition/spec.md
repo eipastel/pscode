@@ -33,7 +33,18 @@ recomendada com motivo curto — até atingir entendimento compartilhado.
 ### Requirement: Decomposição em drafts independentes mediante confirmação
 Após o entendimento compartilhado, o explore SHALL propor um recorte do trabalho
 em múltiplos drafts independentes e SHALL exigir confirmação do usuário antes de
-materializar qualquer draft.
+materializar qualquer draft. Cada fatia proposta SHALL ser uma tarefa menor
+**deployável individualmente** — entregável e liberável a produção de forma
+isolada, sem depender de outra fatia. Essa deployabilidade individual é o critério
+que define a independência das fatias.
+
+#### Scenario: Fatia deployável individualmente
+- **WHEN** o explore propõe um recorte do trabalho grande
+- **THEN** cada fatia é uma tarefa menor que pode ser implementada e levada a produção isoladamente, sem exigir que outra fatia vá junto
+
+#### Scenario: Recorte não permite fatias deployáveis isoladamente
+- **WHEN** o trabalho não se decompõe em fatias com deploy individual (forte acoplamento)
+- **THEN** o explore sinaliza isso ao usuário e ajusta o recorte (ou explica por que não cabe decompor), em vez de criar drafts artificialmente independentes
 
 #### Scenario: Oferta de decomposição
 - **WHEN** a fase de entendimento conclui que o trabalho deve ser fatiado
@@ -65,4 +76,4 @@ reaproveitando a mecânica do `/ps:draft`, sem criar diretórios de change.
 
 #### Scenario: Independência dos drafts
 - **WHEN** os drafts são gerados
-- **THEN** cada draft é autossuficiente e implementável isoladamente; o explore pode sugerir uma ordem no resumo, mas os cards não dependem uns dos outros para serem criados
+- **THEN** cada draft é autossuficiente, implementável e deployável isoladamente; o explore pode sugerir uma ordem no resumo, mas os cards não dependem uns dos outros para serem criados nem para ir a produção
