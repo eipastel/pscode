@@ -588,6 +588,47 @@ pr:
 
       expect(config?.pr).toEqual({ enabled: true });
     });
+
+    it('should parse pr.taskLinkInDescription: true', () => {
+      const configDir = path.join(tempDir, 'pscode');
+      fs.mkdirSync(configDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(configDir, 'config.yaml'),
+        `schema: spec-driven\npr:\n  enabled: true\n  taskLinkInDescription: true\n`
+      );
+
+      const config = readProjectConfig(tempDir);
+
+      expect(config?.pr).toEqual({ enabled: true, taskLinkInDescription: true });
+      expect(consoleWarnSpy).not.toHaveBeenCalled();
+    });
+
+    it('should parse pr.taskLinkInDescription: false', () => {
+      const configDir = path.join(tempDir, 'pscode');
+      fs.mkdirSync(configDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(configDir, 'config.yaml'),
+        `schema: spec-driven\npr:\n  enabled: true\n  taskLinkInDescription: false\n`
+      );
+
+      const config = readProjectConfig(tempDir);
+
+      expect(config?.pr).toEqual({ enabled: true, taskLinkInDescription: false });
+      expect(consoleWarnSpy).not.toHaveBeenCalled();
+    });
+
+    it('should leave pr.taskLinkInDescription undefined when absent', () => {
+      const configDir = path.join(tempDir, 'pscode');
+      fs.mkdirSync(configDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(configDir, 'config.yaml'),
+        `schema: spec-driven\npr:\n  enabled: true\n`
+      );
+
+      const config = readProjectConfig(tempDir);
+
+      expect(config?.pr?.taskLinkInDescription).toBeUndefined();
+    });
   });
 
   describe('validateConfigRules', () => {

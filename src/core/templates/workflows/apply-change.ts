@@ -143,8 +143,11 @@ function getApplyInstructions(): string {
      1. Create the branch with the configured \`pr.branch.pattern\` if it does not exist yet (\`git checkout -b <branch>\`) — the agent MUST be on this branch before making any code changes.
      2. Commit any pending planning artifacts: \`git add -A && git commit -m "chore(<change-name>): planning artifacts"\` (skip if nothing to commit).
      3. Push and set upstream: \`git push -u origin <branch>\`.
-     4. Open the PR in DRAFT, deriving the title from \`pr.title.template\` and the body from \`pr.description.template\`:
-        \`gh pr create --draft --title "<resolved title>" --body "<resolved description>"\`.
+     4. Open the PR in DRAFT, deriving the title from \`pr.title.template\` and the body from \`pr.description.template\`.
+
+        **Referência da task no corpo (Trello):** if \`pr.taskLinkInDescription\` is not \`false\` (default ON when the field is absent) **and** a Trello \`cardId\` was saved in Step 2, prefix the resolved body with a \`Task: <url-do-card>\` line followed by a blank line, before the \`pr.description.template\` content. Use the card's \`shortUrl\`/\`url\` as \`<url-do-card>\`. **Skip gracefully** when \`pr.taskLinkInDescription: false\` or there is no \`cardId\` — open the PR normally without the line, never block.
+
+        \`gh pr create --draft --title "<resolved title>" --body "<resolved body>"\`.
      5. Capture the PR URL as \`prUrl\`.
 
    **Comentário do link no tracker:** after opening a PR (or detecting an existing one just opened), if \`pr.comments.linkInTask: true\` and a Trello \`cardId\` was saved in Step 2, comment the PR link on the card:

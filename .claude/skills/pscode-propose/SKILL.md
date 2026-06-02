@@ -66,8 +66,11 @@ When ready to implement, run /ps:apply
    3. Create the change scaffold (this is Step 2): `pscode new change "<name>"`.
    4. Stage and commit the scaffold: `git add -A && git commit -m "chore(<name>): scaffold change"`.
    5. Push and set upstream: `git push -u origin <branch>`.
-   6. Open the PR in **DRAFT**, deriving the title from `pr.title.template` and the body from `pr.description.template` (substitute `{change-name}`/`{type}`/`{ticket}`):
-      `gh pr create --draft --title "<resolved title>" --body "<resolved description>"`.
+   6. Open the PR in **DRAFT**, deriving the title from `pr.title.template` and the body from `pr.description.template` (substitute `{change-name}`/`{type}`/`{ticket}`).
+
+      **Referência da task no corpo (Trello):** if `pr.taskLinkInDescription` is not `false` (default ON when the field is absent) **and** a Trello `cardId` is available (resolved in Step 3), prefix the resolved body with a `Task: <url-do-card>` line followed by a blank line, before the `pr.description.template` content. Use the card's `shortUrl`/`url` as `<url-do-card>`. **Skip gracefully** when `pr.taskLinkInDescription: false` or there is no `cardId` — open the PR normally without the line, never block. If the `cardId` is only resolved after this step, the line can be added by editing the PR body right after Step 3.
+
+      `gh pr create --draft --title "<resolved title>" --body "<resolved body>"`.
    7. Capture the PR URL from the `gh` output, save it as `prUrl`, and set `PR_OPENED = true`.
 
    **Comentário do link no tracker:** after the PR is opened, if `pr.comments.linkInTask: true` and a Trello `cardId` exists, comment the PR link on the card:
