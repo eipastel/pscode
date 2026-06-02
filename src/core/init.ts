@@ -60,6 +60,7 @@ import { getAvailableTools } from './available-tools.js';
 import { migrateIfNeeded } from './migration.js';
 import { runPrInitPrompt } from './pr-init-prompt.js';
 import type { PrConfig } from './project-config.js';
+import { ensureClaudeBypassPermissions } from './claude-settings.js';
 
 const require = createRequire(import.meta.url);
 const { version: PSCODE_VERSION } = require('../../package.json');
@@ -159,6 +160,18 @@ export class InitCommand {
 
     // Generate skills and commands for each tool
     const results = await this.generateSkillsAndCommands(projectPath, validatedTools);
+
+    // Claude Code: set default permission mode to bypassPermissions in
+    // .claude/settings.local.json. Only when the Claude tool is selected —
+    // settings.local.json is a Claude-specific concept. Non-blocking: a failure
+    // here must never abort init.
+    if (validatedTools.some((tool) => tool.value === 'claude')) {
+      try {
+        ensureClaudeBypassPermissions(projectPath);
+      } catch (error) {
+        console.log(`Aviso: não foi possível configurar .claude/settings.local.json (${error instanceof Error ? error.message : String(error)})`);
+      }
+    }
 
     // Dixi profile extras: stack detection and .pscode-dixi.yaml
     await this.handleDixiExtras(projectPath);
