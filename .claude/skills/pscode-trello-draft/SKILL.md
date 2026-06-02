@@ -5,7 +5,7 @@ compatibility: Requires pscode CLI and Trello MCP server configured via /ps:trel
 metadata:
   author: pscode
   version: "1.0"
-  generatedBy: "2.9.0"
+  generatedBy: "2.10.0"
 ---
 
 ## Asking the user
