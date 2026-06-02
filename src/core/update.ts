@@ -37,7 +37,8 @@ import {
 } from './legacy-cleanup.js';
 import { isInteractive } from '../utils/interactive.js';
 import { getGlobalConfig, type Delivery } from './global-config.js';
-import { getProfileWorkflows, isValidProfile, DEFAULT_PROFILE, type ProfileName, PROFILES, ALL_WORKFLOWS } from './profiles.js';
+import { getProfileWorkflows, resolveProfile, type ProfileName, PROFILES, ALL_WORKFLOWS } from './profiles.js';
+import { readProjectConfig } from './project-config.js';
 import { getAvailableTools } from './available-tools.js';
 import {
   getCommandConfiguredTools,
@@ -94,9 +95,16 @@ export class UpdateCommand {
     const detectedTools = getAvailableTools(resolvedProjectPath);
     migrateIfNeededShared(resolvedProjectPath, detectedTools);
 
-    // 3. Read global config for profile/delivery
+    // 3. Resolve profile/delivery. Profile is project-aware: prefer the profile
+    // persisted in pscode/config.yaml (or inferred from its schema) so the update
+    // matches how the project was initialized, regardless of the global profile.
     const globalConfig = getGlobalConfig();
-    const profile: ProfileName = isValidProfile(globalConfig.profile ?? '') ? globalConfig.profile as ProfileName : DEFAULT_PROFILE;
+    const projectConfig = readProjectConfig(resolvedProjectPath);
+    const profile: ProfileName = resolveProfile({
+      projectProfile: projectConfig?.profile,
+      projectSchema: projectConfig?.schema,
+      globalProfile: globalConfig.profile,
+    });
     const delivery: Delivery = globalConfig.delivery ?? 'both';
     const desiredWorkflows = [...getProfileWorkflows(profile)];
     const shouldGenerateSkills = delivery !== 'commands';
