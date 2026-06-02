@@ -1,9 +1,6 @@
-# agent-context-docs
+## Purpose
 
-Define o conteúdo, a estrutura e a relação esperados dos arquivos de contexto para
-agentes do repositório (`CLAUDE.md`, `AGENTS.md`), incluindo a presença de princípios
-operacionais destilados dos 20 Claude Code Engineering Rules e a ausência de
-duplicação entre os arquivos.
+Define o conteúdo, a estrutura e a relação esperados dos arquivos de contexto para agentes do repositório (`CLAUDE.md`, `AGENTS.md`), incluindo a presença de princípios operacionais destilados dos 20 Claude Code Engineering Rules e a ausência de duplicação entre os arquivos.
 
 ## Requirements
 
