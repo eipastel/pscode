@@ -1,5 +1,11 @@
 ﻿# @thiagodiogo/pastelsdd
 
+## 2.7.0
+
+### Minor Changes
+
+- [#17](https://github.com/eipastel/pscode/pull/17) [`8256d19`](https://github.com/eipastel/pscode/commit/8256d19d8b4991c89538e54c7576a255ac58cfb6) Thanks [@eipastel](https://github.com/eipastel)! - `/ps:complete` agora oferece tirar o PR de draft ao final do fluxo. Quando `pscode/config.yaml` tem `pr.enabled: true` e há um PR aberto em draft para a branch da change, o complete commita e dá push das mudanças (sync de specs + arquivamento), pergunta ao usuário (uma única confirmação) e, em caso afirmativo, promove o PR via `gh pr ready` — nunca mesclando. A etapa é pulada silenciosamente quando não há config, PR ou o PR já está fora de draft, e falhas de `gh`/`git` são tratadas como não-bloqueantes.
+
 ## 2.6.0
 
 ### Minor Changes
