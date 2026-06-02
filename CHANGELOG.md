@@ -1,5 +1,11 @@
 ﻿# @thiagodiogo/pastelsdd
 
+## 2.9.0
+
+### Minor Changes
+
+- [#20](https://github.com/eipastel/pscode/pull/20) [`cb11e74`](https://github.com/eipastel/pscode/commit/cb11e742274a6e407a0f803297fb5e629c5dd712) Thanks [@eipastel](https://github.com/eipastel)! - `/ps:apply`: ao concluir as tasks, popular o PR ativo com um corpo rico derivado dos artefatos da change (resumo, decisões técnicas, tasks concluídas, escopo e referências) e promovê-lo de draft para "ready for review". Após a validação aprovada, o corpo do PR é reatualizado com o resultado dos testes. Todas as operações de `gh` são não-bloqueantes e condicionais a `pr.enabled: true` com um PR ativo.
+
 ## 2.8.0
 
 ### Minor Changes
