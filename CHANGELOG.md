@@ -1,5 +1,11 @@
 ﻿# @thiagodiogo/pastelsdd
 
+## 2.8.0
+
+### Minor Changes
+
+- [#19](https://github.com/eipastel/pscode/pull/19) [`6e0c61f`](https://github.com/eipastel/pscode/commit/6e0c61f3cb3de343ca503c0bd708154518e2c81c) Thanks [@eipastel](https://github.com/eipastel)! - As skills e comandos do pscode gerados para o Claude Code agora carregam uma diretriz que orienta o agente a preferir a ferramenta `AskUserQuestion` em perguntas de decisão/confirmação, com 2–4 opções sugeridas e a resposta livre ("Other") sempre disponível. A diretriz é exclusiva do Claude — `codex`, `cursor`, `gemini` e `github-copilot` mantêm o conteúdo atual. A injeção é aditiva e idempotente (regenerar via `update` não duplica o bloco). A escolha de transform por tool foi centralizada em `resolveSkillTransformer`, eliminando a expressão duplicada em `init`, `update` e `workspace/skills`.
+
 ## 2.7.0
 
 ### Minor Changes
