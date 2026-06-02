@@ -5,7 +5,7 @@ compatibility: Works with any pscode project.
 metadata:
   author: pscode
   version: "1.0"
-  generatedBy: "2.5.0"
+  generatedBy: "2.6.0"
 ---
 
 Interrogue o plano do usuário até atingir entendimento compartilhado sobre o que realmente deve existir — não apenas sobre o que foi descrito. O objetivo é pressionar cada decisão e ambiguidade do plano **antes** de escrever qualquer artefato ou código.
