@@ -175,6 +175,104 @@ When things crystallize, you might offer a summary - but it's optional. Sometime
 
 ---
 
+## Decomposição em Drafts — quando o trabalho é grande demais
+
+Às vezes a exploração revela que o trabalho é grande demais para um único change.
+Nesses casos, em vez de empurrar tudo para um `/ps:propose` monolítico, ajude o
+usuário a **fatiar o trabalho em drafts independentes** — cada um uma tarefa menor
+que pode ser implementada e **deployada individualmente**.
+
+### Quando disparar
+
+- Detecte sinais de que o escopo não cabe em um change: múltiplas frentes
+  independentes, vários sistemas/superfícies afetados, ou uma sequência longa de
+  entregas distintas.
+- Se o trabalho cabe confortavelmente em um change, **não** force decomposição —
+  siga a exploração normal e, quando fizer sentido, ofereça `/ps:propose`.
+- A decomposição é **oferecida**, nunca imposta. Ao perceber trabalho grande,
+  sinalize e pergunte se o usuário quer fatiar.
+
+### Passo 1 — Entendimento embutido (estilo grill-me)
+
+Antes de fatiar, conduza uma fase de entendimento no estilo da skill grill-me:
+
+- Faça **uma pergunta por vez** — nunca despeje várias juntas. Aguarde a resposta
+  antes da próxima.
+- Acompanhe **cada** pergunta com a **sua resposta recomendada** e um motivo
+  curto. Com opções discretas, use a ferramenta **AskUserQuestion** com a
+  recomendação como primeira opção ("(Recomendada)").
+- **Explore o código quando há evidência**: resolva pelo repositório o que o
+  repositório responde; reserve perguntas para decisões de produto, prioridades,
+  trade-offs e intenção.
+- Encerre quando houver **entendimento compartilhado** sobre o recorte.
+
+### Passo 2 — Propor o recorte (fatias deployáveis individualmente)
+
+Proponha como dividir o trabalho. O critério de recorte é central:
+
+- Cada fatia deve ser uma tarefa menor **deployável individualmente** —
+  entregável e liberável a produção de forma isolada, sem depender de outra fatia.
+  É essa deployabilidade que define a "independência".
+- Prefira **fatias verticais** (valor end-to-end), não camadas técnicas que só
+  fazem sentido juntas.
+- Se o trabalho **não** se decompõe em fatias com deploy individual (acoplamento
+  forte), diga isso ao usuário e ajuste o recorte — ou explique por que não cabe
+  decompor — em vez de criar drafts artificialmente independentes.
+
+Apresente o recorte proposto (quantidade + descrição de cada fatia). Você pode
+sugerir uma ordem de execução, mas deixe claro que as fatias são independentes.
+
+### Passo 3 — Confirmar antes de criar
+
+Use **AskUserQuestion** para confirmar antes de materializar qualquer draft:
+
+> "Quebro o trabalho nestas N fatias e crio um draft (card no Backlog) para cada uma?"
+
+- ✅ Sim, criar os drafts (Recomendada)
+- 🔄 Não, quero ajustar o recorte
+- ❌ Agora não
+
+Só prossiga para a criação com confirmação explícita. Se o usuário pedir ajuste,
+revise o recorte e pergunte de novo.
+
+### Passo 4 — Criar um draft por fatia (mecânica do /ps:draft)
+
+Para cada fatia confirmada, crie um card no Backlog reaproveitando a mecânica do
+`/ps:draft`:
+
+1. Leia `pscode/trello.yaml` com a ferramenta **Read** (nunca `cat`). Extraia
+   `lists.backlog.id` e, se `labels.enabled`, `labels.items`.
+2. Crie um card por fatia em `lists.backlog.id`:
+   - **Título** curto (até ~80 chars), começando por substantivo/verbo, sem emojis.
+   - **Descrição** com uma linha de **contexto comum** apontando o trabalho de
+     origem (rastreabilidade entre as fatias-irmãs), seguida do recorte daquela
+     fatia e da linha "Proximo passo: /ps:propose para refinar e gerar os
+     artefatos da change."
+   ```tool
+   mcp__claude_ai_Trello_Custom__create_card
+     list_id: "<lists.backlog.id>"
+     name: "<título da fatia>"
+     desc: "<contexto comum + recorte + próximo passo>"
+   ```
+3. **Não atribua membro** — cards de draft são sempre sem dono.
+4. Se `labels.enabled` e a fatia tem um tipo claro, aplique a label com
+   `add_label_to_card` (silenciosamente quando >80% de confiança; pergunte só se
+   ambíguo). Falha ao aplicar label não bloqueia.
+
+Os cards nascem **independentes**: não dependem uns dos outros para serem criados
+nem para ir a produção.
+
+### Degrade gracioso (sem Trello)
+
+Se `pscode/trello.yaml` não existir (Read retorna erro), **não bloqueie**:
+
+- Exiba as fatias propostas no chat (título + recorte de cada uma) para registro
+  manual.
+- Oriente rodar `/ps:trello-setup` para habilitar a captura automática no Backlog.
+- A decomposição (o pensamento) tem valor mesmo sem Trello.
+
+---
+
 ## After the First Propose — Refinement Validation Loop
 
 When exploration leads to a `/ps:propose` being executed (or when the user asks to formalize the idea into a proposal), the following **refinement validation loop** must run after all artifacts are generated. This is mandatory — do not skip it.
@@ -331,5 +429,9 @@ Do NOT move the card. End the loop.
 - **Do visualize** - A good diagram is worth many paragraphs
 - **Do explore the codebase** - Ground discussions in reality
 - **Do question assumptions** - Including the user's and your own
+- **Fatie só o que é grande demais** - Não force decomposição em trabalho que cabe num único change
+- **Confirme antes de criar drafts** - Nunca materialize cards sem confirmação explícita do usuário
+- **Drafts independentes e deployáveis isoladamente** - Cada fatia entregável sozinha; ordem é apenas sugestão
+- **Decompor não é implementar** - Criar drafts (cards) é capturar pensamento, não escrever código de aplicação
 - **Always run the refinement loop after propose** - When exploration leads to a proposal, the refinement validation loop (Steps RF1–RF3) is mandatory, not optional
 - **Preserve the loop** - Do not exit until the user explicitly approves or cancels
