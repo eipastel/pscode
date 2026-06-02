@@ -5,8 +5,23 @@ compatibility: Requires pscode CLI.
 metadata:
   author: pscode
   version: "1.0"
-  generatedBy: "2.7.0"
+  generatedBy: "2.8.0"
 ---
+
+## Asking the user
+
+When this workflow needs a decision or confirmation from the user, prefer the
+`AskUserQuestion` tool over a free-text question:
+
+- Use `AskUserQuestion` for any decision or confirmation (e.g. "Which approach?",
+  "Can I open the PR?", "Move the card to Ready to Dev?"). Present 2–4 concrete,
+  mutually exclusive options.
+- Always keep the embedded free-text answer ("Other") available — never remove
+  it. The user can always type a custom response.
+- Fall back to a plain free-text question only when there are no reasonable
+  options to offer, or when `AskUserQuestion` is unavailable.
+- Do NOT use `AskUserQuestion` for progress updates or status messages — only
+  for genuine questions that need the user's input.
 
 Implement tasks from a Pscode change.
 
@@ -156,9 +171,35 @@ Implement tasks from a Pscode change.
    - Error or blocker encountered → report and wait for guidance
    - User interrupts
 
-8. **On completion: move card to "Em Teste" (optional)**
+8. **On completion: populate the PR, then move card to "Em Teste" (optional)**
 
    When all tasks are complete (`state: "all_done"`):
+
+   **8.0 — Popular o PR ativo e promovê-lo para "ready for review"**
+
+   Only when `pscode/config.yaml` exists, `pr.enabled: true`, and an active PR was opened/detected for the branch (a saved `prUrl`). Otherwise skip this sub-step silently.
+
+   a. Build a **rich, fixed PR body** (NOT the `pr.description.template`) from the change artifacts, in this order:
+      - **Resumo / Objetivo** — derived from `proposal.md` (*Why* / *What Changes*), 1-2 sentences.
+      - **Decisões técnicas** — the key decisions from `design.md`, as an enxuta list.
+      - **Tasks concluídas** — the completed tasks from `tasks.md`.
+      - **Escopo** — what is and isn't included, when available in the artifacts.
+      - **Referências** — the Trello card link (when a `cardId` was saved) and the `pscode/changes/<change-name>/` path.
+
+      Keep each section concise — the goal is a self-sufficient PR, not a dump of the artifacts. Apply it via:
+      ```bash
+      gh pr edit --body "<rich body>"
+      ```
+
+   b. Promote the PR from draft to "ready for review":
+      ```bash
+      gh pr ready
+      ```
+      If the PR is already in "ready", `gh pr ready` is a no-op — do not treat that as an error.
+
+   **Tratamento de falha (não-bloqueante):** if any `gh` call fails — `gh` not installed, not authenticated, no GitHub remote, or no PR — state what failed and how to fix it (e.g., `gh auth login`), and **continue the flow regardless**. Never block on PR population/promotion.
+
+   **8.1 — Move card to "Em Teste"**
 
    If Trello is configured and `cardId` was saved:
 
@@ -201,6 +242,8 @@ Implement tasks from a Pscode change.
    - Ask: "A implementação está funcionando como esperado?" (Sim / Não, encontrei um problema)
 
    **When the user confirms it's working** (any path above):
+
+   **Reatualizar o corpo do PR (não-bloqueante):** if `pscode/config.yaml` has `pr.enabled: true` and an active PR exists (`prUrl`), update the PR body again to incorporate the validation result — append a **Validação** section recording that the implementation was validated, who tested it (the user, or Claude via the `verify` skill), and the approved status. Apply via `gh pr edit --body "<updated body>"`, preserving the rich body from step 8. If `gh` fails, report it and continue — never block.
 
    If Trello is configured, `cardId` was saved, and `lists.deploy` is configured:
    a. Move the card to "Ready to Deploy":
@@ -264,6 +307,7 @@ Working on task 4/7: <task description>
 **Change:** <change-name>
 **Schema:** <schema-name>
 **Progress:** 7/7 tasks complete ✓
+**PR:** Populated and promoted to ✅ ready for review  ← only shown if pr.enabled and an active PR exists
 **Trello:** Card moved to 🧪 Em Teste        ← only shown if Trello is configured
 
 ### Completed This Session
@@ -280,6 +324,7 @@ All tasks complete! How would you like to validate the implementation?
 ## Validation Approved ✅
 
 **Change:** <change-name>
+**PR:** Body updated with validation result  ← only shown if pr.enabled and an active PR exists
 **Trello:** Card moved to 🚀 Ready to Deploy  ← only shown if lists.deploy is configured
 
 Ready to archive with `/ps:complete`.
@@ -315,6 +360,8 @@ What would you like to do?
 - Pause on errors, blockers, or unclear requirements — don't guess
 - Use contextFiles from CLI output, don't assume specific file names
 - If Trello tools fail, continue normally — Trello is auxiliary, not blocking
+- When all tasks complete and a PR is active (`pr.enabled: true`), populate the PR with a rich fixed body (resumo, decisões técnicas, tasks concluídas, escopo, referências) via `gh pr edit --body` and promote it with `gh pr ready` — both non-blocking
+- After validation is approved, re-update the PR body to record the validation result; preserve the rich body and never block on `gh` failures
 - All content written to Trello must be in Portuguese
 - Never move the card to "Ready to Deploy" without explicit user confirmation that the implementation is working
 - If the user reports a problem during testing, loop back to fix before asking again

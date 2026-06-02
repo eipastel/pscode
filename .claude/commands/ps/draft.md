@@ -5,6 +5,21 @@ category: Workflow
 tags: [trello, draft, ideias, backlog, workflow]
 ---
 
+## Asking the user
+
+When this workflow needs a decision or confirmation from the user, prefer the
+`AskUserQuestion` tool over a free-text question:
+
+- Use `AskUserQuestion` for any decision or confirmation (e.g. "Which approach?",
+  "Can I open the PR?", "Move the card to Ready to Dev?"). Present 2–4 concrete,
+  mutually exclusive options.
+- Always keep the embedded free-text answer ("Other") available — never remove
+  it. The user can always type a custom response.
+- Fall back to a plain free-text question only when there are no reasonable
+  options to offer, or when `AskUserQuestion` is unavailable.
+- Do NOT use `AskUserQuestion` for progress updates or status messages — only
+  for genuine questions that need the user's input.
+
 Capture uma ideia ou conceito bruto diretamente no Backlog do Trello.
 
 **Input**: Texto após `/ps:draft` é a descrição da ideia (pode ser bem rascunho — palavras soltas, fragmentos, intuições vagas).

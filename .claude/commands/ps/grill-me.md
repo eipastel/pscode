@@ -5,6 +5,21 @@ category: Workflow
 tags: [grill, refinamento, plano, workflow]
 ---
 
+## Asking the user
+
+When this workflow needs a decision or confirmation from the user, prefer the
+`AskUserQuestion` tool over a free-text question:
+
+- Use `AskUserQuestion` for any decision or confirmation (e.g. "Which approach?",
+  "Can I open the PR?", "Move the card to Ready to Dev?"). Present 2–4 concrete,
+  mutually exclusive options.
+- Always keep the embedded free-text answer ("Other") available — never remove
+  it. The user can always type a custom response.
+- Fall back to a plain free-text question only when there are no reasonable
+  options to offer, or when `AskUserQuestion` is unavailable.
+- Do NOT use `AskUserQuestion` for progress updates or status messages — only
+  for genuine questions that need the user's input.
+
 Interrogue o plano do usuário até atingir entendimento compartilhado sobre o que realmente deve existir — não apenas sobre o que foi descrito. O objetivo é pressionar cada decisão e ambiguidade do plano **antes** de escrever qualquer artefato ou código.
 
 **Princípio central**: faça **uma pergunta por vez**. Nunca despeje uma lista de perguntas de uma só vez. Aguarde a resposta, incorpore-a ao seu entendimento e só então formule a próxima.

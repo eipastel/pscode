@@ -5,6 +5,21 @@ category: Workflow
 tags: [workflow, explore, experimental, thinking]
 ---
 
+## Asking the user
+
+When this workflow needs a decision or confirmation from the user, prefer the
+`AskUserQuestion` tool over a free-text question:
+
+- Use `AskUserQuestion` for any decision or confirmation (e.g. "Which approach?",
+  "Can I open the PR?", "Move the card to Ready to Dev?"). Present 2–4 concrete,
+  mutually exclusive options.
+- Always keep the embedded free-text answer ("Other") available — never remove
+  it. The user can always type a custom response.
+- Fall back to a plain free-text question only when there are no reasonable
+  options to offer, or when `AskUserQuestion` is unavailable.
+- Do NOT use `AskUserQuestion` for progress updates or status messages — only
+  for genuine questions that need the user's input.
+
 Enter explore mode. Think deeply. Visualize freely. Follow the conversation wherever it goes.
 
 **IMPORTANT: Explore mode is for thinking, not implementing.** You may read files, search code, and investigate the codebase, but you must NEVER write code or implement features. If the user asks you to implement something, remind them to exit explore mode first and create a change proposal. You MAY create Pscode artifacts (proposals, designs, specs) if the user asks—that's capturing thinking, not implementing.
