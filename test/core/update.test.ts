@@ -1561,6 +1561,36 @@ More user content after markers.
       )).toBe(true);
     });
 
+    it('should re-apply dixi command overrides (/ps:* and /pstld:*) on a dixi project', async () => {
+      setMockConfig({
+        featureFlags: {},
+        profile: 'standard',
+        delivery: 'both',
+      });
+
+      await fs.writeFile(
+        path.join(testDir, 'pscode', 'config.yaml'),
+        'schema: pstld-workflow\nprofile: dixi\n'
+      );
+
+      const skillsDir = path.join(testDir, '.claude', 'skills');
+      await fs.mkdir(path.join(skillsDir, 'pscode-explore'), { recursive: true });
+      await fs.writeFile(path.join(skillsDir, 'pscode-explore', 'SKILL.md'), 'old');
+
+      await updateCommand.execute(testDir);
+
+      const psDir = path.join(testDir, '.claude', 'commands', 'ps');
+      // Exclusive /pstld:* commands are installed
+      expect(await FileSystemUtils.fileExists(
+        path.join(testDir, '.claude', 'commands', 'pstld', 'jira-draft.md')
+      )).toBe(true);
+      // Dixi-specific /ps command (id is not a workflow) is installed and survives prune
+      expect(await FileSystemUtils.fileExists(path.join(psDir, 'jira-setup.md'))).toBe(true);
+      // The /ps:apply override carries the dixi content (not the standard one)
+      const apply = await fs.readFile(path.join(psDir, 'apply.md'), 'utf-8');
+      expect(apply).toContain('Dixi');
+    });
+
     it('should respect skills-only delivery setting', async () => {
       setMockConfig({
         featureFlags: {},

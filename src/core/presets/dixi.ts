@@ -9,7 +9,11 @@ export type DixiStackFamily = 'java' | 'react' | 'node' | 'python';
 
 export function detectDixiStack(projectDir: string): DixiStack | null {
   if (fs.existsSync(path.join(projectDir, 'pom.xml'))) return 'java-maven';
-  if (fs.existsSync(path.join(projectDir, 'build.gradle'))) return 'java-gradle';
+  // Recognize both the Groovy DSL (build.gradle) and the Kotlin DSL (build.gradle.kts)
+  if (
+    fs.existsSync(path.join(projectDir, 'build.gradle')) ||
+    fs.existsSync(path.join(projectDir, 'build.gradle.kts'))
+  ) return 'java-gradle';
 
   if (
     fs.existsSync(path.join(projectDir, 'next.config.js')) ||
@@ -33,6 +37,29 @@ export function detectDixiStack(projectDir: string): DixiStack | null {
   if (fs.existsSync(path.join(projectDir, 'pyproject.toml'))) return 'python';
 
   return null;
+}
+
+const VALID_DIXI_STACKS: readonly DixiStack[] = [
+  'java-maven', 'java-gradle', 'next', 'react', 'node', 'python',
+];
+
+/**
+ * Reads the stack recorded in `.pscode-dixi.yaml`, or `null` if the file is
+ * missing/invalid or has no valid stack. Lets `update` reuse what `init`
+ * detected instead of re-detecting (and possibly losing) the stack.
+ */
+export function readRecordedDixiStack(projectDir: string): DixiStack | null {
+  const dixiYamlPath = path.join(projectDir, '.pscode-dixi.yaml');
+  if (!fs.existsSync(dixiYamlPath)) return null;
+  try {
+    const raw = parseYaml(fs.readFileSync(dixiYamlPath, 'utf-8')) as Record<string, unknown> | null;
+    const stack = raw?.stack;
+    return typeof stack === 'string' && VALID_DIXI_STACKS.includes(stack as DixiStack)
+      ? (stack as DixiStack)
+      : null;
+  } catch {
+    return null;
+  }
 }
 
 export function getDixiStackFamily(stack: DixiStack | null): DixiStackFamily | null {
@@ -494,6 +521,41 @@ export function installDixiExtras(projectDir: string, stack: DixiStack | null): 
   mergeSettingsHooks(path.join(projectDir, '.claude', 'settings.json'));
 
   // Copy Dixi-aware /ps:* overrides and exclusive /pstld:* commands (always overwrite)
-  const commandsBase = path.join(packageRoot, 'pscode', 'content', 'dixi', 'commands');
-  copyDixiCommands(projectDir, path.join(commandsBase, 'ps'), 'ps');
+  installDixiCommands(projectDir);
+}
+
+/**
+ * Resolves the package directory holding the Dixi command source files.
+ */
+function getDixiCommandsSourceDir(subdir: string): string {
+  const currentFile = fileURLToPath(import.meta.url);
+  const packageRoot = path.join(path.dirname(currentFile), '..', '..', '..');
+  return path.join(packageRoot, 'pscode', 'content', 'dixi', 'commands', subdir);
+}
+
+/**
+ * Installs the Dixi command overrides: the JIRA-aware `/ps:*` versions and the
+ * exclusive `/pstld:*` commands (always overwritten). Split out from
+ * {@link installDixiExtras} so `update` can re-apply just the commands — which
+ * the base skill/command generation overwrites with the standard versions —
+ * without re-running the one-time scaffolding (skeleton, kit, CLAUDE.md).
+ */
+export function installDixiCommands(projectDir: string): void {
+  copyDixiCommands(projectDir, getDixiCommandsSourceDir('ps'), 'ps');
+  copyDixiCommands(projectDir, getDixiCommandsSourceDir('pstld'), 'pstld');
+}
+
+/**
+ * Lists the command ids (filename without `.md`) the Dixi profile installs into
+ * `.claude/commands/ps/`. Used by `update` to tell the generic orphan pruner not
+ * to delete Dixi-specific `/ps:*` commands (e.g. `jira-setup`, `archive`) whose
+ * ids are not workflow ids and would otherwise be treated as orphans.
+ */
+export function getDixiPsCommandIds(): string[] {
+  const srcDir = getDixiCommandsSourceDir('ps');
+  if (!fs.existsSync(srcDir)) return [];
+  return fs
+    .readdirSync(srcDir)
+    .filter((f) => f.endsWith('.md'))
+    .map((f) => f.slice(0, -'.md'.length));
 }

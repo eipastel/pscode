@@ -5,10 +5,13 @@ import path from 'path';
 import os from 'os';
 import {
   detectDixiStack,
+  readRecordedDixiStack,
   getDixiStackFamily,
   getDixiStackLabel,
+  getDixiPsCommandIds,
   copyContextDocs,
   installDixiExtras,
+  installDixiCommands,
   installDixiClaudeMd,
   migrateLegacyPastelsddDir,
 } from '../../../src/core/presets/dixi.js';
@@ -58,6 +61,11 @@ describe('detectDixiStack', () => {
 
   it('returns java-gradle when only build.gradle exists', async () => {
     await writeFile(dir, 'build.gradle', '');
+    expect(detectDixiStack(dir)).toBe('java-gradle');
+  });
+
+  it('returns java-gradle for the Kotlin DSL (build.gradle.kts)', async () => {
+    await writeFile(dir, 'build.gradle.kts', '');
     expect(detectDixiStack(dir)).toBe('java-gradle');
   });
 
@@ -415,9 +423,11 @@ describe('installDixiExtras — ps command overrides', () => {
     expect(fsSync.existsSync(path.join(psDir, 'trello-setup.md'))).toBe(false);
   });
 
-  it('3.2b não cria .claude/commands/pstld/ após installDixiExtras', () => {
+  it('3.2b cria os comandos exclusivos .claude/commands/pstld/ após installDixiExtras', () => {
     installDixiExtras(projectDir, 'java-maven');
-    expect(fsSync.existsSync(path.join(projectDir, '.claude', 'commands', 'pstld'))).toBe(false);
+    const pstldDir = path.join(projectDir, '.claude', 'commands', 'pstld');
+    expect(fsSync.existsSync(pstldDir)).toBe(true);
+    expect(fsSync.existsSync(path.join(pstldDir, 'jira-draft.md'))).toBe(true);
   });
 
   it('3.3 sobrescreve arquivo existente em .claude/commands/ps/', () => {
@@ -441,6 +451,75 @@ describe('installDixiExtras — ps command overrides', () => {
 
     const content = fsSync.readFileSync(path.join(psDir, 'sync.md'), 'utf-8');
     expect(content).toBe('# sync original');
+  });
+});
+
+// ── installDixiCommands ───────────────────────────────────────────────────────
+
+describe('installDixiCommands', () => {
+  let projectDir: string;
+
+  beforeEach(async () => {
+    projectDir = await makeTempDir();
+  });
+
+  afterEach(async () => {
+    await fs.rm(projectDir, { recursive: true, force: true });
+  });
+
+  it('installs both /ps:* overrides and exclusive /pstld:* commands without scaffolding', () => {
+    installDixiCommands(projectDir);
+
+    const psDir = path.join(projectDir, '.claude', 'commands', 'ps');
+    const pstldDir = path.join(projectDir, '.claude', 'commands', 'pstld');
+    expect(fsSync.existsSync(path.join(psDir, 'propose.md'))).toBe(true);
+    expect(fsSync.existsSync(path.join(pstldDir, 'jira-draft.md'))).toBe(true);
+
+    // Pure command install — no architectural skeleton / kit side effects
+    expect(fsSync.existsSync(path.join(projectDir, 'src'))).toBe(false);
+    expect(fsSync.existsSync(path.join(projectDir, '.editorconfig'))).toBe(false);
+  });
+});
+
+// ── readRecordedDixiStack ─────────────────────────────────────────────────────
+
+describe('readRecordedDixiStack', () => {
+  let dir: string;
+
+  beforeEach(async () => {
+    dir = await makeTempDir();
+  });
+
+  afterEach(async () => {
+    await fs.rm(dir, { recursive: true, force: true });
+  });
+
+  it('reads a valid recorded stack', async () => {
+    await writeFile(dir, '.pscode-dixi.yaml', 'stack: java-gradle\nfamily: java\n');
+    expect(readRecordedDixiStack(dir)).toBe('java-gradle');
+  });
+
+  it('returns null when the file is missing', () => {
+    expect(readRecordedDixiStack(dir)).toBeNull();
+  });
+
+  it('returns null when stack is null or invalid', async () => {
+    await writeFile(dir, '.pscode-dixi.yaml', 'stack: null\nfamily: null\n');
+    expect(readRecordedDixiStack(dir)).toBeNull();
+
+    await writeFile(dir, '.pscode-dixi.yaml', 'stack: bogus\n');
+    expect(readRecordedDixiStack(dir)).toBeNull();
+  });
+});
+
+// ── getDixiPsCommandIds ───────────────────────────────────────────────────────
+
+describe('getDixiPsCommandIds', () => {
+  it('includes the dixi-specific /ps command ids that are not workflow ids', () => {
+    const ids = getDixiPsCommandIds();
+    expect(ids).toContain('jira-setup');
+    expect(ids).toContain('propose');
+    expect(ids).not.toContain('');
   });
 });
 

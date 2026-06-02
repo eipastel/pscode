@@ -106,7 +106,8 @@ export function pruneOrphansForTool(
   projectPath: string,
   toolId: string,
   desiredWorkflows: readonly string[],
-  delivery: Delivery
+  delivery: Delivery,
+  extraCommandIds: readonly string[] = []
 ): PruneResult {
   const tool = AI_TOOLS.find((t) => t.value === toolId);
   if (!tool?.skillsDir) return { removedSkillDirs: 0, removedCommandFiles: 0 };
@@ -137,7 +138,9 @@ export function pruneOrphansForTool(
   // ── Commands ────────────────────────────────────────────────────────────
   const pattern = resolveCommandPattern(toolId, projectPath);
   if (pattern) {
-    const desiredCommandIds = new Set<string>(shouldGenerateCommands ? desiredWorkflows : []);
+    const desiredCommandIds = new Set<string>(
+      shouldGenerateCommands ? [...desiredWorkflows, ...extraCommandIds] : []
+    );
     for (const file of listFiles(pattern.dir)) {
       const id = pattern.idFromFile(file);
       if (id == null) continue; // not a Pscode-managed command file
@@ -161,13 +164,14 @@ export function pruneOrphans(
   projectPath: string,
   toolIds: readonly string[],
   desiredWorkflows: readonly string[],
-  delivery: Delivery
+  delivery: Delivery,
+  extraCommandIds: readonly string[] = []
 ): PruneResult {
   let removedSkillDirs = 0;
   let removedCommandFiles = 0;
 
   for (const toolId of toolIds) {
-    const result = pruneOrphansForTool(projectPath, toolId, desiredWorkflows, delivery);
+    const result = pruneOrphansForTool(projectPath, toolId, desiredWorkflows, delivery, extraCommandIds);
     removedSkillDirs += result.removedSkillDirs;
     removedCommandFiles += result.removedCommandFiles;
   }
