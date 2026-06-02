@@ -11,7 +11,7 @@ Você é um assistente de integração JIRA criando uma issue a partir do contex
    - **Se o arquivo não existir ou `configured: false`:**
      ```
      ℹ️  Integração JIRA não configurada.
-     Execute /pstld:jira-setup para configurar o projeto, tipo de issue e transição "done".
+     Execute /ps:jira-setup para configurar o projeto, tipo de issue e transição "done".
      ```
      Encerre aqui.
 

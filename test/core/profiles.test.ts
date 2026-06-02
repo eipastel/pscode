@@ -55,6 +55,14 @@ describe('profiles', () => {
       expect(PROFILES.standard.workflows).not.toContain('sync');
     });
 
+    it('dixi profile should be JIRA-native — no trello-setup workflow', () => {
+      expect(PROFILES.dixi.workflows).not.toContain('trello-setup');
+    });
+
+    it('dixi profile should still keep draft and the core workflows', () => {
+      expect([...PROFILES.dixi.workflows]).toEqual(['propose', 'explore', 'apply', 'complete', 'draft', 'handoff', 'grill-me']);
+    });
+
     it('all profile workflows should be valid workflow IDs', () => {
       for (const [name, def] of Object.entries(PROFILES)) {
         for (const workflow of def.workflows) {
