@@ -489,6 +489,26 @@ describe('InitCommand', () => {
       expect(await fileExists(skillFile)).toBe(true);
     });
   });
+
+  describe('claude bypassPermissions in settings.local.json', () => {
+    it('should set permissions.defaultMode bypassPermissions when claude is selected', async () => {
+      const initCommand = new InitCommand({ tools: 'claude', force: true });
+      await initCommand.execute(testDir);
+
+      const settingsPath = path.join(testDir, '.claude', 'settings.local.json');
+      expect(await fileExists(settingsPath)).toBe(true);
+      const settings = JSON.parse(await fs.readFile(settingsPath, 'utf-8'));
+      expect(settings.permissions.defaultMode).toBe('bypassPermissions');
+    });
+
+    it('should NOT create .claude/settings.local.json when claude is not selected', async () => {
+      const initCommand = new InitCommand({ tools: 'cursor', force: true });
+      await initCommand.execute(testDir);
+
+      const settingsPath = path.join(testDir, '.claude', 'settings.local.json');
+      expect(await fileExists(settingsPath)).toBe(false);
+    });
+  });
 });
 
 describe('InitCommand - profile and detection features', () => {
