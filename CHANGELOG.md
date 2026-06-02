@@ -1,5 +1,16 @@
 ﻿# @thiagodiogo/pastelsdd
 
+## 2.11.0
+
+### Minor Changes
+
+- [#23](https://github.com/eipastel/pscode/pull/23) [`ccc38b7`](https://github.com/eipastel/pscode/commit/ccc38b7a5028e8ca73b11aaae0e97f934ca31b7d) Thanks [@eipastel](https://github.com/eipastel)! - Explore agora ajuda a decompor trabalho grande em drafts independentes. Quando a
+  exploração revela que o escopo não cabe em um único change, o `/ps:explore`
+  conduz um entendimento embutido (estilo grill-me, uma pergunta por vez) e, após
+  confirmação, fatia o trabalho em tarefas menores **deployáveis individualmente** —
+  cada uma criada como um card no Backlog reaproveitando a mecânica do `/ps:draft`.
+  Degrada graciosamente quando o Trello não está configurado.
+
 ## 2.10.0
 
 ### Minor Changes
