@@ -2,6 +2,14 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Operating Principles
+
+How to work in this repo (read this before the *what* below). The canonical,
+tool-agnostic operating principles — distilled from the 20 Claude Code Engineering
+Rules — live in `AGENTS.md` to avoid duplication, and are imported here:
+
+@AGENTS.md
+
 ## Commands
 
 ```bash
