@@ -158,6 +158,28 @@ export function pruneOrphansForTool(
 }
 
 /**
+ * Removes the legacy `.claude/commands/pstld/` directory in its entirety.
+ *
+ * The `/pstld:*` namespace was removed once its capabilities were absorbed into
+ * the `/ps:*` overrides. The generic per-id pruner only scans individual command
+ * files within a known command dir — it never removes a whole namespace subdir —
+ * so this targets the legacy directory explicitly. No-op when it doesn't exist;
+ * best-effort (never throws). Returns `true` when a directory was removed.
+ */
+export function pruneLegacyPstldCommands(projectPath: string): boolean {
+  const pstldDir = path.join(projectPath, '.claude', 'commands', 'pstld');
+  try {
+    if (fs.existsSync(pstldDir)) {
+      fs.rmSync(pstldDir, { recursive: true, force: true });
+      return true;
+    }
+  } catch {
+    // Best-effort: never block update/init on cleanup.
+  }
+  return false;
+}
+
+/**
  * Prunes orphan artifacts across multiple tools, aggregating the counts.
  */
 export function pruneOrphans(

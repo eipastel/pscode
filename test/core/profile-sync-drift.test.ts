@@ -40,8 +40,8 @@ function setupCoreCommands(projectDir: string): void {
 }
 
 describe('WORKFLOW_TO_SKILL_DIR', () => {
-  it('maps grill-me to pscode-grill-me', () => {
-    expect(WORKFLOW_TO_SKILL_DIR['grill-me']).toBe('pscode-grill-me');
+  it('maps board-setup to pscode-board-setup', () => {
+    expect(WORKFLOW_TO_SKILL_DIR['board-setup']).toBe('pscode-board-setup');
   });
 });
 
@@ -93,7 +93,7 @@ describe('profile sync drift detection', () => {
     // them — the installed-but-undesired workflow should register as drift.
     setupCoreSkills(tempDir);
     setupCoreCommands(tempDir);
-    const desiredSubset = CORE_WORKFLOWS.filter((w) => w !== 'grill-me');
+    const desiredSubset = CORE_WORKFLOWS.filter((w) => w !== 'board-setup');
 
     const hasDrift = hasProjectConfigDrift(tempDir, desiredSubset, 'both');
     expect(hasDrift).toBe(true);

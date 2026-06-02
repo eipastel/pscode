@@ -1,25 +1,26 @@
 /**
- * Trello Setup Skill / Command Template
+ * Board Setup Skill / Command Template
  *
- * Guides the user through configuring Trello integration for their
- * pscode workflow. Creates `pscode/trello.yaml` with the board
- * and list IDs derived from an existing board or a newly created one.
- * Also handles optional label/etiqueta creation on the board.
+ * Guides the user through configuring their tracker board integration for their
+ * pscode workflow. The base (standard) behavior configures Trello — it creates
+ * `pscode/trello.yaml` with the board and list IDs derived from an existing board
+ * or a newly created one, and handles optional label creation. The dixi profile
+ * overrides the generated `/ps:board-setup` command with a JIRA-flavored version.
  */
 import type { SkillTemplate, CommandTemplate } from '../types.js';
 
-export function getTrelloSetupSkillTemplate(): SkillTemplate {
+export function getBoardSetupSkillTemplate(): SkillTemplate {
   return {
-    name: 'pscode-trello-setup',
+    name: 'pscode-board-setup',
     description:
-      'Configure Trello integration for your Pscode workflow. Checks MCP availability, reads or creates a Trello board, and writes pscode/trello.yaml with your stage-to-list mapping.',
-    instructions: getTrelloSetupInstructions(),
+      'Configure your tracker board integration for the Pscode workflow. Checks MCP availability, reads or creates a Trello board, and writes pscode/trello.yaml with your stage-to-list mapping.',
+    instructions: getBoardSetupInstructions(),
     compatibility: 'Requires pscode CLI and the Trello MCP server.',
     metadata: { author: 'pscode', version: '1.0' },
   };
 }
 
-function getTrelloSetupInstructions(): string {
+function getBoardSetupInstructions(): string {
   return `Configure Trello integration for your Pscode workflow.
 
 This skill writes \`pscode/trello.yaml\` — a small config file that all Trello-aware commands
@@ -43,7 +44,7 @@ mcp__claude_ai_Trello_Custom__get_me
 > \`\`\`
 > claude mcp add trello <server-url>
 > \`\`\`
-> Then restart Claude Code and re-run \`/ps:trello-setup\`.
+> Then restart Claude Code and re-run \`/ps:board-setup\`.
 
 Stop here if MCP is unavailable.
 
@@ -315,12 +316,12 @@ O agente irá tentar categorizar cada card com a label adequada ao criá-lo.
 `;
 }
 
-export function getTrelloSetupCommandTemplate(): CommandTemplate {
+export function getBoardSetupCommandTemplate(): CommandTemplate {
   return {
-    name: 'PS: Trello Setup',
-    description: 'Configure Trello integration for your Pscode workflow — checks MCP, reads or creates a board, and writes pscode/trello.yaml',
+    name: 'PS: Board Setup',
+    description: 'Configure your tracker board integration for the Pscode workflow — checks MCP, reads or creates a board, and writes pscode/trello.yaml',
     category: 'Setup',
-    tags: ['trello', 'setup', 'integration', 'config'],
-    content: getTrelloSetupInstructions(),
+    tags: ['board', 'trello', 'setup', 'integration', 'config'],
+    content: getBoardSetupInstructions(),
   };
 }

@@ -34,4 +34,5 @@ export {
   type PruneResult,
   pruneOrphans,
   pruneOrphansForTool,
+  pruneLegacyPstldCommands,
 } from './prune-orphans.js';

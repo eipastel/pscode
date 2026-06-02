@@ -9,7 +9,7 @@ import {
   getApplyChangeSkillTemplate,
   getCompleteChangeSkillTemplate,
   getProposeSkillTemplate,
-  getTrelloSetupSkillTemplate,
+  getBoardSetupSkillTemplate,
   getTrelloDraftSkillTemplate,
   getHandoffSkillTemplate,
   getGrillMeSkillTemplate,
@@ -17,10 +17,9 @@ import {
   getPsApplyCommandTemplate,
   getPsCompleteCommandTemplate,
   getPsProposeCommandTemplate,
-  getTrelloSetupCommandTemplate,
+  getBoardSetupCommandTemplate,
   getTrelloDraftCommandTemplate,
   getHandoffCommandTemplate,
-  getGrillMeCommandTemplate,
   type SkillTemplate,
 } from '../templates/skill-templates.js';
 import type { CommandContent } from '../command-generation/index.js';
@@ -49,24 +48,37 @@ export interface CommandTemplateEntry {
  *
  * @param workflowFilter - If provided, only return templates whose workflowId is in this array
  */
+/**
+ * Skills that are always generated regardless of the active profile's workflow
+ * list. `grill-me` is skill-only (it has no slash command) and must be present in
+ * every profile, so it lives outside the workflow filter — which also keeps the
+ * orphan pruner from ever removing `pscode-grill-me`.
+ */
+function getAlwaysOnSkillTemplates(): SkillTemplateEntry[] {
+  return [
+    { template: getGrillMeSkillTemplate(), dirName: 'pscode-grill-me', workflowId: 'grill-me' },
+  ];
+}
+
 export function getSkillTemplates(workflowFilter?: readonly string[]): SkillTemplateEntry[] {
-  const all: SkillTemplateEntry[] = [
+  const workflowGated: SkillTemplateEntry[] = [
     { template: getExploreSkillTemplate(), dirName: 'pscode-explore', workflowId: 'explore' },
     { template: getApplyChangeSkillTemplate(), dirName: 'pscode-apply-change', workflowId: 'apply' },
     { template: getCompleteChangeSkillTemplate(), dirName: 'pscode-complete-change', workflowId: 'complete' },
     { template: getProposeSkillTemplate(), dirName: 'pscode-propose', workflowId: 'propose' },
-    // Trello-specific workflows
-    { template: getTrelloSetupSkillTemplate(), dirName: 'pscode-trello-setup', workflowId: 'trello-setup' },
+    // Tracker board workflows
+    { template: getBoardSetupSkillTemplate(), dirName: 'pscode-board-setup', workflowId: 'board-setup' },
     { template: getTrelloDraftSkillTemplate(), dirName: 'pscode-trello-draft', workflowId: 'draft' },
     // Productivity workflows
     { template: getHandoffSkillTemplate(), dirName: 'pscode-handoff', workflowId: 'handoff' },
-    { template: getGrillMeSkillTemplate(), dirName: 'pscode-grill-me', workflowId: 'grill-me' },
   ];
 
-  if (!workflowFilter) return all;
+  const alwaysOn = getAlwaysOnSkillTemplates();
+
+  if (!workflowFilter) return [...workflowGated, ...alwaysOn];
 
   const filterSet = new Set(workflowFilter);
-  return all.filter(entry => filterSet.has(entry.workflowId));
+  return [...workflowGated.filter(entry => filterSet.has(entry.workflowId)), ...alwaysOn];
 }
 
 /**
@@ -80,12 +92,12 @@ export function getCommandTemplates(workflowFilter?: readonly string[]): Command
     { template: getPsApplyCommandTemplate(), id: 'apply' },
     { template: getPsCompleteCommandTemplate(), id: 'complete' },
     { template: getPsProposeCommandTemplate(), id: 'propose' },
-    // Trello-specific workflows
-    { template: getTrelloSetupCommandTemplate(), id: 'trello-setup' },
+    // Tracker board workflows
+    { template: getBoardSetupCommandTemplate(), id: 'board-setup' },
     { template: getTrelloDraftCommandTemplate(), id: 'draft' },
     // Productivity workflows
     { template: getHandoffCommandTemplate(), id: 'handoff' },
-    { template: getGrillMeCommandTemplate(), id: 'grill-me' },
+    // grill-me is skill-only — intentionally no command entry.
   ];
 
   if (!workflowFilter) return all;

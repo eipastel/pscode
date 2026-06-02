@@ -13,6 +13,45 @@ Propose a new change with Dixi architectural awareness.
 
 Then execute the standard `pscode-propose` skill instructions in full.
 
+**ADR (Dixi)** — registro de decisão arquitetural na fase de design:
+
+Ao escrever o `design.md`, se a proposta envolver uma **decisão arquitetural relevante**
+(escolha de padrão, framework, fronteira de módulo, trade-off estrutural), registre-a
+formalmente como um ADR (Architecture Decision Record). Pergunte ao usuário se deseja
+gerar o ADR agora; se sim, produza o documento no formato abaixo e ofereça salvá-lo em
+`docs/adr/ADR-NNN-<slug>.md` (sugira verificar o diretório `docs/adr/` para o próximo
+número disponível):
+
+```markdown
+# ADR-NNN: <título descritivo e conciso>
+
+**Status:** Aceita | Proposta | Obsoleta | Substituída por ADR-XXX
+**Data:** <data atual>
+**Contexto:** <stack/módulo afetado, se aplicável>
+
+## Contexto
+<situação atual, problema a resolver e forças em jogo — restrições técnicas, de negócio ou operacionais.>
+
+## Decisão
+<a decisão tomada, de forma afirmativa e clara. Ex: "Usaremos X para Y porque Z.">
+
+## Alternativas Consideradas
+### Opção A: <nome>
+- **Prós:** ...
+- **Contras:** ...
+
+## Consequências
+### Positivas
+- ...
+### Negativas / Trade-offs
+- ...
+
+## Referências
+- <links, docs, issues relacionadas>
+```
+
+Se não houver decisão arquitetural material, **pule o ADR** — não force o registro.
+
 **PR (Dixi)** — overrides chumbados na abertura do PR (sem chave de config, sem pergunta no init):
 
 1. **Prefixar o `[ID]` do ticket no título.** Ao abrir o PR, leia `jiraIssueKey` do metadata da change (`.pscode.yaml`). Se presente, prefixe o título resolvido pelo `pr.title.template` com `[<jiraIssueKey>] `, produzindo, por exemplo, `[DEV-1510] [feat] criar-login`. Se `jiraIssueKey` estiver ausente, abra o PR normalmente com o título padrão — **skip gracioso**, sem bloquear.

@@ -33,10 +33,11 @@ describe('skill-generation', () => {
       expect(dirNames).toContain('pscode-apply-change');
       expect(dirNames).toContain('pscode-complete-change');
       expect(dirNames).toContain('pscode-propose');
-      expect(dirNames).toContain('pscode-trello-setup');
+      expect(dirNames).toContain('pscode-board-setup');
       expect(dirNames).toContain('pscode-trello-draft');
       expect(dirNames).toContain('pscode-handoff');
       expect(dirNames).toContain('pscode-grill-me');
+      expect(dirNames).not.toContain('pscode-trello-setup');
       expect(dirNames).not.toContain('pscode-archive-change');
       expect(dirNames).not.toContain('pscode-new-change');
     });
@@ -60,14 +61,17 @@ describe('skill-generation', () => {
       expect(uniqueIds.size).toBe(templates.length);
     });
 
-    it('should filter by workflow IDs when provided', () => {
+    it('should filter by workflow IDs when provided (grill-me is always included)', () => {
+      // grill-me is a skill-only, always-on skill — it is generated regardless of
+      // the workflow filter, so a 4-workflow filter yields 4 + grill-me = 5.
       const filtered = getSkillTemplates(['propose', 'explore', 'apply', 'complete']);
-      expect(filtered).toHaveLength(4);
+      expect(filtered).toHaveLength(5);
       const ids = filtered.map(t => t.workflowId);
       expect(ids).toContain('propose');
       expect(ids).toContain('explore');
       expect(ids).toContain('apply');
       expect(ids).toContain('complete');
+      expect(ids).toContain('grill-me');
       expect(ids).not.toContain('new');
       expect(ids).not.toContain('ff');
     });
@@ -78,23 +82,25 @@ describe('skill-generation', () => {
       expect(noFilter).toHaveLength(all.length);
     });
 
-    it('should return empty array when filter matches nothing', () => {
+    it('should still return the always-on grill-me skill when filter matches no workflow', () => {
       const filtered = getSkillTemplates(['nonexistent']);
-      expect(filtered).toHaveLength(0);
+      expect(filtered).toHaveLength(1);
+      expect(filtered[0].dirName).toBe('pscode-grill-me');
     });
 
-    it('should return single template when filter has one workflow', () => {
+    it('should return the workflow skill plus the always-on grill-me when filter has one workflow', () => {
       const filtered = getSkillTemplates(['propose']);
-      expect(filtered).toHaveLength(1);
-      expect(filtered[0].workflowId).toBe('propose');
-      expect(filtered[0].dirName).toBe('pscode-propose');
+      expect(filtered).toHaveLength(2);
+      const dirNames = filtered.map(t => t.dirName);
+      expect(dirNames).toContain('pscode-propose');
+      expect(dirNames).toContain('pscode-grill-me');
     });
   });
 
   describe('getCommandTemplates', () => {
-    it('should return all 8 command templates', () => {
+    it('should return all 7 command templates', () => {
       const templates = getCommandTemplates();
-      expect(templates).toHaveLength(8);
+      expect(templates).toHaveLength(7);
     });
 
     it('should have unique IDs', () => {
@@ -112,10 +118,12 @@ describe('skill-generation', () => {
       expect(ids).toContain('apply');
       expect(ids).toContain('complete');
       expect(ids).toContain('propose');
-      expect(ids).toContain('trello-setup');
+      expect(ids).toContain('board-setup');
       expect(ids).toContain('draft');
       expect(ids).toContain('handoff');
-      expect(ids).toContain('grill-me');
+      // grill-me is skill-only — it must NOT be a command.
+      expect(ids).not.toContain('grill-me');
+      expect(ids).not.toContain('trello-setup');
       expect(ids).not.toContain('new');
       expect(ids).not.toContain('verify');
     });
@@ -145,9 +153,9 @@ describe('skill-generation', () => {
   });
 
   describe('getCommandContents', () => {
-    it('should return all 8 command contents', () => {
+    it('should return all 7 command contents', () => {
       const contents = getCommandContents();
-      expect(contents).toHaveLength(8);
+      expect(contents).toHaveLength(7);
     });
 
     it('should have valid content structure', () => {

@@ -34,10 +34,10 @@ export async function tryTransitionJiraIssue(
   }
 
   // The CLI cannot call the Atlassian MCP server directly.
-  // Log a message informing the user to transition manually or via /pstld:jira-sync.
+  // Log a message informing the user to transition the issue manually.
   console.log(
     `JIRA: issue ${issueKey} vinculada (transição "${transitionId}" pendente). ` +
-    `Use /pstld:jira-sync para confirmar o status ou transite manualmente.`
+    `Transite a issue manualmente no board JIRA para confirmar o status.`
   );
 
   return { attempted: true, success: true };

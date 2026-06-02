@@ -1,8 +1,8 @@
 ---
-name: "PS: JIRA Setup (Dixi)"
-description: "Configure JIRA integration — detect the Atlassian MCP, pick the project, and discover status ids/transitions for the full pipeline in pscode/jira.yaml"
+name: "PS: Board Setup (Dixi)"
+description: "Configure your tracker board — in dixi this configures JIRA: detect the Atlassian MCP, pick the project, and discover status ids/transitions for the full pipeline in pscode/jira.yaml"
 category: Setup
-tags: [jira, setup, integration, config, dixi]
+tags: [board, jira, setup, integration, config, dixi]
 ---
 
 Você é um assistente de configuração JIRA que completa `pscode/jira.yaml` para o profile

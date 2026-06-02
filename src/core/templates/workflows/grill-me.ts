@@ -6,7 +6,7 @@
  * available, until shared understanding is reached. Ported (in Portuguese)
  * from the `grill-me` skill (mattpocock/skills).
  */
-import type { SkillTemplate, CommandTemplate } from '../types.js';
+import type { SkillTemplate } from '../types.js';
 
 export function getGrillMeSkillTemplate(): SkillTemplate {
   return {
@@ -63,15 +63,4 @@ export function getGrillMeInstructions(): string {
 - Pare assim que houver entendimento compartilhado — não prolongue a interrogação além do necessário.
 - Se o usuário passou argumentos, trate-os como a descrição do plano a ser interrogado.
 `;
-}
-
-export function getGrillMeCommandTemplate(): CommandTemplate {
-  return {
-    name: 'PS: Grill Me',
-    description:
-      'Interroga um plano antes da implementação — uma pergunta por vez, com resposta recomendada, até entendimento compartilhado',
-    category: 'Workflow',
-    tags: ['grill', 'refinamento', 'plano', 'workflow'],
-    content: getGrillMeInstructions(),
-  };
 }

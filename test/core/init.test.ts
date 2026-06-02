@@ -82,7 +82,7 @@ describe('InitCommand', () => {
       expect(content).toContain('schema: spec-driven');
     });
 
-    it('should create config.yaml with pstld-workflow schema when profile is dixi', async () => {
+    it('should create config.yaml with dixi-workflow schema when profile is dixi', async () => {
       const initCommand = new InitCommand({ tools: 'claude', force: true, profile: 'dixi' });
 
       await initCommand.execute(testDir);
@@ -91,7 +91,7 @@ describe('InitCommand', () => {
       expect(await fileExists(configPath)).toBe(true);
 
       const content = await fs.readFile(configPath, 'utf-8');
-      expect(content).toContain('schema: pstld-workflow');
+      expect(content).toContain('schema: dixi-workflow');
       // Profile is persisted so `pscode update` is project-aware
       expect(content).toContain('profile: dixi');
     });

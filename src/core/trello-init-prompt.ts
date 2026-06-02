@@ -3,7 +3,7 @@
  *
  * Handles the interactive Trello setup questions during `pscode init`.
  * Saves a partial `pscode/trello.yaml` with `configured: false` so that
- * `/ps:trello-setup` (in Claude Code) can pick up where the CLI left off
+ * `/ps:board-setup` (in Claude Code) can pick up where the CLI left off
  * and only needs to perform the MCP-dependent steps (list lookup/creation).
  */
 
@@ -38,7 +38,7 @@ export const ALL_STAGES: StageDefinition[] = [
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Partial config types (saved by CLI, completed by /ps:trello-setup)
+// Partial config types (saved by CLI, completed by /ps:board-setup)
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface PendingLabelsConfig {
@@ -49,7 +49,7 @@ export interface PendingLabelsConfig {
 }
 
 export interface TrelloPendingConfig {
-  /** Always false when saved by CLI init — completed by /ps:trello-setup */
+  /** Always false when saved by CLI init — completed by /ps:board-setup */
   configured: false;
   /** Whether the user indicated they already have a Trello board */
   hasExistingBoard: boolean;
@@ -123,7 +123,7 @@ export async function runTrelloInitPrompt(pscodePath: string): Promise<boolean> 
     message: 'Do you have a Trello board already set up for this project?',
     choices: [
       { value: 'existing', name: 'Yes, I have an existing board' },
-      { value: 'new',      name: 'No, create a new board when I run /ps:trello-setup' },
+      { value: 'new',      name: 'No, create a new board when I run /ps:board-setup' },
     ],
   });
 

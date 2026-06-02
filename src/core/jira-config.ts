@@ -3,7 +3,7 @@
  *
  * Types and utilities for reading/writing the optional `pscode/jira.yaml`
  * integration file used by the `dixi` profile. This file is scaffolded by
- * `pscode init --profile dixi` and completed by `/ps:jira-setup` (inside the
+ * `pscode init --profile dixi` and completed by `/ps:board-setup` (inside the
  * agent, where the Atlassian MCP is available). It is the JIRA counterpart of
  * `trello-config.ts`.
  */
@@ -20,7 +20,7 @@ import { PIPELINE_STAGE_KEYS, type PipelineStageKey } from './pipeline-stages.js
 
 /**
  * One JIRA pipeline stage. All fields are optional because they are discovered
- * incrementally: the CLI scaffolds empty placeholders and `/ps:jira-setup`
+ * incrementally: the CLI scaffolds empty placeholders and `/ps:board-setup`
  * fills `status_id`/`transition` from the real board via the Atlassian MCP.
  */
 export interface JiraPipelineStage {
@@ -75,7 +75,7 @@ export function getJiraConfigPath(projectPath: string): string {
 
 /**
  * Builds an empty JIRA pipeline skeleton with all semantic stages present and
- * empty placeholder fields, ready to be completed by `/ps:jira-setup`.
+ * empty placeholder fields, ready to be completed by `/ps:board-setup`.
  */
 export function buildJiraPipelineSkeleton(): JiraPipelineMap {
   const pipeline: JiraPipelineMap = {};

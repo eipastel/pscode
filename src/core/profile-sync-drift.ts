@@ -16,12 +16,11 @@ export const WORKFLOW_TO_SKILL_DIR: Record<WorkflowId, string> = {
   'apply': 'pscode-apply-change',
   'complete': 'pscode-complete-change',
   'propose': 'pscode-propose',
-  // Trello-specific workflows
-  'trello-setup': 'pscode-trello-setup',
+  // Tracker board workflows
+  'board-setup': 'pscode-board-setup',
   'draft': 'pscode-trello-draft',
   // Productivity workflows
   'handoff': 'pscode-handoff',
-  'grill-me': 'pscode-grill-me',
 };
 
 function toKnownWorkflows(workflows: readonly string[]): WorkflowId[] {

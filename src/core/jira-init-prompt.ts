@@ -3,7 +3,7 @@
  *
  * Handles the interactive JIRA setup questions during `pscode init --profile dixi`.
  * Saves a `pscode/jira.yaml` skeleton with `configured: false` and the full
- * `pipeline` block so that `/ps:jira-setup` (in the agent, where the Atlassian
+ * `pipeline` block so that `/ps:board-setup` (in the agent, where the Atlassian
  * MCP is available) can pick up where the CLI left off and discover the real
  * `status_id`/`transition` per stage. The CLI cannot call the MCP directly, so
  * it only collects `project_key` and `board_url`.
@@ -50,7 +50,7 @@ export async function runJiraInitPrompt(pscodePath: string): Promise<boolean> {
   });
 
   if (!wantsJira) {
-    // Ensure a skeleton exists so /ps:jira-setup can complete it later.
+    // Ensure a skeleton exists so /ps:board-setup can complete it later.
     if (!fs.existsSync(configPath)) {
       writeJiraConfig(projectPath, buildJiraConfigSkeleton());
     }
@@ -74,7 +74,7 @@ export async function runJiraInitPrompt(pscodePath: string): Promise<boolean> {
 
   // ── Step 3: save skeleton (configured stays false) ─────────────────────────
   // The CLI cannot reach the Atlassian MCP, so status_ids/transitions are left
-  // empty for /ps:jira-setup to discover. `configured` only flips to true there.
+  // empty for /ps:board-setup to discover. `configured` only flips to true there.
   const config = buildJiraConfigSkeleton({
     project_key: projectKey,
     board_url: boardUrl,
@@ -86,7 +86,7 @@ export async function runJiraInitPrompt(pscodePath: string): Promise<boolean> {
 
   console.log();
   console.log(chalk.dim(`  Saved to ${getJiraConfigPath(projectPath)}.`));
-  console.log(chalk.dim('  Run /ps:jira-setup in Claude Code to discover status ids and transitions.'));
+  console.log(chalk.dim('  Run /ps:board-setup in Claude Code to discover status ids and transitions.'));
 
   return true;
 }

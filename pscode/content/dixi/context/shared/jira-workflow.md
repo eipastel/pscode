@@ -13,10 +13,10 @@ JIRA, e quando mover a issue de uma coluna para a outra.
 | Estágio (`pipeline.*`) | Coluna JIRA típica | Categoria       | Quando o agente move a issue para cá |
 | ---------------------- | ------------------ | --------------- | ------------------------------------ |
 | `backlog`              | Backlog            | To Do           | Ideia capturada via `/ps:draft` (ainda não refinada) |
-| `refining`             | Em Refinamento     | To Do           | Início de RFC/Design (`/pstld:rfc`, `/ps:propose`) |
+| `refining`             | Em Refinamento     | To Do           | Início de RFC/Design (`/ps:propose`) |
 | `ready`                | Ready to Dev       | To Do           | Tasks aprovadas e prontas para implementar |
 | `developing`           | Em Desenvolvimento | In Progress     | Início do `/ps:apply` (implementação) |
-| `testing`              | Em Teste           | In Progress     | DoD / validação após implementar (`/pstld:dod`) |
+| `testing`              | Em Teste           | In Progress     | DoD / validação após implementar (embutido em `/ps:complete`) |
 | `deploy`               | Ready to Deploy    | In Progress     | PR aprovado e validado |
 | `done`                 | Concluído          | Done            | `/ps:complete` (change arquivada) |
 | `cancelled`            | Cancelado          | Done            | Ideia/issue descartada (a partir de qualquer estágio) |

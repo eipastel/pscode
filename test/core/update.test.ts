@@ -1561,7 +1561,7 @@ More user content after markers.
       )).toBe(true);
     });
 
-    it('should re-apply dixi command overrides (/ps:* and /pstld:*) on a dixi project', async () => {
+    it('should re-apply unified /ps:* dixi overrides and remove the legacy /pstld:* namespace', async () => {
       setMockConfig({
         featureFlags: {},
         profile: 'standard',
@@ -1577,15 +1577,22 @@ More user content after markers.
       await fs.mkdir(path.join(skillsDir, 'pscode-explore'), { recursive: true });
       await fs.writeFile(path.join(skillsDir, 'pscode-explore', 'SKILL.md'), 'old');
 
+      // Seed a leftover legacy /pstld:* command to prove the pruner removes it.
+      const pstldDir = path.join(testDir, '.claude', 'commands', 'pstld');
+      await fs.mkdir(pstldDir, { recursive: true });
+      await fs.writeFile(path.join(pstldDir, 'jira-draft.md'), '# legacy');
+
       await updateCommand.execute(testDir);
 
       const psDir = path.join(testDir, '.claude', 'commands', 'ps');
-      // Exclusive /pstld:* commands are installed
-      expect(await FileSystemUtils.fileExists(
-        path.join(testDir, '.claude', 'commands', 'pstld', 'jira-draft.md')
-      )).toBe(true);
-      // Dixi-specific /ps command (id is not a workflow) is installed and survives prune
-      expect(await FileSystemUtils.fileExists(path.join(psDir, 'jira-setup.md'))).toBe(true);
+      // The legacy /pstld:* namespace is removed entirely
+      expect(await FileSystemUtils.directoryExists(pstldDir)).toBe(false);
+      // Tracker setup is unified under /ps:board-setup (no /ps:jira-setup)
+      expect(await FileSystemUtils.fileExists(path.join(psDir, 'board-setup.md'))).toBe(true);
+      expect(await FileSystemUtils.fileExists(path.join(psDir, 'jira-setup.md'))).toBe(false);
+      // The legacy schema name is migrated to dixi-workflow in config.yaml
+      const config = await fs.readFile(path.join(testDir, 'pscode', 'config.yaml'), 'utf-8');
+      expect(config).toContain('schema: dixi-workflow');
       // The /ps:apply override carries the dixi content (not the standard one)
       const apply = await fs.readFile(path.join(psDir, 'apply.md'), 'utf-8');
       expect(apply).toContain('Dixi');

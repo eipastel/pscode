@@ -25,6 +25,7 @@ import {
   getToolsWithSkillsDir,
   pruneOrphans,
   pruneOrphansForTool,
+  pruneLegacyPstldCommands,
   type ToolVersionStatus,
 } from './shared/index.js';
 import {
@@ -96,6 +97,17 @@ export class UpdateCommand {
     // 1. Check pscode directory exists
     if (!await FileSystemUtils.directoryExists(pscodePath)) {
       throw new Error(`No Pscode directory found. Run 'pscode init' first.`);
+    }
+
+    // 1a. Migrate the legacy `pstld-workflow` schema name to `dixi-workflow`
+    // (best-effort, non-blocking) so existing dixi projects converge on the new
+    // name. The alias in inferProfileFromSchema keeps them working if this fails.
+    this.migrateLegacySchemaName(resolvedProjectPath);
+
+    // 1b. Remove the legacy `.claude/commands/pstld/` namespace if present — its
+    // capabilities are now absorbed into the unified `/ps:*` overrides.
+    if (pruneLegacyPstldCommands(resolvedProjectPath)) {
+      console.log(chalk.dim('Removed legacy /pstld:* commands (.claude/commands/pstld/).'));
     }
 
     // 2. Perform one-time migration if needed before any legacy upgrade generation.
@@ -271,7 +283,7 @@ export class UpdateCommand {
     // 10b. Dixi profile: re-apply the stack-aware extras on top of the base
     // generation. The base generation writes the *standard* /ps:* commands, so
     // without this an update on a dixi project would silently downgrade them to
-    // the Trello-flavored versions and drop the /pstld:* commands.
+    // the Trello-flavored versions.
     if (isDixi && updatedTools.length > 0) {
       this.applyDixiCommandOverrides(resolvedProjectPath);
     }
@@ -330,13 +342,44 @@ export class UpdateCommand {
    * Re-applies the dixi profile command overrides after the base generation.
    * The base generation writes the *standard* /ps:* commands, so without this an
    * update on a dixi project would silently downgrade them to the Trello-flavored
-   * versions and drop the /pstld:* commands. The one-time scaffolding (skeleton,
-   * kit, hooks, CLAUDE.md) is brownfield-safe and persists across updates, so it
-   * is intentionally NOT re-run here.
+   * versions. The one-time scaffolding (skeleton, kit, hooks, CLAUDE.md) is
+   * brownfield-safe and persists across updates, so it is intentionally NOT
+   * re-run here.
    */
+  /**
+   * Best-effort rewrite of `schema: pstld-workflow` → `schema: dixi-workflow` in
+   * an existing project's `pscode/config.yaml`. Operates as a plain line rewrite
+   * (preserving comments/formatting) and never throws — if anything goes wrong the
+   * legacy alias in {@link inferProfileFromSchema} keeps the project functional.
+   */
+  private migrateLegacySchemaName(projectPath: string): void {
+    try {
+      const yamlPath = path.join(projectPath, PSCODE_DIR_NAME, 'config.yaml');
+      const ymlPath = path.join(projectPath, PSCODE_DIR_NAME, 'config.yml');
+      const configPath = fs.existsSync(yamlPath)
+        ? yamlPath
+        : fs.existsSync(ymlPath)
+          ? ymlPath
+          : null;
+      if (!configPath) return;
+
+      const content = fs.readFileSync(configPath, 'utf-8');
+      if (!/^\s*schema:\s*pstld-workflow\s*$/m.test(content)) return;
+
+      const migrated = content.replace(
+        /^(\s*schema:\s*)pstld-workflow(\s*)$/m,
+        '$1dixi-workflow$2'
+      );
+      fs.writeFileSync(configPath, migrated, { encoding: 'utf-8' });
+      console.log(chalk.dim('Dixi: schema migrado de pstld-workflow → dixi-workflow.'));
+    } catch {
+      // Non-blocking: the legacy alias keeps the project working.
+    }
+  }
+
   private applyDixiCommandOverrides(projectPath: string): void {
     installDixiCommands(projectPath);
-    console.log(chalk.dim('Dixi: comandos /ps:* (JIRA-aware) e /pstld:* reaplicados.'));
+    console.log(chalk.dim('Dixi: comandos /ps:* (JIRA-aware) reaplicados.'));
 
     // Self-heal the recorded stack for projects predating a detection fix (e.g.
     // Gradle Kotlin DSL); never downgrade a known stack to a null re-detection.
