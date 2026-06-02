@@ -16,22 +16,22 @@ import {
 import { generateSkillContent } from '../../../src/core/shared/skill-generation.js';
 
 const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
-  getApplyChangeSkillTemplate: 'c5ce88e14875831586cb50e5e24a5a4c8c9994282ecabd6334bcd08b28dcb1bf',
+  getApplyChangeSkillTemplate: '15ba34666f2cbc77538d42af92896f7791b13f376decdaedea51665e1b556020',
   getCompleteChangeSkillTemplate: '768bea27f406315280d0e12bfd312a82185fea86a13dd030ac8b11424f04550b',
   getExploreSkillTemplate: '883766675e50ab0f1e8ddea8d35083523dad24f7358107659d670d4e6569e1cb',
   getFeedbackSkillTemplate: '37cc46fb58f8390f6cb47d4221bfd729ea45692903f19ef5dc932b6a6e04c24a',
-  getProposeSkillTemplate: '5ab0ffe2466a2a383cd551f6d47110137926ee3091285bf5a43a09320adc5cf5',
-  getPsApplyCommandTemplate: 'a9bde78b28366d2bb76a08a7daf88d7a82c06145eb6e7df59d378e2db082464a',
+  getProposeSkillTemplate: '4951eb305b93333f971fa58b5506198c8674d5708aa142be8f19592e00d22042',
+  getPsApplyCommandTemplate: '58b3d6d1cc9788cf851c309c3b7fac6c949b3f4743967fad88bb39eeb3849aa8',
   getPsCompleteCommandTemplate: '13fcb6aca5056d15cd6a85d2217505b85a6cf8c8ff9efe6f90c8cb67afc46150',
   getPsExploreCommandTemplate: 'bfd0f5505ee60d50fb9b7f1ecb3ffa933d801d86136786e78c4fa4f60a1acabe',
-  getPsProposeCommandTemplate: '317f6e0c2547864f95c9adc72ecd90b325059b367a740fff7c8777ada05643ea',
+  getPsProposeCommandTemplate: 'bec7c88d077d23817b4ffee0faa40e9d16b0468f70e43951b3130a0fcddb3818',
 };
 
 const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
-  'pscode-apply-change': '2eaec08f697edf2e3a1ab20c0cac7d1935639bfcfd70aab80bd589094045594b',
+  'pscode-apply-change': 'a62f663d1fef2f48845f5a9317cf0cf09b6ad914b784da4d683e37db4e0067b2',
   'pscode-complete-change': '14d11255cb32342f8d40e24486a4753b76b352a9b668b7f1ccd397aa975b6e68',
   'pscode-explore': 'e99fb2a097f7f6a5d7c2f3f5e8b4f59c8d1f979f971b91613409a3978fe503d3',
-  'pscode-propose': 'd8c4c26313b0fd3fa4bfaef81508ed6a846ce11748f047726ae2a022903c0f55',
+  'pscode-propose': '665244d98a6acc2702ceb5d61488ef11cbeda896e90fc412711c926dc377f6dd',
 };
 
 function stableStringify(value: unknown): string {

@@ -9,6 +9,7 @@ export const PrConfigSchema = z.object({
   title: z.object({ template: z.string() }).optional(),
   description: z.object({ template: z.string() }).optional(),
   comments: z.object({ linkInTask: z.boolean() }).optional(),
+  taskLinkInDescription: z.boolean().optional(),
 });
 
 export type PrConfig = z.infer<typeof PrConfigSchema>;

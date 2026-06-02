@@ -77,11 +77,17 @@ export async function runPrInitPrompt(): Promise<PrConfig | null> {
     default: true,
   });
 
+  const taskLinkInDescription = await confirm({
+    message: 'Incluir link do card do tracker na descrição do PR?',
+    default: true,
+  });
+
   return {
     enabled: true,
     branch: { pattern: branchPattern.trim() || DEFAULT_BRANCH_PATTERN },
     title: { template: titleTemplate.trim() || DEFAULT_TITLE_TEMPLATE },
     description: { template: descriptionTemplate },
     comments: { linkInTask },
+    taskLinkInDescription,
   };
 }
