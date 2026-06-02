@@ -30,8 +30,8 @@ export const PROFILES = {
     workflows: ['propose', 'explore', 'apply', 'complete', 'trello-setup', 'draft', 'handoff', 'grill-me'],
   },
   dixi: {
-    description: 'Dixi — propose, explore, apply, complete com guardrails para Java/Spring e React/Next.js',
-    workflows: ['propose', 'explore', 'apply', 'complete', 'trello-setup', 'draft', 'handoff', 'grill-me'],
+    description: 'Dixi — propose, explore, apply, complete com guardrails para Java/Spring e React/Next.js (JIRA-native, sem Trello)',
+    workflows: ['propose', 'explore', 'apply', 'complete', 'draft', 'handoff', 'grill-me'],
   },
 } as const satisfies Record<string, ProfileDefinition>;
 

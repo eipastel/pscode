@@ -2,14 +2,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { parse as parseYaml } from 'yaml';
 import { PSCODE_DIR_NAME } from './config.js';
-
-interface JiraConfig {
-  project_key?: string;
-  configured?: boolean;
-  transitions?: {
-    done?: string;
-  };
-}
+import type { JiraConfig } from './jira-config.js';
 
 export interface JiraTransitionResult {
   attempted: boolean;

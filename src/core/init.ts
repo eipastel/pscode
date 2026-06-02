@@ -39,6 +39,8 @@ import {
   type LegacyToolDetectionResult,
 } from './openspec-migration.js';
 import { runTrelloInitPrompt } from './trello-init-prompt.js';
+import { runJiraInitPrompt } from './jira-init-prompt.js';
+import { buildJiraConfigSkeleton, getJiraConfigPath, writeJiraConfig } from './jira-config.js';
 import {
   SKILL_NAMES,
   getToolsWithSkillsDir,
@@ -152,8 +154,13 @@ export class InitCommand {
     // Create directory structure and config
     await this.createDirectoryStructure(pscodePath, extendMode);
 
-    // Trello integration setup (interactive mode only)
-    const trelloConfigured = await this.handleTrelloSetup(pscodePath);
+    // Resolve the active profile once — it gates Trello (standard) vs JIRA (dixi).
+    const resolvedProfile = this.resolveProfileOverride() ?? (isValidProfile(getGlobalConfig().profile ?? '') ? getGlobalConfig().profile as ProfileName : DEFAULT_PROFILE);
+    const isDixiProfile = resolvedProfile === 'dixi';
+
+    // Tracker integration setup (interactive mode only).
+    // Dixi uses JIRA natively — never prompt for Trello on that profile.
+    const trelloConfigured = isDixiProfile ? false : await this.handleTrelloSetup(pscodePath);
 
     // PR workflow setup (interactive or via flags)
     const prConfig = await this.handlePrSetup(pscodePath, extendMode);
@@ -176,17 +183,18 @@ export class InitCommand {
     // Dixi profile extras: stack detection and .pscode-dixi.yaml
     await this.handleDixiExtras(projectPath);
 
-    // Dixi profile: generate JIRA integration files
-    const resolvedProfile = this.resolveProfileOverride() ?? (isValidProfile(getGlobalConfig().profile ?? '') ? getGlobalConfig().profile as ProfileName : DEFAULT_PROFILE);
-    if (resolvedProfile === 'dixi') {
+    // Dixi profile: generate JIRA integration files + interactive setup
+    if (isDixiProfile) {
       await this.generateJiraFiles(projectPath);
+      await this.handleJiraSetup(pscodePath);
+      this.warnObsoleteTrelloConfig(projectPath);
     }
 
     // Create config.yaml if needed
     const configStatus = await this.createConfig(pscodePath, extendMode, prConfig ?? undefined);
 
     // Display success message
-    this.displaySuccessMessage(projectPath, validatedTools, results, configStatus, trelloConfigured);
+    this.displaySuccessMessage(projectPath, validatedTools, results, configStatus, trelloConfigured, isDixiProfile);
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -569,6 +577,43 @@ export class InitCommand {
   }
 
   // ═══════════════════════════════════════════════════════════
+  // JIRA SETUP (dixi profile)
+  // ═══════════════════════════════════════════════════════════
+
+  /**
+   * Interactive JIRA setup for the dixi profile. In non-interactive mode this
+   * is a no-op — `generateJiraFiles` already wrote the static skeleton, and the
+   * MCP-dependent discovery happens later via `/ps:jira-setup`.
+   */
+  private async handleJiraSetup(pscodePath: string): Promise<boolean> {
+    if (!this.canPromptInteractively()) {
+      return false;
+    }
+
+    try {
+      return await runJiraInitPrompt(pscodePath);
+    } catch {
+      // Non-fatal — JIRA setup is optional
+      return false;
+    }
+  }
+
+  /**
+   * Non-destructive migration aid: when a legacy `pscode/trello.yaml` is found
+   * during a dixi init, warn that it is obsolete (the dixi profile uses JIRA and
+   * its Trello artifacts were pruned) without deleting the user's file.
+   */
+  private warnObsoleteTrelloConfig(projectPath: string): void {
+    const trelloYamlPath = path.join(projectPath, PSCODE_DIR_NAME, 'trello.yaml');
+    if (fs.existsSync(trelloYamlPath)) {
+      console.log();
+      console.log(chalk.yellow('Dixi: pscode/trello.yaml encontrado, mas o profile dixi usa JIRA.'));
+      console.log(chalk.dim('  Os artefatos Trello (skill/comando trello-setup) foram podados.'));
+      console.log(chalk.dim('  O arquivo foi preservado — remova-o manualmente quando quiser.'));
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════
   // PR WORKFLOW SETUP
   // ═══════════════════════════════════════════════════════════
 
@@ -818,7 +863,8 @@ export class InitCommand {
       removedSkillCount: number;
     },
     configStatus: 'created' | 'exists' | 'updated' | 'skipped',
-    trelloConfigured = false
+    trelloConfigured = false,
+    isDixiProfile = false
   ): void {
     console.log();
     console.log(chalk.bold('Pscode Setup Complete'));
@@ -897,12 +943,20 @@ export class InitCommand {
       console.log("Done. Run 'pscode config profile' to switch profiles.");
     }
 
-    // Trello status
-    if (trelloConfigured) {
+    // Trello status — never shown for the dixi profile (JIRA-native)
+    if (trelloConfigured && !isDixiProfile) {
       console.log();
       console.log(chalk.bold('Trello Integration'));
       console.log(`  Preferences saved to ${chalk.cyan('pscode/trello.yaml')}`);
       console.log(`  Run ${chalk.cyan('/ps:trello-setup')} in Claude Code to connect your Trello lists.`);
+    }
+
+    // JIRA status — dixi profile only
+    if (isDixiProfile) {
+      console.log();
+      console.log(chalk.bold('JIRA Integration'));
+      console.log(`  Pipeline scaffolded in ${chalk.cyan('pscode/jira.yaml')} (8 stages).`);
+      console.log(`  Run ${chalk.cyan('/ps:jira-setup')} in Claude Code to discover status ids and transitions.`);
     }
 
     // Links
@@ -925,10 +979,9 @@ export class InitCommand {
     const pscodeDirPath = path.join(projectPath, PSCODE_DIR_NAME);
     await FileSystemUtils.createDirectory(pscodeDirPath);
 
-    const jiraYamlPath = path.join(pscodeDirPath, 'jira.yaml');
+    const jiraYamlPath = getJiraConfigPath(projectPath);
     if (!fs.existsSync(jiraYamlPath)) {
-      const content = `project_key: ""\nboard_url: ""\nconfigured: false\ntransitions:\n  done: ""\n`;
-      await FileSystemUtils.writeFile(jiraYamlPath, content);
+      writeJiraConfig(projectPath, buildJiraConfigSkeleton());
     }
 
     const mcpJsonPath = path.join(projectPath, '.mcp.json');
@@ -954,7 +1007,7 @@ export class InitCommand {
       await FileSystemUtils.writeFile(mcpJsonPath, JSON.stringify(mcpConfig, null, 2) + '\n');
     }
 
-    console.log(`JIRA: edite ${PSCODE_DIR_NAME}/jira.yaml com project_key e board_url, depois use /pstld:jira-sync para testar a conexão.`);
+    console.log(`JIRA: ${PSCODE_DIR_NAME}/jira.yaml gerado com pipeline de 8 estágios. Rode /ps:jira-setup para descobrir status_ids e transições do board e ativar a integração.`);
   }
 
   private async handleDixiExtras(projectPath: string): Promise<void> {

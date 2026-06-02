@@ -406,12 +406,13 @@ describe('installDixiExtras — ps command overrides', () => {
     expect(fsSync.existsSync(path.join(projectDir, '.claude', 'commands', 'ps', 'propose.md'))).toBe(true);
   });
 
-  it('3.2 cria todos os 6 arquivos ps/ após installDixiExtras', () => {
+  it('3.2 cria todos os arquivos ps/ após installDixiExtras (JIRA-native, sem trello-setup)', () => {
     installDixiExtras(projectDir, 'java-maven');
     const psDir = path.join(projectDir, '.claude', 'commands', 'ps');
-    ['propose.md', 'explore.md', 'apply.md', 'complete.md', 'draft.md', 'trello-setup.md'].forEach(f => {
+    ['propose.md', 'explore.md', 'apply.md', 'complete.md', 'draft.md', 'jira-setup.md'].forEach(f => {
       expect(fsSync.existsSync(path.join(psDir, f))).toBe(true);
     });
+    expect(fsSync.existsSync(path.join(psDir, 'trello-setup.md'))).toBe(false);
   });
 
   it('3.2b não cria .claude/commands/pstld/ após installDixiExtras', () => {
@@ -494,5 +495,96 @@ describe('InitCommand smoke tests (--profile dixi)', () => {
     expect(content).toContain('next');
     expect(content).toContain('react');
     expect(content).toContain('detectedAt');
+  });
+
+  it('generates pscode/jira.yaml with the full 8-stage pipeline + .mcp.json atlassian', async () => {
+    await writeFile(testDir, 'pom.xml', '<project/>');
+    const cmd = new InitCommand({ tools: 'claude', force: true, profile: 'dixi' });
+
+    await cmd.execute(testDir);
+
+    const jiraYaml = path.join(testDir, 'pscode', 'jira.yaml');
+    expect(fsSync.existsSync(jiraYaml)).toBe(true);
+    const content = await fs.readFile(jiraYaml, 'utf-8');
+    expect(content).toContain('configured: false');
+    expect(content).toContain('pipeline:');
+    for (const stage of ['backlog', 'refining', 'ready', 'developing', 'testing', 'deploy', 'done', 'cancelled']) {
+      expect(content, `pipeline.${stage}`).toContain(`${stage}:`);
+    }
+
+    const mcp = JSON.parse(await fs.readFile(path.join(testDir, '.mcp.json'), 'utf-8'));
+    expect(mcp.mcpServers.atlassian).toBeTruthy();
+  });
+
+  it('installs the JIRA-native /ps:* overrides and no /ps:trello-setup', async () => {
+    await writeFile(testDir, 'pom.xml', '<project/>');
+    const cmd = new InitCommand({ tools: 'claude', force: true, profile: 'dixi' });
+
+    await cmd.execute(testDir);
+
+    const psCommandsDir = path.join(testDir, '.claude', 'commands', 'ps');
+    expect(fsSync.existsSync(path.join(psCommandsDir, 'jira-setup.md'))).toBe(true);
+    expect(fsSync.existsSync(path.join(psCommandsDir, 'trello-setup.md'))).toBe(false);
+  });
+
+  it('prunes pre-existing trello-setup artifacts when re-running dixi init', async () => {
+    await writeFile(testDir, 'pom.xml', '<project/>');
+
+    // Simulate a repo previously initialized with Trello artifacts.
+    const skillDir = path.join(testDir, '.claude', 'skills', 'pscode-trello-setup');
+    await fs.mkdir(skillDir, { recursive: true });
+    await fs.writeFile(path.join(skillDir, 'SKILL.md'), '# trello', 'utf-8');
+    const psCommandsDir = path.join(testDir, '.claude', 'commands', 'ps');
+    await fs.mkdir(psCommandsDir, { recursive: true });
+    await fs.writeFile(path.join(psCommandsDir, 'trello-setup.md'), '# trello', 'utf-8');
+
+    const cmd = new InitCommand({ tools: 'claude', force: true, profile: 'dixi' });
+    await cmd.execute(testDir);
+
+    expect(fsSync.existsSync(skillDir)).toBe(false);
+    expect(fsSync.existsSync(path.join(psCommandsDir, 'trello-setup.md'))).toBe(false);
+  });
+
+  it('warns about an obsolete trello.yaml without deleting it (dixi)', async () => {
+    await writeFile(testDir, 'pom.xml', '<project/>');
+    const pscodeDir = path.join(testDir, 'pscode');
+    await fs.mkdir(pscodeDir, { recursive: true });
+    const trelloYaml = path.join(pscodeDir, 'trello.yaml');
+    await fs.writeFile(trelloYaml, 'configured: true\n', 'utf-8');
+
+    const cmd = new InitCommand({ tools: 'claude', force: true, profile: 'dixi' });
+    await cmd.execute(testDir);
+
+    // File preserved (non-destructive migration).
+    expect(fsSync.existsSync(trelloYaml)).toBe(true);
+  });
+
+  it('dixi profile prompts JIRA setup and never Trello', async () => {
+    await writeFile(testDir, 'pom.xml', '<project/>');
+    const cmd = new InitCommand({ force: true, profile: 'dixi' });
+    vi.spyOn(cmd as any, 'canPromptInteractively').mockReturnValue(true);
+    const trelloSpy = vi.spyOn(cmd as any, 'handleTrelloSetup').mockResolvedValue(false);
+    const jiraSpy = vi.spyOn(cmd as any, 'handleJiraSetup').mockResolvedValue(true);
+    searchableMultiSelectMock.mockResolvedValue(['claude']);
+    confirmMock.mockResolvedValue(false);
+
+    await cmd.execute(testDir);
+
+    expect(trelloSpy).not.toHaveBeenCalled();
+    expect(jiraSpy).toHaveBeenCalled();
+  });
+
+  it('standard profile prompts Trello setup and never JIRA', async () => {
+    const cmd = new InitCommand({ force: true, profile: 'standard' });
+    vi.spyOn(cmd as any, 'canPromptInteractively').mockReturnValue(true);
+    const trelloSpy = vi.spyOn(cmd as any, 'handleTrelloSetup').mockResolvedValue(false);
+    const jiraSpy = vi.spyOn(cmd as any, 'handleJiraSetup').mockResolvedValue(false);
+    searchableMultiSelectMock.mockResolvedValue(['claude']);
+    confirmMock.mockResolvedValue(false);
+
+    await cmd.execute(testDir);
+
+    expect(trelloSpy).toHaveBeenCalled();
+    expect(jiraSpy).not.toHaveBeenCalled();
   });
 });

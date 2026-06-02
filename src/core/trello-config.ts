@@ -9,6 +9,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
+import type { PipelineStageKey } from './pipeline-stages.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -22,25 +23,10 @@ export interface TrelloListEntry {
 /**
  * Semantic stage keys that map to Trello lists.
  * Not all stages need to be configured — unused stages are omitted.
+ * Keys come from the shared {@link PipelineStageKey} set to avoid drift with
+ * the JIRA pipeline map.
  */
-export interface TrelloListMap {
-  /** Ideias, rascunhos e tarefas pré-refinadas — "Backlog" */
-  backlog?: TrelloListEntry;
-  /** Em discussão / especificação — "Em Refinamento" */
-  refining?: TrelloListEntry;
-  /** Aprovadas, prontas para dev — "Ready to Dev" */
-  ready?: TrelloListEntry;
-  /** Em desenvolvimento / implementação — "Em Desenvolvimento" */
-  developing?: TrelloListEntry;
-  /** Em validação / QA — "Em Teste" */
-  testing?: TrelloListEntry;
-  /** Aprovadas para ir a produção — "Ready to Deploy" */
-  deploy?: TrelloListEntry;
-  /** Entregues / arquivadas — "Concluído" */
-  done?: TrelloListEntry;
-  /** Descartadas — "Cancelado" */
-  cancelled?: TrelloListEntry;
-}
+export type TrelloListMap = Partial<Record<PipelineStageKey, TrelloListEntry>>;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Labels / Etiquetas

@@ -70,5 +70,6 @@ Docs completos em `pscode/context/`:
 - `pscode/context/react/naming.md` — convenções de nomenclatura
 - `pscode/context/shared/commits.md` — convenção completa de commits
 - `pscode/context/shared/dev-flow.md` — fluxo de desenvolvimento e PR
+- `pscode/context/shared/jira-workflow.md` — mapeamento dev-flow → colunas/status do board JIRA
 
 > Se `pscode/context/` não existe, rode `pscode init --profile dixi` para instalar.
