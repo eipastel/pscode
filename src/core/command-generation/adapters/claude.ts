@@ -6,6 +6,7 @@
 
 import path from 'path';
 import type { CommandContent, ToolCommandAdapter } from '../types.js';
+import { getAskUserQuestionGuidanceBlock } from '../../templates/workflows/ask-user-question-guidance.js';
 
 /**
  * Escapes a string value for safe YAML output.
@@ -43,6 +44,14 @@ export const claudeAdapter: ToolCommandAdapter = {
   },
 
   formatFile(content: CommandContent): string {
+    // Prepend the Claude-only AskUserQuestion guidance, reusing the shared block
+    // so commands and skills carry byte-identical text. Idempotent guard avoids
+    // duplicating the block if the body already includes it.
+    const guidance = getAskUserQuestionGuidanceBlock();
+    const body = content.body.includes(guidance)
+      ? content.body
+      : `${guidance}\n\n${content.body}`;
+
     return `---
 name: ${escapeYamlValue(content.name)}
 description: ${escapeYamlValue(content.description)}
@@ -50,7 +59,7 @@ category: ${escapeYamlValue(content.category)}
 tags: ${formatTagsArray(content.tags)}
 ---
 
-${content.body}
+${body}
 `;
   },
 };

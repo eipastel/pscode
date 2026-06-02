@@ -11,7 +11,6 @@ import ora from 'ora';
 import * as fs from 'fs';
 import { createRequire } from 'module';
 import { FileSystemUtils } from '../utils/file-system.js';
-import { transformToHyphenCommands } from '../utils/command-references.js';
 import { AI_TOOLS, PSCODE_DIR_NAME } from './config.js';
 import {
   generateCommands,
@@ -22,6 +21,7 @@ import {
   getSkillTemplates,
   getCommandContents,
   generateSkillContent,
+  resolveSkillTransformer,
   getToolsWithSkillsDir,
   pruneOrphans,
   pruneOrphansForTool,
@@ -202,8 +202,8 @@ export class UpdateCommand {
             const skillDir = path.join(skillsDir, dirName);
             const skillFile = path.join(skillDir, 'SKILL.md');
 
-            // Use hyphen-based command references for OpenCode
-            const transformer = (tool.value === 'opencode' || tool.value === 'pi') ? transformToHyphenCommands : undefined;
+            // Resolve the per-tool instructions transform (hyphen commands, Claude guidance, …)
+            const transformer = resolveSkillTransformer(tool.value);
             const skillContent = generateSkillContent(template, PSCODE_VERSION, transformer);
             await FileSystemUtils.writeFile(skillFile, skillContent);
           }
@@ -551,8 +551,8 @@ export class UpdateCommand {
             const skillDir = path.join(skillsDir, dirName);
             const skillFile = path.join(skillDir, 'SKILL.md');
 
-            // Use hyphen-based command references for OpenCode
-            const transformer = (tool.value === 'opencode' || tool.value === 'pi') ? transformToHyphenCommands : undefined;
+            // Resolve the per-tool instructions transform (hyphen commands, Claude guidance, …)
+            const transformer = resolveSkillTransformer(tool.value);
             const skillContent = generateSkillContent(template, PSCODE_VERSION, transformer);
             await FileSystemUtils.writeFile(skillFile, skillContent);
           }

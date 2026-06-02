@@ -4,7 +4,12 @@ import {
   getCommandTemplates,
   getCommandContents,
   generateSkillContent,
+  resolveSkillTransformer,
 } from '../../../src/core/shared/skill-generation.js';
+import {
+  getAskUserQuestionGuidanceBlock,
+} from '../../../src/core/templates/workflows/ask-user-question-guidance.js';
+import { transformToHyphenCommands } from '../../../src/utils/command-references.js';
 
 describe('skill-generation', () => {
   describe('getSkillTemplates', () => {
@@ -293,6 +298,72 @@ describe('skill-generation', () => {
 
       expect(content).toContain('Some REPLACED text here.');
       expect(content).not.toContain('PLACEHOLDER');
+    });
+  });
+
+  describe('resolveSkillTransformer', () => {
+    it('returns the hyphen transform for opencode and pi', () => {
+      expect(resolveSkillTransformer('opencode')).toBe(transformToHyphenCommands);
+      expect(resolveSkillTransformer('pi')).toBe(transformToHyphenCommands);
+    });
+
+    it('returns the AskUserQuestion guidance transform for claude', () => {
+      const transformer = resolveSkillTransformer('claude');
+      expect(transformer).toBeDefined();
+      expect(transformer!('Body.')).toContain(getAskUserQuestionGuidanceBlock());
+    });
+
+    it('returns undefined for tools without a transform', () => {
+      for (const tool of ['cursor', 'codex', 'gemini', 'github-copilot']) {
+        expect(resolveSkillTransformer(tool)).toBeUndefined();
+      }
+    });
+
+    it('injects the guidance block into claude skills only', () => {
+      const block = getAskUserQuestionGuidanceBlock();
+      const templates = getSkillTemplates();
+
+      for (const { template } of templates) {
+        const claudeContent = generateSkillContent(
+          template,
+          'TEST',
+          resolveSkillTransformer('claude')
+        );
+        expect(claudeContent).toContain(block);
+
+        for (const tool of ['cursor', 'codex', 'gemini', 'github-copilot']) {
+          const otherContent = generateSkillContent(
+            template,
+            'TEST',
+            resolveSkillTransformer(tool)
+          );
+          expect(otherContent, `${template.name} for ${tool}`).not.toContain(block);
+        }
+      }
+    });
+
+    it('is idempotent — regenerating a claude skill keeps exactly one block', () => {
+      const heading = '## Asking the user';
+      const template = getSkillTemplates()[0].template;
+      const transformer = resolveSkillTransformer('claude')!;
+
+      const once = generateSkillContent(template, 'TEST', transformer);
+      // Simulate `update` running the transform over already-transformed instructions
+      const reTransformed = transformer(transformer(template.instructions));
+      const occurrences = reTransformed.split(heading).length - 1;
+      expect(occurrences).toBe(1);
+      expect(once.split(heading).length - 1).toBe(1);
+    });
+
+    it('emits a byte-identical guidance block across all claude skills', () => {
+      const block = getAskUserQuestionGuidanceBlock();
+      const transformer = resolveSkillTransformer('claude')!;
+
+      for (const { template } of getSkillTemplates()) {
+        const content = generateSkillContent(template, 'TEST', transformer);
+        // Exactly one occurrence and it matches the canonical block byte-for-byte
+        expect(content.split(block).length - 1).toBe(1);
+      }
     });
   });
 });

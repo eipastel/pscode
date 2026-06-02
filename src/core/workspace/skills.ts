@@ -2,12 +2,12 @@ import * as nodeFs from 'node:fs';
 import { createRequire } from 'node:module';
 
 import { FileSystemUtils } from '../../utils/file-system.js';
-import { transformToHyphenCommands } from '../../utils/command-references.js';
 import { AI_TOOLS, type AIToolOption } from '../config.js';
 import { getGlobalConfig, type Delivery } from '../global-config.js';
 import { getProfileWorkflows, isValidProfile, DEFAULT_PROFILE, type ProfileName } from '../profiles.js';
 import {
   generateSkillContent,
+  resolveSkillTransformer,
   getSkillTemplates,
   getToolSkillStatus,
   getToolsWithSkillsDir,
@@ -353,8 +353,7 @@ export async function generateWorkspaceAgentSkills(
 
     try {
       const skillsDir = getWorkspaceSkillDirectoryForTool(workspaceRoot, tool);
-      const transformer =
-        tool.value === 'opencode' || tool.value === 'pi' ? transformToHyphenCommands : undefined;
+      const transformer = resolveSkillTransformer(tool.value);
 
       for (const { template, dirName } of skillTemplates) {
         const skillFile = FileSystemUtils.joinPath(skillsDir, dirName, 'SKILL.md');
@@ -465,8 +464,7 @@ export async function updateWorkspaceAgentSkills(
 
     try {
       const skillsDir = getWorkspaceSkillDirectoryForTool(workspaceRoot, tool);
-      const transformer =
-        tool.value === 'opencode' || tool.value === 'pi' ? transformToHyphenCommands : undefined;
+      const transformer = resolveSkillTransformer(tool.value);
 
       for (const { template, dirName } of skillTemplates) {
         const skillFile = FileSystemUtils.joinPath(skillsDir, dirName, 'SKILL.md');
