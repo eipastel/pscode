@@ -7,6 +7,7 @@ import { cursorAdapter } from '../../../src/core/command-generation/adapters/cur
 import { geminiAdapter } from '../../../src/core/command-generation/adapters/gemini.js';
 import { githubCopilotAdapter } from '../../../src/core/command-generation/adapters/github-copilot.js';
 import type { CommandContent } from '../../../src/core/command-generation/types.js';
+import { getAskUserQuestionGuidanceBlock } from '../../../src/core/templates/workflows/ask-user-question-guidance.js';
 
 describe('command-generation/adapters', () => {
   const sampleContent: CommandContent = {
@@ -49,6 +50,23 @@ describe('command-generation/adapters', () => {
       const contentNoTags: CommandContent = { ...sampleContent, tags: [] };
       const output = claudeAdapter.formatFile(contentNoTags);
       expect(output).toContain('tags: []');
+    });
+
+    it('prepends the AskUserQuestion guidance block to the body', () => {
+      const output = claudeAdapter.formatFile(sampleContent);
+      expect(output).toContain(getAskUserQuestionGuidanceBlock());
+      // Original body is preserved after the guidance
+      expect(output).toContain('This is the command body.\n\nWith multiple lines.');
+    });
+
+    it('does not duplicate the guidance when the body already contains it', () => {
+      const block = getAskUserQuestionGuidanceBlock();
+      const preInjected: CommandContent = {
+        ...sampleContent,
+        body: `${block}\n\nAlready injected body.`,
+      };
+      const output = claudeAdapter.formatFile(preInjected);
+      expect(output.split(block).length - 1).toBe(1);
     });
   });
 
@@ -174,6 +192,17 @@ describe('command-generation/adapters', () => {
       expect(output).toContain('description: Enter explore mode for thinking');
       expect(output).toContain('---\n\n');
       expect(output).toContain('This is the command body.');
+    });
+  });
+
+  describe('AskUserQuestion guidance is Claude-only', () => {
+    it('does not leak the guidance block into non-Claude command adapters', () => {
+      const block = getAskUserQuestionGuidanceBlock();
+      const otherAdapters = [codexAdapter, cursorAdapter, geminiAdapter, githubCopilotAdapter];
+      for (const adapter of otherAdapters) {
+        const output = adapter.formatFile(sampleContent);
+        expect(output, adapter.toolId).not.toContain(block);
+      }
     });
   });
 

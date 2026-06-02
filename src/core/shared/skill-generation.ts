@@ -24,6 +24,8 @@ import {
   type SkillTemplate,
 } from '../templates/skill-templates.js';
 import type { CommandContent } from '../command-generation/index.js';
+import { transformToHyphenCommands } from '../../utils/command-references.js';
+import { prependAskUserQuestionGuidance } from '../templates/workflows/ask-user-question-guidance.js';
 
 /**
  * Skill template with directory name and workflow ID mapping.
@@ -107,6 +109,29 @@ export function getCommandContents(workflowFilter?: readonly string[]): CommandC
     tags: template.tags,
     body: template.content,
   }));
+}
+
+/**
+ * Resolves the instructions transform to apply for a given AI tool, centralizing
+ * the per-tool choice that was previously duplicated across init, update and the
+ * workspace skill generators.
+ *
+ * - `opencode`/`pi`: hyphen-based command references (filename = command name).
+ * - `claude`: prepend the AskUserQuestion guidance directive (Claude-only).
+ * - everything else: no transform (tool-agnostic content as-is).
+ *
+ * @param toolValue The tool identifier (e.g. 'claude', 'opencode', 'cursor').
+ */
+export function resolveSkillTransformer(
+  toolValue: string
+): ((instructions: string) => string) | undefined {
+  if (toolValue === 'opencode' || toolValue === 'pi') {
+    return transformToHyphenCommands;
+  }
+  if (toolValue === 'claude') {
+    return prependAskUserQuestionGuidance;
+  }
+  return undefined;
 }
 
 /**
