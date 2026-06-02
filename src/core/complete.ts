@@ -274,7 +274,7 @@ export class CompleteCommand {
         } else {
           console.log(chalk.yellow(
             `JIRA: jiraIssueKey "${changeMetadata.jiraIssueKey}" encontrado, mas transitions.done não está configurado em ${PSCODE_DIR_NAME}/jira.yaml. ` +
-            `Execute /pstld:jira-setup para configurar.`
+            `Execute /ps:board-setup para configurar.`
           ));
         }
       }

@@ -5,45 +5,35 @@ Defines the workflow profiles supported by pscode. Covers the `ALL_WORKFLOWS` un
 ## Requirements
 
 ### Requirement: ALL_WORKFLOWS contém todos os IDs de workflow válidos
-`ALL_WORKFLOWS` SHALL conter os seguintes IDs (lista completa):
-`propose`, `explore`, `new`, `continue`, `apply`, `ff`, `sync`, `archive`, `bulk-archive`, `verify`, `onboard`, `trello-setup`, `draft`, `rfc`, `design`, `tasks`, `arch-check`, `adr`, `jira-sync`, `dod`.
+`ALL_WORKFLOWS` SHALL conter exatamente os IDs de comando da superfície unificada
+`/ps`: `propose`, `explore`, `apply`, `complete`, `draft`, `handoff`, `board-setup`.
+`grill-me` NÃO SHALL constar como workflow gerador de comando (passa a ser skill-only,
+ver capability `grill-me-skill`). `trello-setup` SHALL ser substituído por
+`board-setup`.
 
-#### Scenario: Novos IDs são aceitos como WorkflowId
-- **WHEN** o código referencia qualquer um dos novos IDs (`rfc`, `design`, `tasks`, `arch-check`, `adr`, `jira-sync`, `dod`) como `WorkflowId`
+#### Scenario: board-setup é um WorkflowId válido
+- **WHEN** o código referencia `board-setup` como `WorkflowId`
 - **THEN** o TypeScript compila sem erros de tipo
 
-#### Scenario: IDs inválidos continuam rejeitados pelo tipo
-- **WHEN** um ID não presente em `ALL_WORKFLOWS` é atribuído a `WorkflowId`
-- **THEN** o compilador TypeScript emite erro de tipo
+#### Scenario: grill-me não é mais um WorkflowId de comando
+- **WHEN** `getCommandTemplates()` é enumerado
+- **THEN** nenhuma entrada com `id` igual a `grill-me` SHALL estar presente
+
+#### Scenario: trello-setup não é mais um WorkflowId
+- **WHEN** `ALL_WORKFLOWS` é inspecionado
+- **THEN** `trello-setup` NÃO SHALL constar e `board-setup` SHALL constar
 
 ### Requirement: Profile dixi tem description e workflows corretos
-`PROFILES.dixi` SHALL ter:
-- `description`: `'Dixi — RFC→Design→Tasks→Apply com guardrails para Java/Spring e React/Next.js'`
-- `workflows`: `['rfc', 'design', 'tasks', 'apply', 'arch-check', 'adr', 'jira-sync', 'dod']` (8 workflows)
+`PROFILES.dixi.workflows` SHALL ser idêntico a `PROFILES.standard.workflows`:
+`['propose', 'explore', 'apply', 'complete', 'draft', 'handoff', 'board-setup']`.
+O perfil dixi SHALL divergir do standard apenas por overrides de comportamento dos
+comandos, schema (`dixi-workflow`) e extras de scaffolding — nunca pela lista de
+workflows.
 
-#### Scenario: pscode config profile dixi exibe description correta
-- **WHEN** o usuário executa `pscode config profile` em um projeto com profile dixi
-- **THEN** a description exibida é `'Dixi — RFC→Design→Tasks→Apply com guardrails para Java/Spring e React/Next.js'`
+#### Scenario: Perfis standard e dixi têm a mesma lista de workflows
+- **WHEN** `getProfileWorkflows('standard')` e `getProfileWorkflows('dixi')` são comparados
+- **THEN** as duas listas SHALL ser iguais
 
-#### Scenario: Profile dixi instala exatamente 8 workflows
-- **WHEN** `pscode init --profile dixi` é executado
-- **THEN** os 8 skill dirs correspondentes são gerados: `rfc`, `design`, `tasks`, `apply`, `arch-check`, `adr`, `jira-sync`, `dod`
-
-#### Scenario: Profile standard permanece inalterado
-- **WHEN** o usuário executa `pscode init --profile standard`
-- **THEN** os workflows instalados são apenas `['propose', 'explore', 'apply', 'sync', 'archive']`
-
-### Requirement: Workflow grill-me habilitado em ambos os perfis
-`ALL_WORKFLOWS` SHALL incluir o ID `grill-me`, e tanto `PROFILES.standard` quanto `PROFILES.dixi` SHALL incluir `grill-me` em suas listas de `workflows`.
-
-#### Scenario: grill-me é um WorkflowId válido
-- **WHEN** o código referencia `grill-me` como `WorkflowId`
-- **THEN** o TypeScript compila sem erros de tipo
-
-#### Scenario: Perfil standard instala grill-me
-- **WHEN** `pscode init --profile standard` é executado
-- **THEN** o skill dir `pscode-grill-me` é gerado entre os workflows instalados
-
-#### Scenario: Perfil dixi instala grill-me
-- **WHEN** `pscode init --profile dixi` é executado
-- **THEN** o skill dir `pscode-grill-me` é gerado entre os workflows instalados
+#### Scenario: Profile dixi não inclui archive nem jira-setup como workflow
+- **WHEN** `PROFILES.dixi.workflows` é inspecionado
+- **THEN** `archive`, `jira-setup` e `trello-setup` NÃO SHALL constar na lista

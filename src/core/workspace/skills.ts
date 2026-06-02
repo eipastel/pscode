@@ -285,12 +285,22 @@ async function removeManagedWorkflowSkillDirs(
   desiredWorkflowIds: readonly string[],
   reason: WorkspaceSkillRemovedResult['reason']
 ): Promise<WorkspaceSkillRemovedResult | null> {
-  const desiredSet = new Set(desiredWorkflowIds);
+  // Compute the desired skill dir names from the same generator used to write
+  // them, so always-on skills (e.g. grill-me, generated outside the workflow
+  // filter) are never flagged for removal when the profile still installs
+  // skills. An empty desiredWorkflowIds means "remove everything" (agent
+  // unselected) — getSkillTemplates([]) then yields only always-on skills, which
+  // we explicitly do NOT treat as desired in that case.
+  const desiredDirNames = new Set(
+    desiredWorkflowIds.length === 0
+      ? []
+      : getSkillTemplates(desiredWorkflowIds).map((t) => t.dirName)
+  );
   const skillsDir = getWorkspaceSkillDirectoryForTool(workspaceRoot, tool);
   const removedWorkflowIds: string[] = [];
 
   for (const { workflowId, dirName } of getManagedWorkspaceSkillEntries()) {
-    if (desiredSet.has(workflowId)) {
+    if (desiredDirNames.has(dirName)) {
       continue;
     }
 

@@ -18,7 +18,7 @@
 ## Checklist
 - [ ] Testes adicionados/atualizados
 - [ ] Cobertura mantida ou melhorada
-- [ ] DoD verificado (`/pstld:dod`)
+- [ ] DoD verificado (embutido em `/ps:complete`)
 - [ ] Sem TODOs temporários deixados no código
 - [ ] Documentação atualizada (se aplicável)
 ```

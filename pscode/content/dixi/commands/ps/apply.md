@@ -14,6 +14,26 @@ Implement tasks with Dixi architectural awareness.
 
 Then execute the standard `pscode-apply-change` skill instructions in full.
 
+**Arch-check (Dixi)** — verificação de conformidade arquitetural durante a implementação:
+
+Após implementar as tasks (e antes de promover o PR para "ready for review"), verifique
+se o código respeita as regras arquiteturais carregadas de `pscode/context/architecture.md`.
+Se o arquivo não existir, avise o usuário e siga sem bloquear. Valide conforme a stack:
+
+- **Java / Spring (Hexagonal):** regra de dependência `infrastructure → application → domain`
+  (proibido `domain` importar `application`/`infrastructure`, e `application` importar
+  `infrastructure`); pureza do domínio (sem anotações de framework em `domain/`); acesso a
+  `application` apenas via ports.
+- **React / Next.js (Feature-Sliced):** sem imports cruzados entre features; camadas
+  `app → pages → widgets → features → entities → shared`; `shared/` não importa de nenhuma
+  outra camada.
+- **Stack não detectada:** verificações genéricas — acoplamento excessivo, imports
+  circulares, violações visíveis de separação de responsabilidades.
+
+Reporte violações encontradas (arquivo, linha, regra, severidade) e recomende a correção.
+Se não houver violações, confirme a conformidade. Trate o arch-check como um quality gate
+não-bloqueante: reporte, mas não impeça o avanço sem decisão do usuário.
+
 **PR (Dixi)** — overrides chumbados na abertura do PR (sem chave de config, sem pergunta no init):
 
 1. **Prefixar o `[ID]` do ticket no título.** Ao abrir o PR, leia `jiraIssueKey` do metadata da change (`.pscode.yaml`). Se presente, prefixe o título resolvido pelo `pr.title.template` com `[<jiraIssueKey>] `, produzindo, por exemplo, `[DEV-1510] [feat] criar-login`. Se `jiraIssueKey` estiver ausente, abra o PR normalmente com o título padrão — **skip gracioso**, sem bloquear.

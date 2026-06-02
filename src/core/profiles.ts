@@ -11,10 +11,9 @@ export const ALL_WORKFLOWS = [
   'explore',
   'apply',
   'complete',
-  'trello-setup',
+  'board-setup',
   'draft',
   'handoff',
-  'grill-me',
 ] as const;
 
 export type WorkflowId = (typeof ALL_WORKFLOWS)[number];
@@ -24,14 +23,24 @@ export interface ProfileDefinition {
   workflows: readonly WorkflowId[];
 }
 
+const UNIFIED_WORKFLOWS = [
+  'propose',
+  'explore',
+  'apply',
+  'complete',
+  'draft',
+  'handoff',
+  'board-setup',
+] as const satisfies readonly WorkflowId[];
+
 export const PROFILES = {
   standard: {
-    description: 'Padrão — propose, explore, apply, complete',
-    workflows: ['propose', 'explore', 'apply', 'complete', 'trello-setup', 'draft', 'handoff', 'grill-me'],
+    description: 'Padrão — propose, explore, apply, complete, draft, handoff, board-setup (Trello)',
+    workflows: UNIFIED_WORKFLOWS,
   },
   dixi: {
-    description: 'Dixi — propose, explore, apply, complete com guardrails para Java/Spring e React/Next.js (JIRA-native, sem Trello)',
-    workflows: ['propose', 'explore', 'apply', 'complete', 'draft', 'handoff', 'grill-me'],
+    description: 'Dixi — mesma superfície /ps com guardrails para Java/Spring e React/Next.js (JIRA-native; board-setup configura o JIRA)',
+    workflows: UNIFIED_WORKFLOWS,
   },
 } as const satisfies Record<string, ProfileDefinition>;
 
@@ -52,10 +61,12 @@ export function isValidProfile(name: string): name is ProfileName {
  *
  * Lets `pscode update` recover the profile for projects initialized before the
  * profile was persisted into `pscode/config.yaml` (the dixi profile is the only
- * one that uses the `pstld-workflow` schema).
+ * one that uses the `dixi-workflow` schema). The legacy `pstld-workflow` name is
+ * still recognized as a migratable alias so older projects keep resolving to dixi
+ * until `update` rewrites their config.
  */
 export function inferProfileFromSchema(schema: string | undefined): ProfileName | null {
-  return schema === 'pstld-workflow' ? 'dixi' : null;
+  return schema === 'dixi-workflow' || schema === 'pstld-workflow' ? 'dixi' : null;
 }
 
 /**

@@ -6,7 +6,8 @@
 RFC → Design → Tasks → Apply → Revisão → Deploy
 ```
 
-Use `/pstld:rfc` para iniciar o fluxo, `/pstld:dod` para validar antes de abrir o PR.
+Use `/ps:propose` para iniciar o fluxo (gera RFC, design, specs e tasks conforme o schema
+dixi). A verificação de DoD está embutida em `/ps:complete`.
 
 ## Quando criar RFC
 
@@ -25,7 +26,7 @@ Vá direto para task quando:
 
 ## Fase RFC
 
-1. Use `/pstld:rfc` para gerar o rascunho da RFC
+1. Use `/ps:propose` para gerar o rascunho da RFC (e os demais artefatos do schema dixi)
 2. A RFC deve conter: contexto, problema, solução proposta, alternativas consideradas, trade-offs
 3. Solicite revisão dos tech leads antes de avançar
 4. RFC aprovada → avançar para Design
@@ -42,11 +43,13 @@ Vá direto para task quando:
 2. Marque cada task como concluída ao terminar
 3. Mantenha o escopo — não adicione tarefas não planejadas sem atualizar o design
 
-## Validação antes do PR
+## Validação e DoD
 
-Execute `/pstld:dod` para verificar o DoD antes de abrir o PR.
+A verificação de Definition of Done está embutida em `/ps:complete` — ao finalizar a change,
+o comando valida os critérios de `pscode/context/dod.md` antes de arquivar. Valide também
+antes de promover o PR para review.
 
-O slash command verifica automaticamente:
+O DoD verifica:
 - Testes passando
 - Cobertura mantida
 - Ticket JIRA referenciado nos commits

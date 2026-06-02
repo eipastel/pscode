@@ -12,10 +12,11 @@ export { getCompleteChangeSkillTemplate, getPsCompleteCommandTemplate } from './
 export { getProposeSkillTemplate, getPsProposeCommandTemplate } from './workflows/propose.js';
 export { getFeedbackSkillTemplate } from './workflows/feedback.js';
 
-// Trello-specific workflows
-export { getTrelloSetupSkillTemplate, getTrelloSetupCommandTemplate } from './workflows/trello-setup.js';
+// Tracker board workflows
+export { getBoardSetupSkillTemplate, getBoardSetupCommandTemplate } from './workflows/board-setup.js';
 export { getTrelloDraftSkillTemplate, getTrelloDraftCommandTemplate } from './workflows/trello-draft.js';
 
 // Productivity workflows
 export { getHandoffSkillTemplate, getHandoffCommandTemplate } from './workflows/handoff.js';
-export { getGrillMeSkillTemplate, getGrillMeCommandTemplate } from './workflows/grill-me.js';
+// grill-me is a skill-only workflow (no slash command).
+export { getGrillMeSkillTemplate } from './workflows/grill-me.js';

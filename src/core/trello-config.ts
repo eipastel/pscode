@@ -2,7 +2,7 @@
  * Trello Configuration
  *
  * Types and utilities for reading the optional `pscode/trello.yaml`
- * integration file. This file is created by /ps:trello-setup and
+ * integration file. This file is created by /ps:board-setup and
  * consumed at runtime by all Trello-aware skills and commands.
  */
 

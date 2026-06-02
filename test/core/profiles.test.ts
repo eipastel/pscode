@@ -12,14 +12,14 @@ import {
 
 describe('profiles', () => {
   describe('ALL_WORKFLOWS', () => {
-    it('should contain all 8 workflows', () => {
-      expect(ALL_WORKFLOWS).toHaveLength(8);
+    it('should contain all 7 workflows', () => {
+      expect(ALL_WORKFLOWS).toHaveLength(7);
     });
 
     it('should contain expected workflow IDs', () => {
       const expected = [
         'propose', 'explore', 'apply', 'complete',
-        'trello-setup', 'draft', 'handoff', 'grill-me',
+        'board-setup', 'draft', 'handoff',
       ];
       expect([...ALL_WORKFLOWS]).toEqual(expected);
     });
@@ -28,8 +28,13 @@ describe('profiles', () => {
       expect(ALL_WORKFLOWS).not.toContain('sync');
     });
 
+    it('should not contain trello-setup (renamed to board-setup) or grill-me (now skill-only)', () => {
+      expect(ALL_WORKFLOWS).not.toContain('trello-setup');
+      expect(ALL_WORKFLOWS).not.toContain('grill-me');
+    });
+
     it('should not contain the removed orphan workflow IDs', () => {
-      const removed = ['new', 'continue', 'ff', 'bulk-archive', 'verify', 'onboard', 'rfc', 'design', 'tasks', 'arch-check', 'adr', 'jira-sync', 'dod'];
+      const removed = ['new', 'continue', 'ff', 'bulk-archive', 'verify', 'onboard', 'rfc', 'design', 'tasks', 'arch-check', 'adr', 'jira-sync', 'dod', 'jira-setup'];
       for (const id of removed) {
         expect(ALL_WORKFLOWS).not.toContain(id);
       }
@@ -49,20 +54,30 @@ describe('profiles', () => {
       }
     });
 
-    it('standard profile should contain the base workflows including trello', () => {
-      expect([...PROFILES.standard.workflows]).toEqual(['propose', 'explore', 'apply', 'complete', 'trello-setup', 'draft', 'handoff', 'grill-me']);
+    const UNIFIED = ['propose', 'explore', 'apply', 'complete', 'draft', 'handoff', 'board-setup'];
+
+    it('standard profile should contain the unified workflow list', () => {
+      expect([...PROFILES.standard.workflows]).toEqual(UNIFIED);
     });
 
     it('standard profile should not contain sync', () => {
       expect(PROFILES.standard.workflows).not.toContain('sync');
     });
 
-    it('dixi profile should be JIRA-native — no trello-setup workflow', () => {
-      expect(PROFILES.dixi.workflows).not.toContain('trello-setup');
+    it('dixi profile should have the same unified workflow list as standard', () => {
+      expect([...PROFILES.dixi.workflows]).toEqual([...PROFILES.standard.workflows]);
     });
 
-    it('dixi profile should still keep draft and the core workflows', () => {
-      expect([...PROFILES.dixi.workflows]).toEqual(['propose', 'explore', 'apply', 'complete', 'draft', 'handoff', 'grill-me']);
+    it('both profiles use board-setup (not trello-setup) and never grill-me', () => {
+      for (const def of Object.values(PROFILES)) {
+        expect(def.workflows).toContain('board-setup');
+        expect(def.workflows).not.toContain('trello-setup');
+        expect(def.workflows).not.toContain('grill-me');
+      }
+    });
+
+    it('dixi profile should keep the unified workflow list', () => {
+      expect([...PROFILES.dixi.workflows]).toEqual(UNIFIED);
     });
 
     it('all profile workflows should be valid workflow IDs', () => {
@@ -107,7 +122,11 @@ describe('profiles', () => {
   });
 
   describe('inferProfileFromSchema', () => {
-    it('maps the pstld-workflow schema to the dixi profile', () => {
+    it('maps the dixi-workflow schema to the dixi profile', () => {
+      expect(inferProfileFromSchema('dixi-workflow')).toBe('dixi');
+    });
+
+    it('maps the legacy pstld-workflow schema (alias) to the dixi profile', () => {
       expect(inferProfileFromSchema('pstld-workflow')).toBe('dixi');
     });
 

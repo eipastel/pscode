@@ -417,17 +417,17 @@ describe('installDixiExtras — ps command overrides', () => {
   it('3.2 cria todos os arquivos ps/ após installDixiExtras (JIRA-native, sem trello-setup)', () => {
     installDixiExtras(projectDir, 'java-maven');
     const psDir = path.join(projectDir, '.claude', 'commands', 'ps');
-    ['propose.md', 'explore.md', 'apply.md', 'complete.md', 'draft.md', 'jira-setup.md'].forEach(f => {
+    ['propose.md', 'explore.md', 'apply.md', 'complete.md', 'draft.md', 'board-setup.md'].forEach(f => {
       expect(fsSync.existsSync(path.join(psDir, f))).toBe(true);
     });
     expect(fsSync.existsSync(path.join(psDir, 'trello-setup.md'))).toBe(false);
+    expect(fsSync.existsSync(path.join(psDir, 'jira-setup.md'))).toBe(false);
   });
 
-  it('3.2b cria os comandos exclusivos .claude/commands/pstld/ após installDixiExtras', () => {
+  it('3.2b NÃO cria o namespace legado .claude/commands/pstld/ após installDixiExtras', () => {
     installDixiExtras(projectDir, 'java-maven');
     const pstldDir = path.join(projectDir, '.claude', 'commands', 'pstld');
-    expect(fsSync.existsSync(pstldDir)).toBe(true);
-    expect(fsSync.existsSync(path.join(pstldDir, 'jira-draft.md'))).toBe(true);
+    expect(fsSync.existsSync(pstldDir)).toBe(false);
   });
 
   it('3.3 sobrescreve arquivo existente em .claude/commands/ps/', () => {
@@ -467,13 +467,14 @@ describe('installDixiCommands', () => {
     await fs.rm(projectDir, { recursive: true, force: true });
   });
 
-  it('installs both /ps:* overrides and exclusive /pstld:* commands without scaffolding', () => {
+  it('installs only the unified /ps:* overrides (no legacy /pstld:*) without scaffolding', () => {
     installDixiCommands(projectDir);
 
     const psDir = path.join(projectDir, '.claude', 'commands', 'ps');
     const pstldDir = path.join(projectDir, '.claude', 'commands', 'pstld');
     expect(fsSync.existsSync(path.join(psDir, 'propose.md'))).toBe(true);
-    expect(fsSync.existsSync(path.join(pstldDir, 'jira-draft.md'))).toBe(true);
+    expect(fsSync.existsSync(path.join(psDir, 'board-setup.md'))).toBe(true);
+    expect(fsSync.existsSync(pstldDir)).toBe(false);
 
     // Pure command install — no architectural skeleton / kit side effects
     expect(fsSync.existsSync(path.join(projectDir, 'src'))).toBe(false);
@@ -515,10 +516,11 @@ describe('readRecordedDixiStack', () => {
 // ── getDixiPsCommandIds ───────────────────────────────────────────────────────
 
 describe('getDixiPsCommandIds', () => {
-  it('includes the dixi-specific /ps command ids that are not workflow ids', () => {
+  it('includes the dixi /ps command ids (unified board-setup, no legacy jira-setup)', () => {
     const ids = getDixiPsCommandIds();
-    expect(ids).toContain('jira-setup');
+    expect(ids).toContain('board-setup');
     expect(ids).toContain('propose');
+    expect(ids).not.toContain('jira-setup');
     expect(ids).not.toContain('');
   });
 });
@@ -595,15 +597,18 @@ describe('InitCommand smoke tests (--profile dixi)', () => {
     expect(mcp.mcpServers.atlassian).toBeTruthy();
   });
 
-  it('installs the JIRA-native /ps:* overrides and no /ps:trello-setup', async () => {
+  it('installs the JIRA-native /ps:* overrides with unified board-setup (no trello-setup/jira-setup)', async () => {
     await writeFile(testDir, 'pom.xml', '<project/>');
     const cmd = new InitCommand({ tools: 'claude', force: true, profile: 'dixi' });
 
     await cmd.execute(testDir);
 
     const psCommandsDir = path.join(testDir, '.claude', 'commands', 'ps');
-    expect(fsSync.existsSync(path.join(psCommandsDir, 'jira-setup.md'))).toBe(true);
+    expect(fsSync.existsSync(path.join(psCommandsDir, 'board-setup.md'))).toBe(true);
+    expect(fsSync.existsSync(path.join(psCommandsDir, 'jira-setup.md'))).toBe(false);
     expect(fsSync.existsSync(path.join(psCommandsDir, 'trello-setup.md'))).toBe(false);
+    // The legacy /pstld:* namespace is never installed
+    expect(fsSync.existsSync(path.join(testDir, '.claude', 'commands', 'pstld'))).toBe(false);
   });
 
   it('prunes pre-existing trello-setup artifacts when re-running dixi init', async () => {

@@ -520,7 +520,7 @@ export function installDixiExtras(projectDir: string, stack: DixiStack | null): 
   // Merge .claude/settings.json with hook registrations (never overwrite existing config)
   mergeSettingsHooks(path.join(projectDir, '.claude', 'settings.json'));
 
-  // Copy Dixi-aware /ps:* overrides and exclusive /pstld:* commands (always overwrite)
+  // Copy Dixi-aware /ps:* overrides (always overwrite)
   installDixiCommands(projectDir);
 }
 
@@ -534,22 +534,22 @@ function getDixiCommandsSourceDir(subdir: string): string {
 }
 
 /**
- * Installs the Dixi command overrides: the JIRA-aware `/ps:*` versions and the
- * exclusive `/pstld:*` commands (always overwritten). Split out from
- * {@link installDixiExtras} so `update` can re-apply just the commands — which
- * the base skill/command generation overwrites with the standard versions —
- * without re-running the one-time scaffolding (skeleton, kit, CLAUDE.md).
+ * Installs the Dixi command overrides: the JIRA-aware `/ps:*` versions (always
+ * overwritten). The `/pstld:*` namespace has been removed — its capabilities are
+ * now absorbed into the `/ps:*` overrides. Split out from {@link installDixiExtras}
+ * so `update` can re-apply just the commands — which the base skill/command
+ * generation overwrites with the standard versions — without re-running the
+ * one-time scaffolding (skeleton, kit, CLAUDE.md).
  */
 export function installDixiCommands(projectDir: string): void {
   copyDixiCommands(projectDir, getDixiCommandsSourceDir('ps'), 'ps');
-  copyDixiCommands(projectDir, getDixiCommandsSourceDir('pstld'), 'pstld');
 }
 
 /**
  * Lists the command ids (filename without `.md`) the Dixi profile installs into
  * `.claude/commands/ps/`. Used by `update` to tell the generic orphan pruner not
- * to delete Dixi-specific `/ps:*` commands (e.g. `jira-setup`, `archive`) whose
- * ids are not workflow ids and would otherwise be treated as orphans.
+ * to delete Dixi-specific `/ps:*` overrides (e.g. `board-setup`) whose ids are not
+ * workflow ids and would otherwise be treated as orphans.
  */
 export function getDixiPsCommandIds(): string[] {
   const srcDir = getDixiCommandsSourceDir('ps');

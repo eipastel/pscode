@@ -72,6 +72,8 @@ const { version: PSCODE_VERSION } = require('../../package.json');
 // -----------------------------------------------------------------------------
 
 const DEFAULT_SCHEMA = 'spec-driven';
+/** Schema used by the dixi profile (legacy name: `pstld-workflow`). */
+const DIXI_SCHEMA = 'dixi-workflow';
 
 const PROGRESS_SPINNER = {
   interval: 80,
@@ -583,7 +585,7 @@ export class InitCommand {
   /**
    * Interactive JIRA setup for the dixi profile. In non-interactive mode this
    * is a no-op — `generateJiraFiles` already wrote the static skeleton, and the
-   * MCP-dependent discovery happens later via `/ps:jira-setup`.
+   * MCP-dependent discovery happens later via `/ps:board-setup`.
    */
   private async handleJiraSetup(pscodePath: string): Promise<boolean> {
     if (!this.canPromptInteractively()) {
@@ -832,7 +834,7 @@ export class InitCommand {
             projectSchema: existingSchema,
             globalProfile: globalConfig.profile,
           });
-          const schema = existingSchema || (resolvedProfile === 'dixi' ? 'pstld-workflow' : DEFAULT_SCHEMA);
+          const schema = existingSchema || (resolvedProfile === 'dixi' ? DIXI_SCHEMA : DEFAULT_SCHEMA);
           const yamlContent = serializeConfig({ schema, profile: resolvedProfile, pr: prConfig });
           await FileSystemUtils.writeFile(configPath, yamlContent);
           return 'updated';
@@ -846,7 +848,7 @@ export class InitCommand {
     try {
       const globalConfig = getGlobalConfig();
       const resolvedProfile = this.resolveProfileOverride() ?? (isValidProfile(globalConfig.profile ?? '') ? globalConfig.profile as ProfileName : DEFAULT_PROFILE);
-      const schema = resolvedProfile === 'dixi' ? 'pstld-workflow' : DEFAULT_SCHEMA;
+      const schema = resolvedProfile === 'dixi' ? DIXI_SCHEMA : DEFAULT_SCHEMA;
       const yamlContent = serializeConfig({ schema, profile: resolvedProfile, pr: prConfig });
       await FileSystemUtils.writeFile(configPath, yamlContent);
       return 'created';
@@ -925,7 +927,7 @@ export class InitCommand {
     if (configStatus === 'created') {
       const globalCfgForSchema = getGlobalConfig();
       const profileForSchema = this.resolveProfileOverride() ?? (isValidProfile(globalCfgForSchema.profile ?? '') ? globalCfgForSchema.profile as ProfileName : DEFAULT_PROFILE);
-      const createdSchema = profileForSchema === 'dixi' ? 'pstld-workflow' : DEFAULT_SCHEMA;
+      const createdSchema = profileForSchema === 'dixi' ? DIXI_SCHEMA : DEFAULT_SCHEMA;
       console.log(`Config: pscode/config.yaml (schema: ${createdSchema})`);
     } else if (configStatus === 'updated') {
       console.log(`Config: pscode/config.yaml (updated with PR config)`);
@@ -956,7 +958,7 @@ export class InitCommand {
       console.log();
       console.log(chalk.bold('Trello Integration'));
       console.log(`  Preferences saved to ${chalk.cyan('pscode/trello.yaml')}`);
-      console.log(`  Run ${chalk.cyan('/ps:trello-setup')} in Claude Code to connect your Trello lists.`);
+      console.log(`  Run ${chalk.cyan('/ps:board-setup')} in Claude Code to connect your Trello lists.`);
     }
 
     // JIRA status — dixi profile only
@@ -964,7 +966,7 @@ export class InitCommand {
       console.log();
       console.log(chalk.bold('JIRA Integration'));
       console.log(`  Pipeline scaffolded in ${chalk.cyan('pscode/jira.yaml')} (8 stages).`);
-      console.log(`  Run ${chalk.cyan('/ps:jira-setup')} in Claude Code to discover status ids and transitions.`);
+      console.log(`  Run ${chalk.cyan('/ps:board-setup')} in Claude Code to discover status ids and transitions.`);
     }
 
     // Links
@@ -1015,7 +1017,7 @@ export class InitCommand {
       await FileSystemUtils.writeFile(mcpJsonPath, JSON.stringify(mcpConfig, null, 2) + '\n');
     }
 
-    console.log(`JIRA: ${PSCODE_DIR_NAME}/jira.yaml gerado com pipeline de 8 estágios. Rode /ps:jira-setup para descobrir status_ids e transições do board e ativar a integração.`);
+    console.log(`JIRA: ${PSCODE_DIR_NAME}/jira.yaml gerado com pipeline de 8 estágios. Rode /ps:board-setup para descobrir status_ids e transições do board e ativar a integração.`);
   }
 
   private async handleDixiExtras(projectPath: string): Promise<void> {

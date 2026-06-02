@@ -23,7 +23,7 @@ mínima — o objetivo é velocidade de captura, não clareza. **Não exige uma 
    - **Se o arquivo não existir ou `configured: false`:**
      ```
      ℹ️  Integração JIRA não configurada.
-     Rode /ps:jira-setup para configurar o projeto, o board e as transições antes de capturar ideias.
+     Rode /ps:board-setup para configurar o projeto, o board e as transições antes de capturar ideias.
      ```
      Encerre aqui.
 
@@ -79,4 +79,4 @@ mínima — o objetivo é velocidade de captura, não clareza. **Não exige uma 
    Para qualquer falha não coberta acima, exiba uma mensagem descritiva e sugira:
    - Verificar conectividade de rede e permissões do token Atlassian
    - Conferir `project_key` e `default_issue_type` em `pscode/jira.yaml`
-   - Rodar `/ps:jira-setup` se a configuração estiver incompleta
+   - Rodar `/ps:board-setup` se a configuração estiver incompleta
