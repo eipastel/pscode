@@ -5,7 +5,7 @@ compatibility: Requires pscode CLI.
 metadata:
   author: pscode
   version: "1.0"
-  generatedBy: "2.5.0"
+  generatedBy: "2.7.0"
 ---
 
 Complete a change.
@@ -136,13 +136,50 @@ Complete a change.
 
    If any Trello call fails, continue — Trello is auxiliary, never blocking.
 
-7. **Display summary**
+7. **PR Integration — promover o PR de draft (opcional, com confirmação)**
+
+   Use the **Read tool** to read `pscode/config.yaml` from the current working directory.
+   If the Read tool returns an error (file not found), skip this entire step.
+
+   **Activation guards — skip this step silently if ANY of these hold:**
+   - `pscode/config.yaml` does not exist, or `pr.enabled` is not `true`
+   - There is no open PR for the change's branch
+   - The PR is already out of draft (not a draft)
+
+   **Otherwise:**
+
+   a. Resolve the branch name from `pr.branch.pattern` (`{change-name}` = current change name) and check the PR state:
+      ```bash
+      gh pr view --json state,isDraft,url
+      ```
+      Only proceed if the PR is `OPEN` and `isDraft: true`. Save its URL as `prUrl`.
+
+   b. **Commit and push the changes produced by this complete** (spec sync + the directory move to `archive/`) so the "ready for review" PR reflects the final state — do this BEFORE asking:
+      ```bash
+      git add -A && git commit -m "chore(<change-name>): complete change" && git push
+      ```
+      Skip the commit if there is nothing to commit, but still push if the local branch is ahead.
+
+   c. Ask the user with the **AskUserQuestion tool** whether to take the PR out of draft. Offer "Sim, tirar de draft" as the first/recommended option and "Não, manter em draft" as the alternative.
+
+   d. **If the user confirms ("sim"):** promote the PR to "ready for review":
+      ```bash
+      gh pr ready
+      ```
+      NEVER run `gh pr merge` — merging stays a human/CI decision. Save the resulting PR status as "promovido".
+
+   e. **If the user declines ("não"):** leave the PR in draft, do NOT run `gh pr ready`. Save the PR status as "mantido em draft".
+
+   **Tratamento de falha (não-bloqueante):** if `git` or `gh` fails — `gh` not installed, not authenticated, no GitHub remote, or push rejected — **do NOT block the complete**: state what failed and how to fix it (e.g., `gh auth login`), preserve the local commits, and conclude the complete regardless.
+
+8. **Display summary**
 
    Show archive completion summary including:
    - Change name
    - Schema that was used
    - Archive location
    - Spec sync status (synced / no delta specs)
+   - PR status (promovido para ready for review / mantido em draft / sem PR)
    - Note about any warnings (incomplete artifacts/tasks that were archived anyway)
    - Trello: mention if card was moved to "Concluído"
 
@@ -155,6 +192,7 @@ Complete a change.
 **Schema:** <schema-name>
 **Archived to:** <archive-path>
 **Specs:** ✓ Synced to main specs
+**PR:** Promovido para ready for review    ← only shown if a PR was eligible (promovido / mantido em draft)
 **Trello:** Card moved to ✅ Concluído    ← only shown if Trello is configured
 
 All artifacts complete. All tasks complete.
@@ -169,6 +207,7 @@ All artifacts complete. All tasks complete.
 **Schema:** <schema-name>
 **Archived to:** <archive-path>
 **Specs:** ✓ Synced to main specs
+**PR:** Promovido para ready for review    ← only shown if a PR was eligible (promovido / mantido em draft)
 **Trello:** Card moved to ✅ Concluído    ← only shown if Trello is configured
 
 **Warnings:**
@@ -195,8 +234,10 @@ Target archive directory already exists.
 ```
 
 **Guardrails**
-- Change selection (Step 1) is the ONLY interactive point — prompt for it only when no name is provided
+- Interactive points are limited to TWO: change selection (Step 1, only when no name is provided) and the PR draft-promotion confirmation (Step 7, only when a draft PR is eligible)
 - Never use `AskUserQuestion` to confirm sync or archiving; sync and archive run automatically
+- Never merge the PR in complete (`gh pr merge` is forbidden here); promote it only via `gh pr ready` and only after explicit user confirmation
+- Skip the PR step silently when `config.yaml` is absent, `pr.enabled` is not `true`, there is no open PR, or the PR is already out of draft
 - Use artifact graph (pscode status --json) for completion checking
 - Don't block archive on warnings — record them and surface in the final summary
 - Preserve .pscode.yaml when moving to archive (it moves with the directory)
