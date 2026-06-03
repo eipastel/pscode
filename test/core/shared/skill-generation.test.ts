@@ -13,9 +13,9 @@ import { transformToHyphenCommands } from '../../../src/utils/command-references
 
 describe('skill-generation', () => {
   describe('getSkillTemplates', () => {
-    it('should return all 8 skill templates', () => {
+    it('should return all 9 skill templates', () => {
       const templates = getSkillTemplates();
-      expect(templates).toHaveLength(8);
+      expect(templates).toHaveLength(9);
     });
 
     it('should have unique directory names', () => {
@@ -34,6 +34,7 @@ describe('skill-generation', () => {
       expect(dirNames).toContain('pscode-complete-change');
       expect(dirNames).toContain('pscode-propose');
       expect(dirNames).toContain('pscode-board-setup');
+      expect(dirNames).toContain('pscode-github-setup');
       expect(dirNames).toContain('pscode-trello-draft');
       expect(dirNames).toContain('pscode-handoff');
       expect(dirNames).toContain('pscode-grill-me');
@@ -98,9 +99,9 @@ describe('skill-generation', () => {
   });
 
   describe('getCommandTemplates', () => {
-    it('should return all 7 command templates', () => {
+    it('should return all 8 command templates', () => {
       const templates = getCommandTemplates();
-      expect(templates).toHaveLength(7);
+      expect(templates).toHaveLength(8);
     });
 
     it('should have unique IDs', () => {
@@ -119,6 +120,7 @@ describe('skill-generation', () => {
       expect(ids).toContain('complete');
       expect(ids).toContain('propose');
       expect(ids).toContain('board-setup');
+      expect(ids).toContain('github-setup');
       expect(ids).toContain('draft');
       expect(ids).toContain('handoff');
       // grill-me is skill-only — it must NOT be a command.
@@ -153,9 +155,9 @@ describe('skill-generation', () => {
   });
 
   describe('getCommandContents', () => {
-    it('should return all 7 command contents', () => {
+    it('should return all 8 command contents', () => {
       const contents = getCommandContents();
-      expect(contents).toHaveLength(7);
+      expect(contents).toHaveLength(8);
     });
 
     it('should have valid content structure', () => {

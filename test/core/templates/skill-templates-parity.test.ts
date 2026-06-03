@@ -16,20 +16,22 @@ import {
 import { generateSkillContent } from '../../../src/core/shared/skill-generation.js';
 
 const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
-  getApplyChangeSkillTemplate: 'a119abeb7419257651bd3a04e58327ec6366db163d7e07dc30f7795f98e83200',
-  getCompleteChangeSkillTemplate: '768bea27f406315280d0e12bfd312a82185fea86a13dd030ac8b11424f04550b',
+  // Updated: apply and complete gained dual-tracker (Trello + GitHub Projects) detection.
+  getApplyChangeSkillTemplate: 'e67e5d967152173eea6f67be93bda36cb35dc9b6b4221a095b5af89eccdb2562',
+  getCompleteChangeSkillTemplate: 'cf5fa10f0ba527cd493b123bedcead3c868ca13f2c75c737257a6b7cf8a44fcd',
   getExploreSkillTemplate: 'ec6aac22ecaa6491ef4257a38eda9e5fe1da5710c6b94279218fc960fa224c84',
   getFeedbackSkillTemplate: '37cc46fb58f8390f6cb47d4221bfd729ea45692903f19ef5dc932b6a6e04c24a',
   getProposeSkillTemplate: '4951eb305b93333f971fa58b5506198c8674d5708aa142be8f19592e00d22042',
-  getPsApplyCommandTemplate: 'e5248a1835adc945e99be1681d853f5d9e64afa7ad4674cdec9f16f72487b2e6',
-  getPsCompleteCommandTemplate: '13fcb6aca5056d15cd6a85d2217505b85a6cf8c8ff9efe6f90c8cb67afc46150',
+  getPsApplyCommandTemplate: '5d9af9db2202e6f2cbee44be44269abe3a84ef6289a59efa0dbb8204cc8f20c9',
+  getPsCompleteCommandTemplate: '27602cddbc7c96f3a39fb6cc360413145cf301ef777b9b5f1bd069b42c1d9513',
   getPsExploreCommandTemplate: '0810094efe2f38452e48472e29e04594557940a31dc85977f42714476d8cc37b',
   getPsProposeCommandTemplate: 'bec7c88d077d23817b4ffee0faa40e9d16b0468f70e43951b3130a0fcddb3818',
 };
 
 const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
-  'pscode-apply-change': 'a8b22f3d850537240a5d826091cd5cc61fbfea494d6ed25e76b6e3d9c4f39964',
-  'pscode-complete-change': '14d11255cb32342f8d40e24486a4753b76b352a9b668b7f1ccd397aa975b6e68',
+  // Updated: apply and complete gained dual-tracker (Trello + GitHub Projects) detection.
+  'pscode-apply-change': '40c128800b50dd0a099485c09fa549550aac7182bb837aee55cc9e57920b1fd4',
+  'pscode-complete-change': '79df7a399b5d06edad2fff1c8fd60ddf9c71a35ccfef263dc7974941c8a2021d',
   'pscode-explore': '51fdc182ffacff035ae58f55056ad997aae48bad246ccc075756fd6c7c76e803',
   'pscode-propose': '665244d98a6acc2702ceb5d61488ef11cbeda896e90fc412711c926dc377f6dd',
 };

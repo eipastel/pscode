@@ -10,6 +10,7 @@ import {
   getCompleteChangeSkillTemplate,
   getProposeSkillTemplate,
   getBoardSetupSkillTemplate,
+  getGitHubSetupSkillTemplate,
   getTrelloDraftSkillTemplate,
   getHandoffSkillTemplate,
   getGrillMeSkillTemplate,
@@ -18,6 +19,7 @@ import {
   getPsCompleteCommandTemplate,
   getPsProposeCommandTemplate,
   getBoardSetupCommandTemplate,
+  getGitHubSetupCommandTemplate,
   getTrelloDraftCommandTemplate,
   getHandoffCommandTemplate,
   type SkillTemplate,
@@ -68,6 +70,7 @@ export function getSkillTemplates(workflowFilter?: readonly string[]): SkillTemp
     { template: getProposeSkillTemplate(), dirName: 'pscode-propose', workflowId: 'propose' },
     // Tracker board workflows
     { template: getBoardSetupSkillTemplate(), dirName: 'pscode-board-setup', workflowId: 'board-setup' },
+    { template: getGitHubSetupSkillTemplate(), dirName: 'pscode-github-setup', workflowId: 'github-setup' },
     { template: getTrelloDraftSkillTemplate(), dirName: 'pscode-trello-draft', workflowId: 'draft' },
     // Productivity workflows
     { template: getHandoffSkillTemplate(), dirName: 'pscode-handoff', workflowId: 'handoff' },
@@ -94,6 +97,7 @@ export function getCommandTemplates(workflowFilter?: readonly string[]): Command
     { template: getPsProposeCommandTemplate(), id: 'propose' },
     // Tracker board workflows
     { template: getBoardSetupCommandTemplate(), id: 'board-setup' },
+    { template: getGitHubSetupCommandTemplate(), id: 'github-setup' },
     { template: getTrelloDraftCommandTemplate(), id: 'draft' },
     // Productivity workflows
     { template: getHandoffCommandTemplate(), id: 'handoff' },

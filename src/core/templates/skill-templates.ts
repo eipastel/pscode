@@ -14,6 +14,7 @@ export { getFeedbackSkillTemplate } from './workflows/feedback.js';
 
 // Tracker board workflows
 export { getBoardSetupSkillTemplate, getBoardSetupCommandTemplate } from './workflows/board-setup.js';
+export { getGitHubSetupSkillTemplate, getGitHubSetupCommandTemplate } from './workflows/github-setup.js';
 export { getTrelloDraftSkillTemplate, getTrelloDraftCommandTemplate } from './workflows/trello-draft.js';
 
 // Productivity workflows
