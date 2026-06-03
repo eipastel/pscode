@@ -155,27 +155,128 @@ export function migrateLegacyPastelsddDir(projectDir: string): void {
 }
 
 /**
- * Copies all files from srcDir into <destRoot>/<PSCODE_DIR_NAME>/context/, skipping files that already exist.
+ * Copies all files from srcDir into <destRoot>/<PSCODE_DIR_NAME>/context/.
+ * By default skips files that already exist (brownfield-safe, used by `init`).
+ * With `{ overwrite: true }` it always rewrites the destination (used by the
+ * `update` re-sync to restore canonical docs). Returns the basenames of the
+ * source files (the canonical set), regardless of whether each was skipped.
  * Creates the destination directory if needed.
  */
-export function copyContextDocs(destRoot: string, srcDir: string): void {
-  if (!fs.existsSync(srcDir)) return;
+export function copyContextDocs(
+  destRoot: string,
+  srcDir: string,
+  options: { overwrite?: boolean } = {}
+): string[] {
+  if (!fs.existsSync(srcDir)) return [];
 
   const contextDir = path.join(destRoot, PSCODE_DIR_NAME, 'context');
   if (!fs.existsSync(contextDir)) {
     fs.mkdirSync(contextDir, { recursive: true });
   }
 
+  const basenames: string[] = [];
   const files = fs.readdirSync(srcDir);
   for (const file of files) {
     const src = path.join(srcDir, file);
     const dest = path.join(contextDir, file);
-    if (fs.existsSync(dest)) {
+    basenames.push(file);
+    if (fs.existsSync(dest) && !options.overwrite) {
       console.log(`  ${file} já existe — pulado`);
       continue;
     }
     fs.copyFileSync(src, dest);
   }
+  return basenames;
+}
+
+/**
+ * Basename of the manifest that records which context docs the pscode Dixi
+ * profile manages (wrote) in `pscode/context/`. Lets the update re-sync prune
+ * canonical orphans without ever touching the user's custom files. Lives inside
+ * `pscode/context/` and is excluded from the managed set itself.
+ */
+export const CONTEXT_MANIFEST_FILENAME = '.pscode-context-manifest.json';
+
+/**
+ * Reads the previous list of managed basenames from the context manifest.
+ * Returns `[]` when the manifest is missing/invalid — so a project predating the
+ * manifest is treated as "nothing managed yet" (no prune on the first re-sync).
+ */
+export function readContextManifest(projectDir: string): string[] {
+  const manifestPath = path.join(projectDir, PSCODE_DIR_NAME, 'context', CONTEXT_MANIFEST_FILENAME);
+  if (!fs.existsSync(manifestPath)) return [];
+  try {
+    const raw = JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as { managed?: unknown };
+    if (!Array.isArray(raw.managed)) return [];
+    return raw.managed.filter((x): x is string => typeof x === 'string');
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Writes the manifest listing exactly the managed basenames synced this run.
+ * Creates `pscode/context/` if needed.
+ */
+export function writeContextManifest(projectDir: string, basenames: string[]): void {
+  const contextDir = path.join(projectDir, PSCODE_DIR_NAME, 'context');
+  if (!fs.existsSync(contextDir)) {
+    fs.mkdirSync(contextDir, { recursive: true });
+  }
+  const manifestPath = path.join(contextDir, CONTEXT_MANIFEST_FILENAME);
+  const sorted = [...new Set(basenames)].sort();
+  fs.writeFileSync(manifestPath, JSON.stringify({ managed: sorted }, null, 2) + '\n', { encoding: 'utf-8' });
+}
+
+export interface SyncContextDocsResult {
+  /** Canonical basenames overwritten this run (shared + the active family). */
+  synced: string[];
+  /** Orphan basenames removed (in the previous manifest, not in the current set). */
+  pruned: string[];
+}
+
+/**
+ * Re-syncs the canonical Dixi context docs in `pscode/context/` during `update`:
+ * overwrites the canonical set (shared/ always + java/ or react/ per the resolved
+ * family), prunes orphans (previous manifest − current canonical, restricted to
+ * the manifest so custom files are never removed), and rewrites the manifest.
+ * Unlike `copyContextDocs` used by `init`, this overwrites existing managed docs.
+ */
+export function syncContextDocs(projectDir: string, stack: DixiStack | null): SyncContextDocsResult {
+  const family = getDixiStackFamily(stack);
+
+  // Resolve package content root: dist/core/presets/ → package root → context/
+  const currentFile = fileURLToPath(import.meta.url);
+  const packageRoot = path.join(path.dirname(currentFile), '..', '..', '..');
+  const contentBase = path.join(packageRoot, 'pscode', 'content', 'dixi', 'context');
+
+  // Canonical set: shared/ always + the active family's docs.
+  const srcDirs = [path.join(contentBase, 'shared')];
+  if (family === 'java') srcDirs.push(path.join(contentBase, 'java'));
+  else if (family === 'react') srcDirs.push(path.join(contentBase, 'react'));
+
+  const synced: string[] = [];
+  for (const srcDir of srcDirs) {
+    synced.push(...copyContextDocs(projectDir, srcDir, { overwrite: true }));
+  }
+
+  // Prune orphans: previous manifest − current canonical, restricted to the
+  // manifest. Custom files (never in the manifest) are therefore never removed.
+  const contextDir = path.join(projectDir, PSCODE_DIR_NAME, 'context');
+  const currentSet = new Set(synced);
+  const pruned: string[] = [];
+  for (const name of readContextManifest(projectDir)) {
+    if (currentSet.has(name)) continue;
+    const target = path.join(contextDir, name);
+    if (fs.existsSync(target)) {
+      fs.rmSync(target);
+      pruned.push(name);
+    }
+  }
+
+  writeContextManifest(projectDir, synced);
+
+  return { synced, pruned };
 }
 
 export function installDixiClaudeMd(projectDir: string, family: DixiStackFamily | null): void {

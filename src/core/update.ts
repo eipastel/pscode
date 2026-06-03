@@ -48,6 +48,7 @@ import {
   installDixiHooks,
   DIXI_HOOKS_OVERWRITE_ON_UPDATE,
   getDixiPsCommandIds,
+  syncContextDocs,
 } from './presets/dixi.js';
 import { stringify as stringifyYaml } from 'yaml';
 import { getAvailableTools } from './available-tools.js';
@@ -396,6 +397,15 @@ export class UpdateCommand {
       const yamlContent = stringifyYaml({ stack, family, detectedAt: new Date().toISOString() });
       fs.writeFileSync(path.join(projectPath, '.pscode-dixi.yaml'), yamlContent);
     }
+
+    // Re-sync the canonical context docs (overwrite managed docs + prune orphans
+    // via manifest), mirroring the hook overwrite. Custom files are preserved.
+    const syncResult = syncContextDocs(projectPath, stack);
+    const syncParts = [`${syncResult.synced.length} docs ressincronizados`];
+    if (syncResult.pruned.length > 0) {
+      syncParts.push(`${syncResult.pruned.length} órfãos removidos`);
+    }
+    console.log(chalk.dim(`Dixi: context docs — ${syncParts.join(', ')}.`));
   }
 
   /**
