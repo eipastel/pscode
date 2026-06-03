@@ -14,10 +14,23 @@ const DEFAULT_DESCRIPTION_TEMPLATE =
   '## O que foi feito\n\n\n## Como testar\n\n\n## Referências\n';
 
 /**
+ * Canonical Dixi gitflow defaults (Confluence DROP/1574993927): branch names are
+ * ticket-first (`<jiraIssueKey>-<feat|fix|refactor>-<tema>`) and PR titles are
+ * ticket-aware. Reuses the existing `{ticket}` template variable (jiraIssueKey).
+ */
+const DIXI_BRANCH_PATTERN = '{ticket}-{type}-{change-name}';
+const DIXI_TITLE_TEMPLATE = '{ticket} {type}: {change-name}';
+
+/**
  * Runs the interactive PR configuration questions during `pscode init`.
  * Returns the collected PrConfig, or null if the user opts out.
+ *
+ * When `isDixiProfile` is true, the branch/title defaults follow the canonical
+ * Dixi gitflow (ticket-first); otherwise the generic `feat/{change-name}` is used.
  */
-export async function runPrInitPrompt(): Promise<PrConfig | null> {
+export async function runPrInitPrompt(isDixiProfile = false): Promise<PrConfig | null> {
+  const defaultBranchPattern = isDixiProfile ? DIXI_BRANCH_PATTERN : DEFAULT_BRANCH_PATTERN;
+  const defaultTitleTemplate = isDixiProfile ? DIXI_TITLE_TEMPLATE : DEFAULT_TITLE_TEMPLATE;
   const { confirm, input } = await import('@inquirer/prompts');
 
   console.log();
@@ -37,12 +50,12 @@ export async function runPrInitPrompt(): Promise<PrConfig | null> {
 
   const branchPattern = await input({
     message: 'Padrão de nome de branch:',
-    default: DEFAULT_BRANCH_PATTERN,
+    default: defaultBranchPattern,
   });
 
   const titleTemplate = await input({
     message: 'Template de título do PR:',
-    default: DEFAULT_TITLE_TEMPLATE,
+    default: defaultTitleTemplate,
   });
 
   const useDefaultDescription = await confirm({
@@ -84,8 +97,8 @@ export async function runPrInitPrompt(): Promise<PrConfig | null> {
 
   return {
     enabled: true,
-    branch: { pattern: branchPattern.trim() || DEFAULT_BRANCH_PATTERN },
-    title: { template: titleTemplate.trim() || DEFAULT_TITLE_TEMPLATE },
+    branch: { pattern: branchPattern.trim() || defaultBranchPattern },
+    title: { template: titleTemplate.trim() || defaultTitleTemplate },
     description: { template: descriptionTemplate },
     comments: { linkInTask },
     taskLinkInDescription,

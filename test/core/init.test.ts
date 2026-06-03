@@ -109,6 +109,24 @@ describe('InitCommand', () => {
       expect(content).toContain('profile: standard');
     });
 
+    it('should default the dixi PR branch pattern to ticket-first with --pr', async () => {
+      const initCommand = new InitCommand({ tools: 'claude', force: true, profile: 'dixi', pr: true });
+
+      await initCommand.execute(testDir);
+
+      const content = await fs.readFile(path.join(testDir, 'pscode', 'config.yaml'), 'utf-8');
+      expect(content).toContain('pattern: "{ticket}-{type}-{change-name}"');
+    });
+
+    it('should keep the feat/ PR branch pattern for the standard profile with --pr', async () => {
+      const initCommand = new InitCommand({ tools: 'claude', force: true, profile: 'standard', pr: true });
+
+      await initCommand.execute(testDir);
+
+      const content = await fs.readFile(path.join(testDir, 'pscode', 'config.yaml'), 'utf-8');
+      expect(content).toContain('pattern: feat/{change-name}');
+    });
+
     it('should not overwrite existing config.yaml regardless of profile', async () => {
       const pscodeDir = path.join(testDir, 'pscode');
       await fs.mkdir(pscodeDir, { recursive: true });

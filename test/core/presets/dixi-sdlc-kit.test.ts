@@ -62,14 +62,13 @@ describe('installDixiExtras — Java kit', () => {
     expect(ciContent).toContain('coverage:');
   });
 
-  it('5.1 — projeto Java: ci-java.yml tem trigger para main e develop', () => {
+  it('5.1 — projeto Java: ci-java.yml tem trigger para master', () => {
     installDixiExtras(projectDir, 'java-maven');
     const ciContent = fsSync.readFileSync(
       path.join(projectDir, '.github', 'workflows', 'ci-java.yml'),
       'utf-8'
     );
-    expect(ciContent).toContain('main');
-    expect(ciContent).toContain('develop');
+    expect(ciContent).toContain('branches: [master]');
   });
 
   it('5.1 — projeto Java: .husky/commit-msg gerado', () => {

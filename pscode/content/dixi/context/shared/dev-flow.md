@@ -9,6 +9,29 @@ RFC → Design → Tasks → Apply → Revisão → Deploy
 Use `/ps:propose` para iniciar o fluxo (gera RFC, design, specs e tasks conforme o schema
 dixi). A verificação de DoD está embutida em `/ps:complete`.
 
+## Branches
+
+Espelha a §1.3 da doc canônica **"Desenvolvimento e Qualidade — Padrões e Boas Práticas"**
+(Confluence DROP/1574993927).
+
+- **Base**: toda branch é criada a partir de `master`, que é a branch protegida e fonte da
+  verdade para deploy.
+- **Padrão de nome**: `<jiraIssueKey>-<feat|fix|refactor>-<tema>` — ticket primeiro, seguido do
+  tipo de mudança e de um tema curto em kebab-case.
+- **Uma branch por issue**: cada issue do JIRA tem uma única branch dedicada; não acumule
+  mudanças de issues diferentes na mesma branch.
+
+Exemplos:
+
+```
+DROP-1234-feat-login-sso
+DROP-1300-fix-null-pointer-no-checkout
+DROP-1450-refactor-extrair-servico-de-pagamento
+```
+
+> O `/ps:apply` do perfil dixi gera branches já nesse formato (`{ticket}-{type}-{change-name}`),
+> a partir de `master`.
+
 ## Quando criar RFC
 
 Crie uma RFC quando a mudança:
