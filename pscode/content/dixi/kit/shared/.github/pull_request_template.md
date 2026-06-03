@@ -19,6 +19,10 @@ Refs:
 ## Checklist
 
 - [ ] Testes passando (`pnpm test` / `mvn test`)
+- [ ] Cobertura: 90% global e 100% no código novo ou alterado
+- [ ] Segurança: sem segredo versionado, endpoint novo autenticado, sem CVE crítica
+- [ ] DoD verificado
 - [ ] Sem TODO pendente no código
+- [ ] Documentação atualizada (se aplicável)
 - [ ] CHANGELOG / changeset atualizado (se aplicável)
 - [ ] Título da PR em formato conventional commit (`feat(scope): descrição [PROJ-123]`)
