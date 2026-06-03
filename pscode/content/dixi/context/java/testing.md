@@ -133,11 +133,10 @@ dado_estoque_zerado_quando_reservar_entao_retorna_false
 
 ## Cobertura mínima
 
-| Camada          | Cobertura mínima |
-|-----------------|-----------------|
-| `domain`        | 90%             |
-| `application`   | 80%             |
-| `infrastructure`| 60% (integração complementa) |
+Meta canônica (Confluence DROP/1574993927):
+
+- **90%** de cobertura global do projeto.
+- **100%** no código novo ou alterado em cada PR.
 
 Configure no `pom.xml` com JaCoCo:
 
@@ -145,18 +144,17 @@ Configure no `pom.xml` com JaCoCo:
 <configuration>
     <rules>
         <rule>
-            <element>PACKAGE</element>
-            <includes>
-                <include>**.domain.**</include>
-                <include>**.application.**</include>
-            </includes>
+            <element>BUNDLE</element>
             <limits>
                 <limit>
                     <counter>LINE</counter>
-                    <minimum>0.80</minimum>
+                    <minimum>0.90</minimum>
                 </limit>
             </limits>
         </rule>
     </rules>
 </configuration>
 ```
+
+A meta de 100% no código novo é verificada no PR (diff coverage), complementando o piso
+global de 90%.

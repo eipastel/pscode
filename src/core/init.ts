@@ -165,7 +165,7 @@ export class InitCommand {
     const trelloConfigured = isDixiProfile ? false : await this.handleTrelloSetup(pscodePath);
 
     // PR workflow setup (interactive or via flags)
-    const prConfig = await this.handlePrSetup(pscodePath, extendMode);
+    const prConfig = await this.handlePrSetup(pscodePath, extendMode, isDixiProfile);
 
     // Generate skills and commands for each tool
     const results = await this.generateSkillsAndCommands(projectPath, validatedTools);
@@ -619,13 +619,18 @@ export class InitCommand {
   // PR WORKFLOW SETUP
   // ═══════════════════════════════════════════════════════════
 
-  private async handlePrSetup(pscodePath: string, extendMode: boolean): Promise<PrConfig | null> {
-    // --pr flag: enable PR without prompts (default values)
+  private async handlePrSetup(
+    pscodePath: string,
+    extendMode: boolean,
+    isDixiProfile = false,
+  ): Promise<PrConfig | null> {
+    // --pr flag: enable PR without prompts (default values).
+    // Dixi follows the canonical ticket-first gitflow; other profiles use feat/{change-name}.
     if (this.prFlag === true) {
       return {
         enabled: true,
-        branch: { pattern: 'feat/{change-name}' },
-        title: { template: '[{type}] {change-name}' },
+        branch: { pattern: isDixiProfile ? '{ticket}-{type}-{change-name}' : 'feat/{change-name}' },
+        title: { template: isDixiProfile ? '{ticket} {type}: {change-name}' : '[{type}] {change-name}' },
         description: { template: '## O que foi feito\n\n\n## Como testar\n\n\n## Referências\n' },
         comments: { linkInTask: true },
       };
@@ -660,7 +665,7 @@ export class InitCommand {
     }
 
     try {
-      return await runPrInitPrompt();
+      return await runPrInitPrompt(isDixiProfile);
     } catch {
       return null;
     }
