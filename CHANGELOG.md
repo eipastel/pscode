@@ -1,5 +1,14 @@
 ﻿# @thiagodiogo/pastelsdd
 
+## 2.14.1
+
+### Patch Changes
+
+- [#31](https://github.com/eipastel/pscode/pull/31) [`c95fee1`](https://github.com/eipastel/pscode/commit/c95fee15cd05a9deb4d688ad9ce93953634169ec) Thanks [@eipastel](https://github.com/eipastel)! - Realinha a convenção de commits do profile dixi (`commits.md`) à doc canônica
+  oficial: formato `<type>(<scope>): <msg> [TICKET-123]`, mensagem sempre em
+  português, ticket obrigatório em todos os tipos com `[NO-TICKET]` como fallback,
+  e novas seções de boas práticas e antipadrões.
+
 ## 2.14.0
 
 ### Minor Changes
