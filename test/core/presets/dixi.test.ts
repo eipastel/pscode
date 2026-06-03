@@ -278,10 +278,12 @@ describe('installDixiExtras — context docs', () => {
     expect(fsSync.existsSync(path.join(contextDir, 'dod.md'))).toBe(true);
     expect(fsSync.existsSync(path.join(contextDir, 'dev-flow.md'))).toBe(true);
     expect(fsSync.existsSync(path.join(contextDir, 'pr-flow.md'))).toBe(true);
+    expect(fsSync.existsSync(path.join(contextDir, 'security.md'))).toBe(true);
     // java docs
     expect(fsSync.existsSync(path.join(contextDir, 'architecture.md'))).toBe(true);
     expect(fsSync.existsSync(path.join(contextDir, 'testing.md'))).toBe(true);
     expect(fsSync.existsSync(path.join(contextDir, 'naming.md'))).toBe(true);
+    expect(fsSync.existsSync(path.join(contextDir, 'database.md'))).toBe(true);
     // java architecture content (title contains "Hexagonal")
     const arch = fsSync.readFileSync(path.join(contextDir, 'architecture.md'), 'utf-8');
     expect(arch).toContain('Hexagonal');
@@ -291,10 +293,13 @@ describe('installDixiExtras — context docs', () => {
     installDixiExtras(projectDir, 'next');
 
     const contextDir = path.join(projectDir, 'pscode', 'context');
-    // shared docs
+    // shared docs (security é shared → também no React)
     expect(fsSync.existsSync(path.join(contextDir, 'commits.md'))).toBe(true);
+    expect(fsSync.existsSync(path.join(contextDir, 'security.md'))).toBe(true);
     // react docs
     expect(fsSync.existsSync(path.join(contextDir, 'architecture.md'))).toBe(true);
+    // database.md é específico de Java — não deve ser instalado no React
+    expect(fsSync.existsSync(path.join(contextDir, 'database.md'))).toBe(false);
     // react architecture content (title contains "Feature-Sliced")
     const arch = fsSync.readFileSync(path.join(contextDir, 'architecture.md'), 'utf-8');
     expect(arch).toContain('Feature-Sliced');

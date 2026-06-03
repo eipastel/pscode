@@ -5,6 +5,9 @@ plugins:
   - commitlint-plugin-jira-rules
 
 rules:
+  scope-empty:
+    - 2
+    - never
   subject-case:
     - 2
     - always
