@@ -37,6 +37,31 @@ describe('ChangeMetadataSchema', () => {
       }
     });
 
+    it('should accept metadata with a valid jiraIssueUrl', () => {
+      const result = ChangeMetadataSchema.safeParse({
+        schema: 'spec-driven',
+        jiraIssueKey: 'PROJ-123',
+        jiraIssueUrl: 'https://org.atlassian.net/browse/PROJ-123',
+      });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.jiraIssueUrl).toBe(
+          'https://org.atlassian.net/browse/PROJ-123'
+        );
+      }
+    });
+
+    it('should accept metadata without jiraIssueUrl (optional)', () => {
+      const result = ChangeMetadataSchema.safeParse({
+        schema: 'spec-driven',
+        jiraIssueKey: 'PROJ-123',
+      });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.jiraIssueUrl).toBeUndefined();
+      }
+    });
+
     it('should accept a portable initiative link', () => {
       const result = ChangeMetadataSchema.safeParse({
         schema: 'spec-driven',
@@ -57,6 +82,14 @@ describe('ChangeMetadataSchema', () => {
   });
 
   describe('invalid metadata', () => {
+    it('should reject a jiraIssueUrl that is not a valid URL', () => {
+      const result = ChangeMetadataSchema.safeParse({
+        schema: 'spec-driven',
+        jiraIssueUrl: 'not-a-url',
+      });
+      expect(result.success).toBe(false);
+    });
+
     it('should reject empty schema', () => {
       const result = ChangeMetadataSchema.safeParse({
         schema: '',

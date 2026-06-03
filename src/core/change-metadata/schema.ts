@@ -31,6 +31,7 @@ export const ChangeMetadataSchema = z.object({
   affected_areas: z.array(z.string().min(1)).optional(),
   initiative: InitiativeLinkSchema.optional(),
   jiraIssueKey: z.string().optional(),
+  jiraIssueUrl: z.string().url().optional(),
 });
 
 export type ChangeMetadata = z.infer<typeof ChangeMetadataSchema>;

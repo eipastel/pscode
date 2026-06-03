@@ -5,7 +5,11 @@ import * as fsSync from 'fs';
 import path from 'path';
 import os from 'os';
 import { fileURLToPath } from 'url';
-import { installDixiExtras } from '../../../src/core/presets/dixi.js';
+import {
+  installDixiExtras,
+  installDixiHooks,
+  DIXI_HOOKS_OVERWRITE_ON_UPDATE,
+} from '../../../src/core/presets/dixi.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const HOOKS_DIR = path.resolve(__dirname, '..', '..', '..', 'pscode', 'content', 'dixi', 'claude-runtime', 'hooks');
@@ -47,7 +51,7 @@ describe('arch-guard — Java', () => {
     await fs.rm(dir, { recursive: true, force: true });
   });
 
-  it('4.1 — import direto de domain/ em infrastructure/ → exit 2', () => {
+  it('4.1 — import de domain/ em infrastructure/ → exit 0 (permitido)', () => {
     const result = runHook(ARCH_GUARD, {
       tool_name: 'Edit',
       tool_input: {
@@ -57,17 +61,45 @@ describe('arch-guard — Java', () => {
       },
     }, dir);
 
-    expect(result.exitCode).toBe(2);
-    expect(result.stdout).toContain('Violação hexagonal');
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toBe('');
   });
 
-  it('4.2 — import apenas de domain/port/ em infrastructure/ → exit 0', () => {
+  it('4.2 — domain/ importando de application/ ou infrastructure/ → exit 2', () => {
     const result = runHook(ARCH_GUARD, {
       tool_name: 'Edit',
       tool_input: {
-        file_path: 'src/main/java/com/example/infrastructure/adapters/OrderAdapter.java',
+        file_path: 'src/main/java/com/example/domain/model/Order.java',
         old_string: '',
-        new_string: 'import com.example.domain.port.SaveOrderPort;\nimport com.example.domain.port.in.CreateOrderPort;\n',
+        new_string: 'import com.example.infrastructure.adapters.OrderAdapter;\n',
+      },
+    }, dir);
+
+    expect(result.exitCode).toBe(2);
+    expect(result.stdout).toContain('Violação hexagonal');
+    expect(result.stdout).toContain('em domain importa de application/infrastructure');
+  });
+
+  it('4.3 — application/ importando de infrastructure/ → exit 2', () => {
+    const result = runHook(ARCH_GUARD, {
+      tool_name: 'Edit',
+      tool_input: {
+        file_path: 'src/main/java/com/example/application/service/OrderService.java',
+        old_string: '',
+        new_string: 'import com.example.infrastructure.adapters.OrderAdapter;\n',
+      },
+    }, dir);
+
+    expect(result.exitCode).toBe(2);
+    expect(result.stdout).toContain('em application importa de infrastructure');
+  });
+
+  it('4.3b — domínio puro (só imports de domain/) → exit 0', () => {
+    const result = runHook(ARCH_GUARD, {
+      tool_name: 'Write',
+      tool_input: {
+        file_path: 'src/main/java/com/example/domain/model/Order.java',
+        content: 'import com.example.domain.model.Customer;\n',
       },
     }, dir);
 
@@ -75,12 +107,13 @@ describe('arch-guard — Java', () => {
     expect(result.stdout).toBe('');
   });
 
-  it('4.3 — arquivo fora de infrastructure/ → exit 0', () => {
+  it('4.3c — arquivo fora das camadas hexagonais → exit 0', () => {
     const result = runHook(ARCH_GUARD, {
-      tool_name: 'Write',
+      tool_name: 'Edit',
       tool_input: {
-        file_path: 'src/main/java/com/example/domain/model/Order.java',
-        content: 'import com.example.domain.model.Customer;\n',
+        file_path: 'src/main/java/com/example/config/AppConfig.java',
+        old_string: '',
+        new_string: 'import com.example.infrastructure.adapters.OrderAdapter;\n',
       },
     }, dir);
 
@@ -329,5 +362,28 @@ describe('installDixiExtras — hooks', () => {
 
     const content = fsSync.readFileSync(path.join(hooksDir, 'arch-guard.mjs'), 'utf-8');
     expect(content).toBe('// customizado pelo time\n');
+  });
+
+  it('6.4 — installDixiHooks com overwrite ressincroniza o arch-guard.mjs defasado', async () => {
+    const hooksDir = path.join(projectDir, '.claude', 'hooks');
+    await fs.mkdir(hooksDir, { recursive: true });
+    await fs.writeFile(path.join(hooksDir, 'arch-guard.mjs'), '// versão defasada\n');
+
+    installDixiHooks(projectDir, { overwrite: DIXI_HOOKS_OVERWRITE_ON_UPDATE });
+
+    const content = fsSync.readFileSync(path.join(hooksDir, 'arch-guard.mjs'), 'utf-8');
+    expect(content).not.toBe('// versão defasada\n');
+    expect(content).toContain('Violação hexagonal');
+  });
+
+  it('6.5 — installDixiHooks sem overwrite preserva hook customizado', async () => {
+    const hooksDir = path.join(projectDir, '.claude', 'hooks');
+    await fs.mkdir(hooksDir, { recursive: true });
+    await fs.writeFile(path.join(hooksDir, 'arch-guard.mjs'), '// customizado\n');
+
+    installDixiHooks(projectDir);
+
+    const content = fsSync.readFileSync(path.join(hooksDir, 'arch-guard.mjs'), 'utf-8');
+    expect(content).toBe('// customizado\n');
   });
 });

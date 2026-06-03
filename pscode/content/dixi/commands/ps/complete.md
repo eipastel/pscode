@@ -34,4 +34,12 @@ Antes de executar a finalização, verifique o Definition of Done do item:
    deseja continuar a finalização mesmo assim ou voltar para resolvê-los. Não arquive
    silenciosamente sobre um DoD reprovado.
 
+**Tracker (Dixi)** — mover a issue/card para "Concluído" (JIRA + Trello):
+
+Ao finalizar e arquivar a change, mova a tarefa para a coluna `done` ("Concluído") conforme o
+mapa do board. JIRA: use `pipeline.done.transition` (ou `transitions.done`) via `transitionJiraIssue`
+(MCP Atlassian). Trello: `lists.done` via `update_card`. A skill standard já cobre o Trello;
+garanta a paridade JIRA. Movimentação **não-bloqueante e idempotente**: em caso de falha, ou se a
+tarefa já estiver em "Concluído", **avise e prossiga** — nunca bloqueie o arquivamento.
+
 Then execute the standard `pscode-complete-change` skill instructions in full.

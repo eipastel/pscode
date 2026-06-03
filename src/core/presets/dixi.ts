@@ -503,19 +503,7 @@ export function installDixiExtras(projectDir: string, stack: DixiStack | null): 
   }
 
   // Copy hooks to .claude/hooks/ (brownfield-safe: skip if file already exists)
-  const hooksDestDir = path.join(projectDir, '.claude', 'hooks');
-  if (!fs.existsSync(hooksDestDir)) {
-    fs.mkdirSync(hooksDestDir, { recursive: true });
-  }
-  if (fs.existsSync(HOOKS_SRC)) {
-    const hookFiles = fs.readdirSync(HOOKS_SRC).filter(f => f.endsWith('.mjs'));
-    for (const file of hookFiles) {
-      const dest = path.join(hooksDestDir, file);
-      if (!fs.existsSync(dest)) {
-        fs.copyFileSync(path.join(HOOKS_SRC, file), dest);
-      }
-    }
-  }
+  installDixiHooks(projectDir);
 
   // Merge .claude/settings.json with hook registrations (never overwrite existing config)
   mergeSettingsHooks(path.join(projectDir, '.claude', 'settings.json'));
@@ -543,6 +531,40 @@ function getDixiCommandsSourceDir(subdir: string): string {
  */
 export function installDixiCommands(projectDir: string): void {
   copyDixiCommands(projectDir, getDixiCommandsSourceDir('ps'), 'ps');
+}
+
+/**
+ * Hooks that `pscode update` must force-overwrite in the target project even
+ * when they already exist, because they ship bug fixes the project needs (the
+ * stale `arch-guard.mjs` inverted the hexagonal rule). Other hooks remain
+ * brownfield-safe so user customizations are preserved on init.
+ */
+export const DIXI_HOOKS_OVERWRITE_ON_UPDATE: readonly string[] = ['arch-guard.mjs'];
+
+/**
+ * Copies the Dixi `.mjs` hooks into `<projectDir>/.claude/hooks/`. By default it
+ * is brownfield-safe (skips files that already exist). Filenames listed in
+ * `options.overwrite` are always overwritten — used by `update` to ship hook bug
+ * fixes (e.g. the corrected `arch-guard.mjs`) without clobbering user hooks.
+ */
+export function installDixiHooks(
+  projectDir: string,
+  options: { overwrite?: readonly string[] } = {}
+): void {
+  const hooksDestDir = path.join(projectDir, '.claude', 'hooks');
+  if (!fs.existsSync(hooksDestDir)) {
+    fs.mkdirSync(hooksDestDir, { recursive: true });
+  }
+  if (!fs.existsSync(HOOKS_SRC)) return;
+
+  const overwriteSet = new Set(options.overwrite ?? []);
+  const hookFiles = fs.readdirSync(HOOKS_SRC).filter((f) => f.endsWith('.mjs'));
+  for (const file of hookFiles) {
+    const dest = path.join(hooksDestDir, file);
+    if (!fs.existsSync(dest) || overwriteSet.has(file)) {
+      fs.copyFileSync(path.join(HOOKS_SRC, file), dest);
+    }
+  }
 }
 
 /**
