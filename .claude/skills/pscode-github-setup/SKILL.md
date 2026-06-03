@@ -1,8 +1,11 @@
 ---
-name: "PS: GitHub Setup"
-description: "Configure GitHub Projects integration for your Pscode workflow — checks gh CLI, auto-discovers project IDs, and writes pscode/github.yaml"
-category: Setup
-tags: [github, setup, integration, config]
+name: pscode-github-setup
+description: Configure GitHub Projects (v2) integration for your Pscode workflow. Uses the gh CLI to auto-discover project IDs and writes pscode/github.yaml.
+compatibility: Requires pscode CLI and the gh CLI (github.com/cli/cli).
+metadata:
+  author: pscode
+  version: "1.0"
+  generatedBy: "2.15.0"
 ---
 
 ## Asking the user
