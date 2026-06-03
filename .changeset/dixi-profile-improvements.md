@@ -1,5 +1,5 @@
 ---
-"pscode": minor
+"@thiagodiogo/pscode": minor
 ---
 
 Melhorias no perfil `dixi`: os overrides `/ps:*` passam a manter o tracker (Trello + JIRA)
