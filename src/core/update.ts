@@ -45,6 +45,8 @@ import {
   readRecordedDixiStack,
   getDixiStackFamily,
   installDixiCommands,
+  installDixiHooks,
+  DIXI_HOOKS_OVERWRITE_ON_UPDATE,
   getDixiPsCommandIds,
 } from './presets/dixi.js';
 import { stringify as stringifyYaml } from 'yaml';
@@ -380,6 +382,11 @@ export class UpdateCommand {
   private applyDixiCommandOverrides(projectPath: string): void {
     installDixiCommands(projectPath);
     console.log(chalk.dim('Dixi: comandos /ps:* (JIRA-aware) reaplicados.'));
+
+    // Force-overwrite hooks shipping bug fixes (e.g. the corrected arch-guard.mjs
+    // hexagonal rule); other hooks stay brownfield-safe and untouched.
+    installDixiHooks(projectPath, { overwrite: DIXI_HOOKS_OVERWRITE_ON_UPDATE });
+    console.log(chalk.dim('Dixi: hook arch-guard.mjs ressincronizado.'));
 
     // Self-heal the recorded stack for projects predating a detection fix (e.g.
     // Gradle Kotlin DSL); never downgrade a known stack to a null re-detection.

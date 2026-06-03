@@ -44,16 +44,28 @@ const newContent = String(toolInput.new_string ?? toolInput.content ?? '');
 const filePath = rawFilePath.replace(/\\/g, '/');
 
 if (family === 'java') {
-  // Check files in src/**/infrastructure/**
-  if (/\/infrastructure\//.test(filePath)) {
-    const importLines = newContent.split('\n').filter(l => /^\s*import\s+/.test(l));
-    // Violation: import from domain.* but NOT domain.port.*
-    const hasDirectDomainImport = importLines.some(
-      l => /\.domain\./.test(l) && !/\.domain\.port/.test(l)
+  const importLines = newContent.split('\n').filter(l => /^\s*import\s+/.test(l));
+
+  // Hexagonal dependency rule (inward only). infrastructure is the outer layer
+  // and MAY depend on domain/application, so files in infrastructure/ are not
+  // inspected. Violations are dependencies pointing outward:
+  //   - domain/ importing from application/ or infrastructure/
+  //   - application/ importing from infrastructure/
+  if (/\/domain\//.test(filePath)) {
+    const violates = importLines.some(
+      l => /\.application\./.test(l) || /\.infrastructure\./.test(l)
     );
-    if (hasDirectDomainImport) {
+    if (violates) {
       process.stdout.write(
-        `Violação hexagonal: ${rawFilePath} importa diretamente de domain sem porta. Consulte pastelsdd/context/architecture.md\n`
+        `Violação hexagonal: ${rawFilePath} em domain importa de application/infrastructure. Consulte pscode/context/architecture.md\n`
+      );
+      process.exit(2);
+    }
+  } else if (/\/application\//.test(filePath)) {
+    const violates = importLines.some(l => /\.infrastructure\./.test(l));
+    if (violates) {
+      process.stdout.write(
+        `Violação hexagonal: ${rawFilePath} em application importa de infrastructure. Consulte pscode/context/architecture.md\n`
       );
       process.exit(2);
     }
