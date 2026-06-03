@@ -53,11 +53,12 @@ fix(infra): correct JPA mapping for OrderStatus [PROJ-55]
 
 ## Referências
 
-Docs completos em `pscode/context/`:
-- `pscode/context/java/architecture.md` — guia completo de arquitetura hexagonal
-- `pscode/context/java/naming.md` — convenções de nomenclatura por camada
-- `pscode/context/shared/commits.md` — convenção completa de commits
-- `pscode/context/shared/dev-flow.md` — fluxo de desenvolvimento e PR
-- `pscode/context/shared/jira-workflow.md` — mapeamento dev-flow → colunas/status do board JIRA
+Docs completos em `pscode/context/` (layout achatado — sem subpastas):
+- `pscode/context/architecture.md` — guia completo de arquitetura hexagonal
+- `pscode/context/naming.md` — convenções de nomenclatura por camada
+- `pscode/context/commits.md` — convenção completa de commits
+- `pscode/context/dev-flow.md` — fluxo de desenvolvimento, convenção de branch (ticket-first, base `master`) e PR
+- `pscode/context/testing.md` — pirâmide de testes e metas de cobertura (90% global / 100% no código novo)
+- `pscode/context/jira-workflow.md` — mapeamento dev-flow → colunas/status do board JIRA
 
 > Se `pscode/context/` não existe, rode `pscode init --profile dixi` para instalar.

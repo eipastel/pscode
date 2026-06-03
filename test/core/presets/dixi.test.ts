@@ -345,7 +345,7 @@ describe('installDixiClaudeMd', () => {
     const content = fsSync.readFileSync(claudeMd, 'utf-8');
     expect(content).toContain('<!-- dixi-constitutional -->');
     expect(content).toContain('Arquitetura Hexagonal');
-    expect(content).toContain('pscode/context/java/architecture.md');
+    expect(content).toContain('pscode/context/architecture.md');
   });
 
   it('cria CLAUDE.md com template React quando family é react', () => {
@@ -356,7 +356,7 @@ describe('installDixiClaudeMd', () => {
     const content = fsSync.readFileSync(claudeMd, 'utf-8');
     expect(content).toContain('<!-- dixi-constitutional -->');
     expect(content).toContain('Feature-Sliced Design');
-    expect(content).toContain('pscode/context/react/architecture.md');
+    expect(content).toContain('pscode/context/architecture.md');
   });
 
   it('faz append em CLAUDE.md existente sem marcador', () => {

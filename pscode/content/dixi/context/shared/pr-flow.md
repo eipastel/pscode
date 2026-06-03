@@ -17,7 +17,7 @@
 
 ## Checklist
 - [ ] Testes adicionados/atualizados
-- [ ] Cobertura mantida ou melhorada
+- [ ] Cobertura: 90% global e 100% no código novo ou alterado
 - [ ] DoD verificado (embutido em `/ps:complete`)
 - [ ] Sem TODOs temporários deixados no código
 - [ ] Documentação atualizada (se aplicável)
@@ -31,19 +31,23 @@
 
 ## Processo de revisão
 
-1. Abra o PR apontando para a branch de destino (geralmente `main` ou `develop`)
-2. Solicite revisão de pelo menos 1 membro do time
-3. Responda todos os comentários antes de fazer merge
-4. Após aprovação, faça squash merge ou merge commit conforme a convenção do projeto
+O fluxo do PR segue: **draft → Ready for review → merge → deploy automático**.
+
+1. Abra o PR em **draft**, apontando para `master` (branch protegida e base de deploy)
+2. Implemente e teste; só então promova o PR para **Ready for review**
+3. Solicite revisão de pelo menos 1 membro do time
+4. Responda todos os comentários antes de fazer merge
+5. Após aprovação, faça squash merge ou merge commit conforme a convenção do projeto
+6. O merge em `master` dispara o **deploy automático**
 
 ## Critérios de merge
 
 Um PR pode ser mergeado quando:
 
-- CI passou (build, lint, testes, cobertura)
+- CI passou (build, lint, testes, cobertura 90% global / 100% no código novo)
 - Pelo menos 1 aprovação de revisor
 - Todos os comentários resolvidos
-- Sem conflitos com a branch de destino
+- Sem conflitos com `master`
 - DoD verificado
 
 ## Tamanho ideal de PR

@@ -129,10 +129,26 @@ export default defineConfig({
     coverage: {
       reporter: ['text', 'lcov'],
       exclude: ['**/*.test.*', 'e2e/**', 'src/test/**'],
+      thresholds: {
+        lines: 90,
+        functions: 90,
+        branches: 90,
+        statements: 90,
+      },
     },
   },
 });
 ```
+
+## Cobertura mínima
+
+Meta canônica (Confluence DROP/1574993927):
+
+- **90%** de cobertura global do projeto.
+- **100%** no código novo ou alterado em cada PR.
+
+O piso global de 90% é garantido pelos `thresholds` do Vitest (acima); a meta de 100% no
+código novo é verificada no PR (diff coverage).
 
 ## O que NÃO testar
 
