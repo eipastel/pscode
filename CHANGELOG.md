@@ -1,5 +1,35 @@
 ﻿# @thiagodiogo/pastelsdd
 
+## 2.16.0
+
+### Minor Changes
+
+- [#35](https://github.com/eipastel/pscode/pull/35) [`3d6b4a6`](https://github.com/eipastel/pscode/commit/3d6b4a61caebe005e53a6d3912647310a6b989bc) Thanks [@AddisonSouza](https://github.com/AddisonSouza)! - Add GitHub Projects (v2) as an alternative tracker alongside Trello
+
+  Introduces a second tracker integration that uses the `gh` CLI instead of the Trello MCP server. All tracker-aware commands now auto-detect which config is present (`pscode/trello.yaml` takes precedence; `pscode/github.yaml` is the fallback). No breaking changes for existing Trello users.
+
+  **New workflow: `github-setup`**
+
+  - Interactive wizard that auto-discovers project node ID, status field ID, and status option IDs via `gh` CLI and GraphQL, then writes `pscode/github.yaml`
+  - Configurable `issuePattern` prefix (e.g. `issue`, `task`, `rf`) to extract issue numbers from change names; manual `links:` map for overrides
+
+  **Updated workflow: `board-setup`**
+
+  - Now asks "Trello or GitHub Projects?" upfront, then runs the appropriate setup inline
+
+  **Updated workflows: `apply`, `complete`, `propose`**
+
+  - Dual-tracker detection: reads `trello.yaml` first (original behaviour preserved), then falls back to `github.yaml`
+  - GitHub Projects path updates project item status at each stage: `proposed → accepted → in_progress → in_review → done`
+  - Posts comments on GitHub Issues at key moments (refinement, apply start, validation, complete)
+  - All `gh` call failures are non-blocking — the workflow continues regardless
+
+  **New source module: `github-projects-config.ts`**
+
+  - `GitHubProjectsConfig` type, `readGitHubProjectsConfig`, `writeGitHubProjectsConfig`, `extractIssueNumber`, `resolveGhBin`, `resolveOwner`
+
+- [#34](https://github.com/eipastel/pscode/pull/34) [`3ad9b88`](https://github.com/eipastel/pscode/commit/3ad9b88768980b403f3c2e980f9a9d81f18d64e5) Thanks [@eipastel](https://github.com/eipastel)! - Re-sincroniza os context docs canônicos do perfil Dixi em `pscode/context/` durante o `pscode update`. Antes os docs só eram escritos no `init` e ficavam desatualizados; agora `applyDixiCommandOverrides` sobrescreve o conjunto canônico (shared/ sempre + java/ ou react/ conforme a stack registrada) e remove órfãos via manifest (`.pscode-context-manifest.json`), preservando arquivos custom do usuário.
+
 ## 2.15.0
 
 ### Minor Changes
