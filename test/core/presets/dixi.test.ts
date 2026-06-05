@@ -14,6 +14,9 @@ import {
   installDixiCommands,
   installDixiClaudeMd,
   migrateLegacyPastelsddDir,
+  syncContextDocs,
+  readContextManifest,
+  CONTEXT_MANIFEST_FILENAME,
 } from '../../../src/core/presets/dixi.js';
 import { InitCommand } from '../../../src/core/init.js';
 
@@ -319,6 +322,117 @@ describe('installDixiExtras — context docs', () => {
 
     const content = fsSync.readFileSync(path.join(contextDir, 'commits.md'), 'utf-8');
     expect(content).toBe('# Customizado pelo time');
+  });
+});
+
+// ── syncContextDocs (update re-sync) ─────────────────────────────────────────
+
+describe('syncContextDocs', () => {
+  let projectDir: string;
+
+  beforeEach(async () => {
+    projectDir = await makeTempDir();
+    vi.spyOn(console, 'log').mockImplementation(() => {});
+  });
+
+  afterEach(async () => {
+    await fs.rm(projectDir, { recursive: true, force: true });
+    vi.restoreAllMocks();
+  });
+
+  function contextPath(...parts: string[]): string {
+    return path.join(projectDir, 'pscode', 'context', ...parts);
+  }
+
+  it('3.1 sobrescreve doc gerenciado com drift pela versão canônica', () => {
+    syncContextDocs(projectDir, 'java-maven');
+    const canonical = fsSync.readFileSync(contextPath('commits.md'), 'utf-8');
+
+    // Drift local
+    fsSync.writeFileSync(contextPath('commits.md'), '# drift local');
+
+    const result = syncContextDocs(projectDir, 'java-maven');
+
+    expect(fsSync.readFileSync(contextPath('commits.md'), 'utf-8')).toBe(canonical);
+    expect(result.synced).toContain('commits.md');
+  });
+
+  it('3.2 preserva arquivo custom (fora do manifest) no overwrite e no prune', () => {
+    fsSync.mkdirSync(contextPath(), { recursive: true });
+    fsSync.writeFileSync(contextPath('meu-doc.md'), '# meu doc custom');
+
+    const result = syncContextDocs(projectDir, 'java-maven');
+
+    expect(fsSync.readFileSync(contextPath('meu-doc.md'), 'utf-8')).toBe('# meu doc custom');
+    expect(result.pruned).not.toContain('meu-doc.md');
+    expect(readContextManifest(projectDir)).not.toContain('meu-doc.md');
+  });
+
+  it('3.3 prune remove órfão por troca de stack (java → react)', () => {
+    // 1ª sync (java) cria o manifest e os docs java/shared
+    syncContextDocs(projectDir, 'java-maven');
+
+    // Simula um doc java-only gerenciado por uma versão anterior do pscode
+    fsSync.writeFileSync(contextPath('legacy-java.md'), '# java only');
+    const manifest = readContextManifest(projectDir);
+    fsSync.writeFileSync(
+      contextPath(CONTEXT_MANIFEST_FILENAME),
+      JSON.stringify({ managed: [...manifest, 'legacy-java.md'] }, null, 2)
+    );
+
+    const result = syncContextDocs(projectDir, 'next'); // família react
+
+    expect(fsSync.existsSync(contextPath('legacy-java.md'))).toBe(false);
+    expect(result.pruned).toContain('legacy-java.md');
+    // doc canônico de mesmo nome permanece (sobrescrito pela versão react)
+    expect(fsSync.readFileSync(contextPath('architecture.md'), 'utf-8')).toContain('Feature-Sliced');
+  });
+
+  it('3.3 prune remove órfão por doc removido da fonte canônica', () => {
+    syncContextDocs(projectDir, 'java-maven');
+
+    fsSync.writeFileSync(contextPath('removed-from-source.md'), '# antigo');
+    const manifest = readContextManifest(projectDir);
+    fsSync.writeFileSync(
+      contextPath(CONTEXT_MANIFEST_FILENAME),
+      JSON.stringify({ managed: [...manifest, 'removed-from-source.md'] }, null, 2)
+    );
+
+    const result = syncContextDocs(projectDir, 'java-maven');
+
+    expect(fsSync.existsSync(contextPath('removed-from-source.md'))).toBe(false);
+    expect(result.pruned).toContain('removed-from-source.md');
+  });
+
+  it('3.4 projeto sem manifest anterior não faz prune e grava o manifest', () => {
+    fsSync.mkdirSync(contextPath(), { recursive: true });
+    fsSync.writeFileSync(contextPath('custom-antigo.md'), '# custom pré-existente');
+
+    const result = syncContextDocs(projectDir, 'java-maven');
+
+    expect(result.pruned).toEqual([]);
+    expect(fsSync.existsSync(contextPath('custom-antigo.md'))).toBe(true);
+    expect(fsSync.existsSync(contextPath(CONTEXT_MANIFEST_FILENAME))).toBe(true);
+    expect(readContextManifest(projectDir)).toContain('commits.md');
+  });
+
+  it('3.5 família node/null sincroniza apenas shared/', () => {
+    const result = syncContextDocs(projectDir, null);
+
+    expect(fsSync.existsSync(contextPath('commits.md'))).toBe(true);
+    expect(fsSync.existsSync(contextPath('architecture.md'))).toBe(false);
+    expect(result.synced).toContain('commits.md');
+    expect(result.synced).not.toContain('architecture.md');
+  });
+
+  it('3.5 init permanece aditivo — copyContextDocs sem overwrite não sobrescreve', () => {
+    fsSync.mkdirSync(contextPath(), { recursive: true });
+    fsSync.writeFileSync(contextPath('commits.md'), '# original do time');
+
+    // installDixiExtras usa copyContextDocs no modo aditivo (sem overwrite)
+    installDixiExtras(projectDir, 'java-maven');
+
+    expect(fsSync.readFileSync(contextPath('commits.md'), 'utf-8')).toBe('# original do time');
   });
 });
 
