@@ -39,14 +39,14 @@ Implement tasks from a Pscode change.
 
    This is the FIRST action after selecting the change — signal immediately that development has started.
 
-   **Detect active tracker:**
-   1. Read `pscode/trello.yaml`. If found and `configured: true` → `tracker = "trello"`. Extract `boardId`, `lists.*`.
-   2. Else read `pscode/github.yaml`. If found → `tracker = "github"`. Extract all fields.
-   3. Else → `tracker = none`, skip to Step 3.
+   **Detect active tracker** using the **Read tool** (NOT shell commands):
+   1. Read `pscode/trello.yaml`. If found and `configured: true` → **tracker = trello**.
+   2. Else read `pscode/github.yaml`. If found → **tracker = github**.
+   3. Else → no tracker, skip to Step 3.
 
    ---
 
-   **If tracker = "trello":**
+   **If tracker = trello:**
 
    Parse and extract `boardId`, `lists.refining`, `lists.ready`, `lists.developing`, and `lists.testing`.
 
@@ -75,31 +75,31 @@ Implement tasks from a Pscode change.
 
    ---
 
-   **If tracker = "github":**
+   **If tracker = github:**
 
-   Parse and extract: `repo`, `project`, `projectNodeId`, `statusFieldId`, `statuses.in_progress`, `gh`, `issuePattern` (default: `issue`).
-   Extract owner from `repo` (component before `/`).
+   Parse and extract: `repo`, `project`, `projectNodeId`, `statusFieldId`, `statuses.in_progress`, `gh` (default: `gh`), `issuePattern` (default: `issue`).
+   Extract `owner` from `repo` (component before `/`).
 
    **Extract issue number from change name:**
-   - First check `links:` map in `pscode/github.yaml` for exact change name.
-   - Then match pattern `<issuePattern>-NN` → N as integer.
+   - First check `links:` map in `pscode/github.yaml` for an exact match on the change name.
+   - Then match pattern `<issuePattern>-NN` (e.g. `issue-42`) → N as integer.
    - No match → `issueNumber = null`.
 
-   **Find the GitHub Projects item (if issueNumber is not null):**
+   **Find the GitHub Projects item** (if `issueNumber` is not null):
    ```bash
    "<gh>" project item-list <project> --owner "<owner>" --format json
    ```
    Parse to find item where `content.number == issueNumber`. Save `id` as `ghItemId`.
    If not found → `ghItemId = null`, log and continue.
 
-   **Update status to "in_progress" (if ghItemId is not null and statuses.in_progress is configured):**
+   **Update status to `in_progress`** (if `ghItemId` is not null and `statuses.in_progress` is configured):
    ```bash
    "<gh>" project item-edit --id <ghItemId> --field-id <statusFieldId> --project-id <projectNodeId> --single-select-option-id <statuses.in_progress>
    ```
 
    Save `ghItemId`, `issueNumber`, and `ghConfig` for later steps.
 
-   If any gh call fails, continue — GitHub Projects is auxiliary, never blocking.
+   If any `gh` call fails, continue — GitHub Projects is auxiliary, never blocking.
 
 3. **Check status to understand the schema**
    ```bash
@@ -164,7 +164,7 @@ Implement tasks from a Pscode change.
         **Referência da task no corpo (tracker):**
         - **Trello:** if `pr.taskLinkInDescription` is not `false` and a `cardId` was saved in Step 2, prefix the body with `Task: <cardShortUrl>`. Skip gracefully when no `cardId`.
         - **GitHub Projects:** if `pr.taskLinkInDescription` is not `false` and `issueNumber` was saved in Step 2, prefix the body with `Task: https://github.com/<repo>/issues/<issueNumber>`. Skip gracefully when no `issueNumber`.
-        - Never block on this — always open the PR and patch the body later if needed.
+        - Never block on tracker reference — always open the PR and edit the body later if needed.
 
         `gh pr create --draft --title "<resolved title>" --body "<resolved body>"`.
      5. Capture the PR URL as `prUrl`.
@@ -222,7 +222,7 @@ Implement tasks from a Pscode change.
       - **Decisões técnicas** — the key decisions from `design.md`, as an enxuta list.
       - **Tasks concluídas** — the completed tasks from `tasks.md`.
       - **Escopo** — what is and isn't included, when available in the artifacts.
-      - **Referências** — the tracker item link (Trello card URL or GitHub Issue URL, when available) and `pscode/changes/<change-name>/`.
+      - **Referências** — the Trello card link (when a `cardId` was saved) and the `pscode/changes/<change-name>/` path.
 
       Keep each section concise — the goal is a self-sufficient PR, not a dump of the artifacts. Apply it via:
       ```bash
@@ -237,9 +237,9 @@ Implement tasks from a Pscode change.
 
    **Tratamento de falha (não-bloqueante):** if any `gh` call fails — `gh` not installed, not authenticated, no GitHub remote, or no PR — state what failed and how to fix it (e.g., `gh auth login`), and **continue the flow regardless**. Never block on PR population/promotion.
 
-   **8.1 — Update tracker to "testing/in_review" stage**
+   **8.1 — Update tracker to testing/in_review stage**
 
-   **If tracker = "trello"** and `cardId` was saved:
+   **If tracker = trello** and `cardId` was saved:
 
    a. If `lists.testing` is configured, move the card there:
       ```tool
@@ -261,9 +261,9 @@ Implement tasks from a Pscode change.
 
    If any Trello call fails, continue — Trello is auxiliary, never blocking.
 
-   **If tracker = "github"** and `ghItemId` was saved:
+   **If tracker = github** and `ghItemId` was saved:
 
-   a. Update status to "in_review" (if `statuses.in_review` is configured):
+   a. Update status to `in_review` (if `statuses.in_review` is configured):
       ```bash
       "<ghConfig.gh>" project item-edit --id <ghItemId> --field-id <ghConfig.statusFieldId> --project-id <ghConfig.projectNodeId> --single-select-option-id <ghConfig.statuses.in_review>
       ```
@@ -272,13 +272,13 @@ Implement tasks from a Pscode change.
       ```bash
       "<ghConfig.gh>" issue comment <issueNumber> --repo <ghConfig.repo> --body "Implementacao concluida via /ps:apply
 
-      Change: <change-name>
-      Tasks: <N>/<N> concluidas
+   Change: <change-name>
+   Tasks: <N>/<N> concluidas
 
-      Aguardando validacao antes de arquivar."
+   Aguardando validacao antes de arquivar."
       ```
 
-   If any gh call fails, continue — GitHub Projects is auxiliary, never blocking.
+   If any `gh` call fails, continue — GitHub Projects is auxiliary, never blocking.
 
 9. **Fase de Testes — validar implementação**
 
@@ -302,7 +302,7 @@ Implement tasks from a Pscode change.
 
    **Reatualizar o corpo do PR (não-bloqueante):** if `pscode/config.yaml` has `pr.enabled: true` and an active PR exists (`prUrl`), update the PR body again to incorporate the validation result — append a **Validação** section recording that the implementation was validated, who tested it (the user, or Claude via the `verify` skill), and the approved status. Apply via `gh pr edit --body "<updated body>"`, preserving the rich body from step 8. If `gh` fails, report it and continue — never block.
 
-   **If tracker = "trello"** and `cardId` was saved, and `lists.deploy` is configured:
+   If Trello is configured, `cardId` was saved, and `lists.deploy` is configured:
    a. Move the card to "Ready to Deploy":
       ```tool
       mcp__claude_ai_Trello_Custom__update_card  { card_id: "<cardId>", list_id: "<lists.deploy.id>" }
@@ -329,23 +329,6 @@ Implement tasks from a Pscode change.
 
    If any Trello call fails, continue — Trello is auxiliary, never blocking.
 
-   **If tracker = "github"** and `ghItemId` was saved:
-   Add a validation comment to the GitHub Issue (if `issueNumber` is not null):
-   ```bash
-   "<ghConfig.gh>" issue comment <issueNumber> --repo <ghConfig.repo> --body "Implementacao validada e aprovada.
-
-   Testado por: <usuario / Claude>
-   Status: Funcionando
-
-   ## Próximo passo
-
-   \`\`\`
-   /ps:complete \"<change-name>\"
-   \`\`\`"
-   ```
-
-   If any gh call fails, continue — GitHub Projects is auxiliary, never blocking.
-
    **If user reports a problem:**
    - Acknowledge the issue and ask for details
    - Resume implementation to fix the problem (loop back to step 7)
@@ -356,7 +339,7 @@ Implement tasks from a Pscode change.
    Display:
    - Tasks completed this session
    - Overall progress: "N/M tasks complete"
-   - If all done and approved: mention tracker stage (Trello list or GitHub Projects status) and suggest `/ps:complete`
+   - If all done and approved: mention Trello stage (Em Teste or Ready to Deploy) and suggest `/ps:complete`
    - If paused: explain why and wait for guidance
 
 **Output During Implementation**
@@ -433,11 +416,11 @@ What would you like to do?
 - Update task checkbox immediately after completing each task
 - Pause on errors, blockers, or unclear requirements — don't guess
 - Use contextFiles from CLI output, don't assume specific file names
-- If tracker tools fail (Trello MCP or gh CLI), continue normally — tracker integration is auxiliary, not blocking
+- If tracker tools fail (Trello MCP or `gh` CLI), continue normally — tracker integration is auxiliary, not blocking
 - When all tasks complete and a PR is active (`pr.enabled: true`), populate the PR with a rich fixed body (resumo, decisões técnicas, tasks concluídas, escopo, referências) via `gh pr edit --body` and promote it with `gh pr ready` — both non-blocking
 - After validation is approved, re-update the PR body to record the validation result; preserve the rich body and never block on `gh` failures
 - All content written to the tracker must be in Portuguese
-- Never advance the tracker to "deploy/done" stage without explicit user confirmation that the implementation is working
+- Never advance the tracker to "Ready to Deploy" / "done" stage without explicit user confirmation that the implementation is working
 - If the user reports a problem during testing, loop back to fix before asking again
 - Offer to invoke the `verify` skill when the user wants Claude to test — don't skip straight to archive
 

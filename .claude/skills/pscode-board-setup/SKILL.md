@@ -1,8 +1,11 @@
 ---
-name: "PS: Board Setup"
-description: "Configure your tracker board integration for the Pscode workflow — choose Trello or GitHub Projects, then run the appropriate setup"
-category: Setup
-tags: [board, trello, github, setup, integration, config]
+name: pscode-board-setup
+description: Configure your tracker board integration for the Pscode workflow. Choose between Trello (MCP-based) or GitHub Projects (gh CLI-based), then run the appropriate setup.
+compatibility: Requires pscode CLI. Trello requires the Trello MCP server; GitHub Projects requires the gh CLI.
+metadata:
+  author: pscode
+  version: "1.0"
+  generatedBy: "2.15.0"
 ---
 
 ## Asking the user
