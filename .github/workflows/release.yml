@@ -3,10 +3,18 @@ name: Release
 # Dispara quando um PR é fechado na main. Só publica de fato se o PR
 # foi MERGEADO e tinha a label "release". Assim não há mais o
 # "Version Packages" PR intermediário: mergeou com a label, libera tudo.
+#
+# Usa pull_request_target (e não pull_request) para que os secrets fiquem
+# disponíveis mesmo em PRs vindos de forks. É seguro porque o checkout abaixo
+# é sempre feito de "main" (código confiável já mergeado), nunca do head do
+# fork, e o job só roda após o merge (merged == true).
+#
+# workflow_dispatch permite disparar a release manualmente quando necessário.
 on:
-  pull_request:
+  pull_request_target:
     types: [closed]
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -19,9 +27,11 @@ concurrency:
 jobs:
   release:
     if: >
-      github.repository == 'eipastel/pscode' &&
-      github.event.pull_request.merged == true &&
-      contains(github.event.pull_request.labels.*.name, 'release')
+      github.repository == 'eipastel/pscode' && (
+        github.event_name == 'workflow_dispatch' ||
+        (github.event.pull_request.merged == true &&
+         contains(github.event.pull_request.labels.*.name, 'release'))
+      )
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
