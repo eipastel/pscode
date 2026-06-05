@@ -37,7 +37,7 @@ If the Read tool returns an error (file not found), treat it as "NO_TRELLO_CONFI
 
 **If file not found:**
 > ⚠️ Trello não está configurado neste projeto.
-> Execute `/ps:trello-setup` para configurar a integração antes de usar este comando.
+> Execute `/ps:board-setup` para configurar a integração antes de usar este comando.
 
 Stop here if no config.
 
@@ -50,7 +50,7 @@ Parse the YAML and extract:
 **If `lists.backlog` is not configured:**
 > ⚠️ Estágio "backlog" não está configurado em `pscode/trello.yaml`.
 >
-> Execute `/ps:trello-setup` para configurar a integração.
+> Execute `/ps:board-setup` para configurar a integração.
 
 Stop here if backlog list is missing.
 

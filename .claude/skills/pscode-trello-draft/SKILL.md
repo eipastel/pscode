@@ -1,11 +1,11 @@
 ---
 name: pscode-trello-draft
 description: Capture a raw idea or concept into the Backlog Trello list. Use when the user wants to quickly record something without refining it into a task yet.
-compatibility: Requires pscode CLI and Trello MCP server configured via /ps:trello-setup.
+compatibility: Requires pscode CLI and Trello MCP server configured via /ps:board-setup.
 metadata:
   author: pscode
   version: "1.0"
-  generatedBy: "2.11.0"
+  generatedBy: "2.15.0"
 ---
 
 ## Asking the user
@@ -40,7 +40,7 @@ If the Read tool returns an error (file not found), treat it as "NO_TRELLO_CONFI
 
 **If file not found:**
 > ⚠️ Trello não está configurado neste projeto.
-> Execute `/ps:trello-setup` para configurar a integração antes de usar este comando.
+> Execute `/ps:board-setup` para configurar a integração antes de usar este comando.
 
 Stop here if no config.
 
@@ -53,7 +53,7 @@ Parse the YAML and extract:
 **If `lists.backlog` is not configured:**
 > ⚠️ Estágio "backlog" não está configurado em `pscode/trello.yaml`.
 >
-> Execute `/ps:trello-setup` para configurar a integração.
+> Execute `/ps:board-setup` para configurar a integração.
 
 Stop here if backlog list is missing.
 

@@ -5,7 +5,7 @@ compatibility: Requires pscode CLI.
 metadata:
   author: pscode
   version: "1.0"
-  generatedBy: "2.11.0"
+  generatedBy: "2.15.0"
 ---
 
 ## Asking the user
@@ -382,7 +382,7 @@ Se `pscode/trello.yaml` não existir (Read retorna erro), **não bloqueie**:
 
 - Exiba as fatias propostas no chat (título + recorte de cada uma) para registro
   manual.
-- Oriente rodar `/ps:trello-setup` para habilitar a captura automática no Backlog.
+- Oriente rodar `/ps:board-setup` para habilitar a captura automática no Backlog.
 - A decomposição (o pensamento) tem valor mesmo sem Trello.
 
 ---

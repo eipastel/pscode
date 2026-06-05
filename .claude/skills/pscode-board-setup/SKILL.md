@@ -1,8 +1,11 @@
 ---
-name: "PS: Trello Setup"
-description: "Configure Trello integration for your Pscode workflow — checks MCP, reads or creates a board, and writes pscode/trello.yaml"
-category: Setup
-tags: [trello, setup, integration, config]
+name: pscode-board-setup
+description: Configure your tracker board integration for the Pscode workflow. Choose between Trello (MCP-based) or GitHub Projects (gh CLI-based), then run the appropriate setup.
+compatibility: Requires pscode CLI. Trello requires the Trello MCP server; GitHub Projects requires the gh CLI.
+metadata:
+  author: pscode
+  version: "1.0"
+  generatedBy: "2.15.0"
 ---
 
 ## Asking the user
@@ -20,15 +23,36 @@ When this workflow needs a decision or confirmation from the user, prefer the
 - Do NOT use `AskUserQuestion` for progress updates or status messages — only
   for genuine questions that need the user's input.
 
-Configure Trello integration for your Pscode workflow.
+Configure your tracker board integration for your Pscode workflow.
 
-This skill writes `pscode/trello.yaml` — a small config file that all Trello-aware commands
-(`/ps:task`, `/ps:draft`, `/ps:propose`, `/ps:apply`, `/ps:archive`) read at
-runtime to know which Trello list corresponds to each workflow stage and which labels are available.
+Pscode supports two trackers out of the box:
+- **Trello** — MCP-based; writes `pscode/trello.yaml`
+- **GitHub Projects** — `gh` CLI-based; writes `pscode/github.yaml`
+
+At runtime, `/ps:propose`, `/ps:apply`, and `/ps:complete` auto-detect which config
+is present (`trello.yaml` takes precedence when both exist).
 
 ---
 
-## Step 1 — Check MCP availability
+## Step 0 — Choose tracker
+
+Use **AskUserQuestion** to ask:
+
+> "Qual tracker você quer integrar ao Pscode?"
+
+Options:
+- 🟦 Trello — usa Trello MCP; requer o servidor MCP do Trello configurado
+- 🐙 GitHub Projects — usa `gh` CLI; não precisa de MCP (Recomendada se já usa GitHub)
+
+**If GitHub Projects:** execute the full `/ps:github-setup` workflow inline:
+follow every step in that command's instructions to auto-discover project IDs and
+write `pscode/github.yaml`. Do NOT delegate to a subagent — run the steps here.
+
+**If Trello:** continue with the steps below.
+
+---
+
+## Step 1 — Check MCP availability (Trello only)
 
 Try to identify the current Trello user:
 
@@ -43,13 +67,13 @@ mcp__claude_ai_Trello_Custom__get_me
 > ```
 > claude mcp add trello <server-url>
 > ```
-> Then restart Claude Code and re-run `/ps:trello-setup`.
+> Then restart Claude Code and re-run `/ps:board-setup`.
 
 Stop here if MCP is unavailable.
 
 ---
 
-## Step 2 — Read existing config
+## Step 2 — Read existing config (Trello only)
 
 Use the **Read tool** (NOT a shell command) to read `pscode/trello.yaml` from the current working directory.
 The Read tool is cross-platform and works on Windows, macOS, and Linux — never use `cat` or shell commands to read this file.
@@ -95,7 +119,7 @@ Proceed to Step 3 normally (full interactive flow).
 
 ---
 
-## Step 3 — Select or create board
+## Step 3 — Select or create board (Trello only)
 
 **(Skip this step if partial config was found in Step 2B)**
 
@@ -220,7 +244,7 @@ If any `create_label` call fails, log the error and continue — labels are auxi
 
 ---
 
-## Step 4 — Write final configuration
+## Step 4 — Write final configuration (Trello only)
 
 Assemble and write `pscode/trello.yaml` with `configured: true`.
 
@@ -272,7 +296,7 @@ labels:
 
 ---
 
-## Step 5 — Confirm and summarize
+## Step 5 — Confirm and summarize (Trello only)
 
 ```
 ## ✅ Trello configurado com sucesso!

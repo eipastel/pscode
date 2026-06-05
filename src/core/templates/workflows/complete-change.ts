@@ -96,13 +96,18 @@ function getArchiveInstructions(): string {
    mv "<changeRoot>" "<planningHome.changesDir>/archive/YYYY-MM-DD-<name>"
    \`\`\`
 
-6. **Trello Integration — move card to "Concluído" (optional)**
+6. **Tracker Integration — mark change as done (optional)**
 
-   Use the **Read tool** (NOT a shell command) to read \`pscode/trello.yaml\` from the current working directory.
-   The Read tool is cross-platform and works on Windows, macOS, and Linux — never use \`cat\` or shell commands to read this file.
-   If the Read tool returns an error (file not found), skip all Trello steps.
+   **Detect active tracker** using the **Read tool** (NOT shell commands):
+   1. Read \`pscode/trello.yaml\`. If found and \`configured: true\` → **tracker = trello**.
+   2. Else read \`pscode/github.yaml\`. If found → **tracker = github**.
+   3. Else → no tracker, skip to Step 7.
 
-   Otherwise parse and extract \`boardId\`, \`lists.done\` (and optionally \`lists.testing\`, \`lists.deploy\`, \`lists.developing\`, \`lists.ready\`, \`lists.refining\`, \`lists.backlog\`).
+   ---
+
+   **If tracker = trello:**
+
+   Parse and extract \`boardId\`, \`lists.done\` (and optionally all other lists).
 
    Search for the change's card across all configured lists in reverse-workflow order:
    \`deploy\` → \`testing\` → \`developing\` → \`ready\` → \`refining\` → \`backlog\`.
@@ -155,6 +160,45 @@ function getArchiveInstructions(): string {
 
    If any Trello call fails, continue — Trello is auxiliary, never blocking.
 
+   ---
+
+   **If tracker = github:**
+
+   Parse and extract: \`repo\`, \`project\`, \`projectNodeId\`, \`statusFieldId\`, \`statuses.done\`, \`gh\` (default: \`gh\`), \`issuePattern\` (default: \`issue\`).
+   Extract \`owner\` from \`repo\` (component before \`/\`).
+
+   **Extract issue number from change name:**
+   - First check \`links:\` map in \`pscode/github.yaml\` for an exact match.
+   - Then match pattern \`<issuePattern>-NN\` → N as integer.
+   - No match → \`issueNumber = null\`.
+
+   **Find the GitHub Projects item** (if \`issueNumber\` is not null):
+   \`\`\`bash
+   "<gh>" project item-list <project> --owner "<owner>" --format json
+   \`\`\`
+   Parse to find item where \`content.number == issueNumber\`. Save \`id\` as \`ghItemId\`.
+   If not found → \`ghItemId = null\`, log and continue.
+
+   **Update status to \`done\`** (if \`ghItemId\` is not null and \`statuses.done\` is configured):
+   \`\`\`bash
+   "<gh>" project item-edit --id <ghItemId> --field-id <statusFieldId> --project-id <projectNodeId> --single-select-option-id <statuses.done>
+   \`\`\`
+
+   **Add a completion comment to the GitHub Issue** (if \`issueNumber\` is not null):
+   \`\`\`bash
+   "<gh>" issue comment <issueNumber> --repo <repo> --body "Change concluida via /ps:complete
+
+   Change: <change-name>
+   Schema: <schema-name>
+   Arquivada em: <archive-path>
+   Specs: <sincronizado / sem delta specs>
+   Tasks: <N>/<N> concluidas
+
+   Fluxo encerrado. Nenhuma acao adicional necessaria."
+   \`\`\`
+
+   If any \`gh\` call fails, continue — GitHub Projects is auxiliary, never blocking.
+
 7. **PR Integration — promover o PR de draft (opcional, com confirmação)**
 
    Use the **Read tool** to read \`pscode/config.yaml\` from the current working directory.
@@ -200,7 +244,7 @@ function getArchiveInstructions(): string {
    - Spec sync status (synced / no delta specs)
    - PR status (promovido para ready for review / mantido em draft / sem PR)
    - Note about any warnings (incomplete artifacts/tasks that were archived anyway)
-   - Trello: mention if card was moved to "Concluído"
+   - Tracker: mention if card was moved to "Concluído" (Trello) or status updated to "done" (GitHub Projects)
 
 **Output On Success**
 
@@ -212,7 +256,7 @@ function getArchiveInstructions(): string {
 **Archived to:** <archive-path>
 **Specs:** ✓ Synced to main specs
 **PR:** Promovido para ready for review    ← only shown if a PR was eligible (promovido / mantido em draft)
-**Trello:** Card moved to ✅ Concluído    ← only shown if Trello is configured
+**Tracker:** <Card moved to ✅ Concluído / Status updated to ✅ done>    ← only shown if a tracker is configured
 
 All artifacts complete. All tasks complete.
 \`\`\`
@@ -227,7 +271,7 @@ All artifacts complete. All tasks complete.
 **Archived to:** <archive-path>
 **Specs:** ✓ Synced to main specs
 **PR:** Promovido para ready for review    ← only shown if a PR was eligible (promovido / mantido em draft)
-**Trello:** Card moved to ✅ Concluído    ← only shown if Trello is configured
+**Tracker:** <Card moved to ✅ Concluído / Status updated to ✅ done>    ← only shown if a tracker is configured
 
 **Warnings:**
 - Archived with 2 incomplete artifacts
@@ -262,7 +306,7 @@ Target archive directory already exists.
 - Preserve .pscode.yaml when moving to archive (it moves with the directory)
 - Show clear summary of what happened
 - If delta specs exist, sync them inline yourself (agent-driven merge into main specs) — there is no \`pscode-sync-specs\` skill
-- If Trello tools fail, continue normally — Trello is auxiliary, not blocking
-- All content written to Trello must be in Portuguese
+- If tracker tools fail (Trello MCP or \`gh\` CLI), continue normally — tracker integration is auxiliary, not blocking
+- All content written to the tracker must be in Portuguese
 `;
 }

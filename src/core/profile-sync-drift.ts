@@ -18,6 +18,7 @@ export const WORKFLOW_TO_SKILL_DIR: Record<WorkflowId, string> = {
   'propose': 'pscode-propose',
   // Tracker board workflows
   'board-setup': 'pscode-board-setup',
+  'github-setup': 'pscode-github-setup',
   'draft': 'pscode-trello-draft',
   // Productivity workflows
   'handoff': 'pscode-handoff',

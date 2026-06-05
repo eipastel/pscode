@@ -12,16 +12,20 @@ import {
 
 describe('profiles', () => {
   describe('ALL_WORKFLOWS', () => {
-    it('should contain all 7 workflows', () => {
-      expect(ALL_WORKFLOWS).toHaveLength(7);
+    it('should contain all 8 workflows', () => {
+      expect(ALL_WORKFLOWS).toHaveLength(8);
     });
 
     it('should contain expected workflow IDs', () => {
       const expected = [
         'propose', 'explore', 'apply', 'complete',
-        'board-setup', 'draft', 'handoff',
+        'board-setup', 'github-setup', 'draft', 'handoff',
       ];
       expect([...ALL_WORKFLOWS]).toEqual(expected);
+    });
+
+    it('should contain github-setup', () => {
+      expect(ALL_WORKFLOWS).toContain('github-setup');
     });
 
     it('should not contain the removed sync workflow', () => {
@@ -54,7 +58,7 @@ describe('profiles', () => {
       }
     });
 
-    const UNIFIED = ['propose', 'explore', 'apply', 'complete', 'draft', 'handoff', 'board-setup'];
+    const UNIFIED = ['propose', 'explore', 'apply', 'complete', 'draft', 'handoff', 'board-setup', 'github-setup'];
 
     it('standard profile should contain the unified workflow list', () => {
       expect([...PROFILES.standard.workflows]).toEqual(UNIFIED);
@@ -68,9 +72,10 @@ describe('profiles', () => {
       expect([...PROFILES.dixi.workflows]).toEqual([...PROFILES.standard.workflows]);
     });
 
-    it('both profiles use board-setup (not trello-setup) and never grill-me', () => {
+    it('both profiles use board-setup and github-setup (not trello-setup) and never grill-me', () => {
       for (const def of Object.values(PROFILES)) {
         expect(def.workflows).toContain('board-setup');
+        expect(def.workflows).toContain('github-setup');
         expect(def.workflows).not.toContain('trello-setup');
         expect(def.workflows).not.toContain('grill-me');
       }

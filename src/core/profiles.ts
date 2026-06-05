@@ -12,6 +12,7 @@ export const ALL_WORKFLOWS = [
   'apply',
   'complete',
   'board-setup',
+  'github-setup',
   'draft',
   'handoff',
 ] as const;
@@ -31,6 +32,7 @@ const UNIFIED_WORKFLOWS = [
   'draft',
   'handoff',
   'board-setup',
+  'github-setup',
 ] as const satisfies readonly WorkflowId[];
 
 export const PROFILES = {
