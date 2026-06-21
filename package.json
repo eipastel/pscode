@@ -1,6 +1,6 @@
 {
   "name": "@thiagodiogo/pscode",
-  "version": "2.16.0",
+  "version": "3.0.0",
   "description": "Installs a guided, spec-driven workflow (commands, skills, instructions) into your coding agent.",
   "keywords": [
     "pscode",
