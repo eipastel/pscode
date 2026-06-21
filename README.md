@@ -29,9 +29,11 @@ cd your-project
 pscode init        # interactive wizard: pick agents + board, scaffold pscode/
 ```
 
-`init` is interactive by default (it asks which agents to install and whether to
-create a local board). Pass `--yes` for a non-interactive run with defaults, or
-`--agent <id>` / `--no-board` to set choices explicitly.
+`init` is interactive by default: it first asks the **wizard language** (English
+or Português), then which agents to install and whether to create a local board.
+The language only affects the wizard — installed commands and skills are always
+in English. Pass `--yes` for a non-interactive run with defaults, or
+`--lang <code>` / `--agent <id>` / `--no-board` to set choices explicitly.
 
 Then, inside your agent:
 

@@ -34,6 +34,24 @@ describe('pscode CLI lifecycle', () => {
     expect(res.stderr).toContain('Unknown agent');
   });
 
+  it('localizes the wizard output (pt) but keeps installed content in English', async () => {
+    dir = makeTmpProject();
+    const res = await runCLI(['init', '--lang', 'pt', '--agent', 'claude', '--yes'], { cwd: dir });
+    expect(res.exitCode).toBe(0);
+    expect(res.stdout).toContain('inicializado');
+    expect(res.stdout).toContain('Agentes:');
+    // The language only affects the wizard; installed content stays English.
+    const skill = readFileSync(path.join(dir, '.claude/skills/pscode-guided-sdd/SKILL.md'), 'utf-8');
+    expect(skill).toContain('Non-negotiable rules');
+  });
+
+  it('init rejects an unknown language', async () => {
+    dir = makeTmpProject();
+    const res = await runCLI(['init', '--lang', 'xx', '--yes'], { cwd: dir });
+    expect(res.exitCode).toBe(1);
+    expect(res.stderr).toContain('Unknown language');
+  });
+
   it('doctor passes on a fresh init and reports issues otherwise', async () => {
     dir = makeTmpProject();
     const before = await runCLI(['doctor'], { cwd: dir });

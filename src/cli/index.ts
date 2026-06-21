@@ -31,12 +31,14 @@ export function buildProgram(): Command {
     .command('init')
     .description('Install the guided SDD workflow into this project (interactive wizard by default)')
     .option('-a, --agent <id>', 'agent to install (repeatable): claude, codex, cursor, gemini', collect, [])
+    .option('-l, --lang <code>', 'wizard language: en, pt')
     .option('--no-board', 'do not create pscode/board.yaml')
     .option('-y, --yes', 'skip prompts and accept defaults (non-interactive)')
     .action(async (opts) => {
       await runInit({
         agents: opts.agent,
         board: opts.board,
+        lang: opts.lang,
         yes: opts.yes,
       });
     });
