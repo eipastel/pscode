@@ -3,7 +3,7 @@
  *
  * Only files PSCode owns are rewritten: slash commands, skills, the change
  * templates, the managed AGENTS.md/CLAUDE.md block, and the config version.
- * User content — changes, board cards, custom instructions — is preserved.
+ * User content — changes and custom instructions — is preserved.
  */
 
 import chalk from 'chalk';
@@ -37,10 +37,10 @@ export async function runUpdate(opts: UpdateOptions = {}): Promise<void> {
 
   for (const agentId of agents) installAgent(projectRoot, agentId);
   installChangeTemplates(projectRoot);
-  const instructionFiles = syncInstructionFiles(projectRoot);
+  const instructionFiles = syncInstructionFiles(projectRoot, agents);
 
-  // Refresh the version (and recorded agents) without touching board settings.
-  writeConfig(projectRoot, buildConfig({ agents, board: config.board.enabled }));
+  // Refresh the version (and recorded agents) in place.
+  writeConfig(projectRoot, buildConfig({ agents }));
 
   console.log(chalk.green(`\n✓ PSCode updated to v${PSCODE_VERSION}\n`));
   console.log(`  ${chalk.bold('Agents:')} ${agents.join(', ') || '(none)'}`);

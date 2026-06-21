@@ -32,13 +32,17 @@ export function buildProgram(): Command {
     .description('Install the guided SDD workflow into this project (interactive wizard by default)')
     .option('-a, --agent <id>', 'agent to install (repeatable): claude, codex, cursor, gemini', collect, [])
     .option('-l, --lang <code>', 'wizard language: en, pt')
-    .option('--no-board', 'do not create pscode/board.yaml')
+    .option('--bypass-permissions', 'enable Claude Code bypassPermissions mode in .claude/settings.json')
+    .option('--no-bypass-permissions', 'do not enable bypassPermissions mode')
+    .option('--open', 'open the selected agent CLI when init finishes (Claude Code preferred)')
+    .option('--no-open', 'do not open an agent when init finishes')
     .option('-y, --yes', 'skip prompts and accept defaults (non-interactive)')
     .action(async (opts) => {
       await runInit({
         agents: opts.agent,
-        board: opts.board,
         lang: opts.lang,
+        bypassPermissions: opts.bypassPermissions,
+        open: opts.open,
         yes: opts.yes,
       });
     });

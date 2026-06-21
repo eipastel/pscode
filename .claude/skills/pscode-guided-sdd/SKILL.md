@@ -1,6 +1,6 @@
 ---
 name: pscode-guided-sdd
-description: "Drives a change through short, validated steps: understand → questions → mini spec → design → tasks → one task at a time → review → done. Use it to guide any change from start to finish."
+description: "Drives a change through short, validated steps: draft → questions → mini spec → design → tasks → one task at a time → review → done. Use it to guide any change from start to finish."
 generatedBy: 2.16.0
 ---
 
@@ -11,7 +11,7 @@ You guide a change through short, **human-validated** steps. The product is
 
 ## Flow
 
-1. **Understand** — read the request. Create/update `pscode/changes/<slug>/brief.md`.
+1. **Draft** — read the request (`/ps:draft`). Create/update `pscode/changes/<slug>/brief.md`.
 2. **Questions** — use `pscode-grill-me` (max 5 questions). Record in `questions.md`.
 3. **Mini spec** — use `pscode-mini-spec` to write a short `brief.md`.
 4. **Design** — write `design.md`: likely files, decisions, risks. Keep it short.

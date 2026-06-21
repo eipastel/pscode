@@ -32,20 +32,42 @@ export interface Agent {
   name: string;
   /** Root config directory the agent reads (e.g. `.claude`). */
   dir: string;
+  /** Project instruction file the agent reads (e.g. `CLAUDE.md`). */
+  instructionFile: string;
   /** Paths whose presence signals the agent is in use (relative to project root). */
   detectionPaths: string[];
+  /**
+   * CLI command that launches the agent in the project. Omitted when there is
+   * no unambiguous CLI to hand the terminal off to (e.g. Cursor).
+   */
+  launchCommand?: string;
 }
 
 /** Agents PSCode can install the guided workflow into. */
 export const AGENTS: Agent[] = [
-  { id: 'claude', name: 'Claude Code', dir: '.claude', detectionPaths: ['.claude'] },
-  { id: 'codex', name: 'Codex', dir: '.codex', detectionPaths: ['.codex'] },
-  { id: 'cursor', name: 'Cursor', dir: '.cursor', detectionPaths: ['.cursor'] },
-  { id: 'gemini', name: 'Gemini CLI', dir: '.gemini', detectionPaths: ['.gemini'] },
+  { id: 'claude', name: 'Claude Code', dir: '.claude', instructionFile: 'CLAUDE.md', detectionPaths: ['.claude'], launchCommand: 'claude' },
+  { id: 'codex', name: 'Codex', dir: '.codex', instructionFile: 'AGENTS.md', detectionPaths: ['.codex'], launchCommand: 'codex' },
+  { id: 'cursor', name: 'Cursor', dir: '.cursor', instructionFile: 'AGENTS.md', detectionPaths: ['.cursor'] },
+  { id: 'gemini', name: 'Gemini CLI', dir: '.gemini', instructionFile: 'AGENTS.md', detectionPaths: ['.gemini'], launchCommand: 'gemini' },
 ];
 
 export function getAgent(id: string): Agent | undefined {
   return AGENTS.find((a) => a.id === id);
+}
+
+/**
+ * The distinct instruction files the given agents read. Claude Code uses
+ * `CLAUDE.md`; the others share the cross-agent `AGENTS.md`. Falls back to
+ * `AGENTS.md` when no known agent is given.
+ */
+export function instructionFilesFor(agentIds: string[]): string[] {
+  const files = new Set<string>();
+  for (const id of agentIds) {
+    const agent = getAgent(id);
+    if (agent) files.add(agent.instructionFile);
+  }
+  if (files.size === 0) files.add('AGENTS.md');
+  return [...files];
 }
 
 /** Default profile installed by `pscode init`. */
@@ -61,13 +83,3 @@ export const DEFAULT_LIMITS = {
   max_design_lines: 30,
   max_questions: 5,
 } as const;
-
-/** The board states, from idea to done. */
-export const BOARD_STATES = [
-  'draft',
-  'spec-review',
-  'ready',
-  'doing',
-  'review',
-  'done',
-] as const;

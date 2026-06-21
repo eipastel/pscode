@@ -14,17 +14,54 @@ describe('pscode CLI lifecycle', () => {
     expect(res.exitCode).toBe(0);
 
     expect(existsSync(path.join(dir, 'pscode/config.yaml'))).toBe(true);
-    expect(existsSync(path.join(dir, 'pscode/board.yaml'))).toBe(true);
     expect(existsSync(path.join(dir, 'pscode/changes'))).toBe(true);
-    expect(existsSync(path.join(dir, '.claude/commands/ps/do.md'))).toBe(true);
+    expect(existsSync(path.join(dir, '.claude/commands/ps/draft.md'))).toBe(true);
     expect(existsSync(path.join(dir, '.claude/skills/pscode-guided-sdd/SKILL.md'))).toBe(true);
-    expect(readFileSync(path.join(dir, 'AGENTS.md'), 'utf-8')).toContain('PSCODE:START');
+    // Claude Code reads CLAUDE.md; no AGENTS.md for a Claude-only project.
+    expect(readFileSync(path.join(dir, 'CLAUDE.md'), 'utf-8')).toContain('PSCODE:START');
+    expect(existsSync(path.join(dir, 'AGENTS.md'))).toBe(false);
   });
 
-  it('init --no-board skips the board', async () => {
+  it('init writes bypassPermissions by default in non-interactive mode', async () => {
     dir = makeTmpProject();
-    await runCLI(['init', '--agent', 'claude', '--yes', '--no-board'], { cwd: dir });
-    expect(existsSync(path.join(dir, 'pscode/board.yaml'))).toBe(false);
+    const res = await runCLI(['init', '--agent', 'claude', '--yes'], { cwd: dir });
+    expect(res.exitCode).toBe(0);
+
+    const settings = JSON.parse(readFileSync(path.join(dir, '.claude/settings.json'), 'utf-8'));
+    expect(settings.permissions.defaultMode).toBe('bypassPermissions');
+  });
+
+  it('init --no-bypass-permissions skips the settings file', async () => {
+    dir = makeTmpProject();
+    const res = await runCLI(['init', '--agent', 'claude', '--no-bypass-permissions', '--yes'], {
+      cwd: dir,
+    });
+    expect(res.exitCode).toBe(0);
+    expect(existsSync(path.join(dir, '.claude/settings.json'))).toBe(false);
+  });
+
+  it('init does not write Claude settings when only non-Claude agents are selected', async () => {
+    dir = makeTmpProject();
+    const res = await runCLI(['init', '--agent', 'codex', '--yes'], { cwd: dir });
+    expect(res.exitCode).toBe(0);
+    expect(existsSync(path.join(dir, '.claude/settings.json'))).toBe(false);
+  });
+
+  it('without a terminal, init hints how to open the agent (Claude preferred)', async () => {
+    dir = makeTmpProject();
+    // Piped stdio (no TTY) — the agent is never launched, only hinted.
+    const res = await runCLI(['init', '--agent', 'gemini', '--agent', 'claude', '--yes'], {
+      cwd: dir,
+    });
+    expect(res.exitCode).toBe(0);
+    expect(res.stdout).toContain('Run `claude`');
+  });
+
+  it('init --no-open does not hint or launch an agent', async () => {
+    dir = makeTmpProject();
+    const res = await runCLI(['init', '--agent', 'claude', '--no-open', '--yes'], { cwd: dir });
+    expect(res.exitCode).toBe(0);
+    expect(res.stdout).not.toContain('Run `claude`');
   });
 
   it('init rejects an unknown agent', async () => {
@@ -77,6 +114,26 @@ describe('pscode CLI lifecycle', () => {
     expect(existsSync(path.join(dir, '.claude/skills/pscode-guided-sdd/SKILL.md'))).toBe(true);
   });
 
+  it('update wipes stale PSCode commands and skills', async () => {
+    dir = makeTmpProject();
+    await runCLI(['init', '--agent', 'claude', '--yes'], { cwd: dir });
+
+    // Simulate artifacts from an older version that no longer exist.
+    const staleCmd = path.join(dir, '.claude/commands/ps/old.md');
+    const staleSkill = path.join(dir, '.claude/skills/pscode-old/SKILL.md');
+    writeFileSync(staleCmd, '# old\n');
+    mkdirSync(path.dirname(staleSkill), { recursive: true });
+    writeFileSync(staleSkill, '# old skill\n');
+
+    const res = await runCLI(['update'], { cwd: dir });
+    expect(res.exitCode).toBe(0);
+    // Stale artifacts are gone; current ones are rewritten.
+    expect(existsSync(staleCmd)).toBe(false);
+    expect(existsSync(path.join(dir, '.claude/skills/pscode-old'))).toBe(false);
+    expect(existsSync(path.join(dir, '.claude/commands/ps/draft.md'))).toBe(true);
+    expect(existsSync(path.join(dir, '.claude/skills/pscode-guided-sdd/SKILL.md'))).toBe(true);
+  });
+
   it('status lists changes with a derived state', async () => {
     dir = makeTmpProject();
     await runCLI(['init', '--agent', 'claude', '--yes'], { cwd: dir });
@@ -99,7 +156,7 @@ describe('pscode CLI lifecycle', () => {
 
     const clean = await runCLI(['clean', '--yes'], { cwd: dir });
     expect(clean.exitCode).toBe(0);
-    expect(existsSync(path.join(dir, '.claude/commands/ps/do.md'))).toBe(false);
+    expect(existsSync(path.join(dir, '.claude/commands/ps/draft.md'))).toBe(false);
     expect(existsSync(path.join(cdir, 'brief.md'))).toBe(true); // user change kept
     expect(existsSync(path.join(dir, 'pscode/templates'))).toBe(false);
 
@@ -113,6 +170,6 @@ describe('pscode CLI lifecycle', () => {
     await runCLI(['init', '--agent', 'claude', '--yes'], { cwd: dir });
     const res = await runCLI(['clean'], { cwd: dir });
     expect(res.exitCode).toBe(0);
-    expect(existsSync(path.join(dir, '.claude/commands/ps/do.md'))).toBe(true);
+    expect(existsSync(path.join(dir, '.claude/commands/ps/draft.md'))).toBe(true);
   });
 });

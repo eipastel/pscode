@@ -1,12 +1,12 @@
 ---
-name: "ps:do"
-description: Takes a natural-language request and starts a guided change.
+name: "ps:draft"
+description: Takes a natural-language request and drafts a guided change.
 generatedBy: 2.16.0
 ---
 
-# /ps:do
+# /ps:draft
 
-Take a natural-language request from the user and start a guided change.
+Take a natural-language request from the user and draft a guided change.
 
 Use the **pscode-guided-sdd** skill.
 

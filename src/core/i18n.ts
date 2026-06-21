@@ -31,18 +31,23 @@ export function isSupportedLocale(value: string): boolean {
 export interface InitMessages {
   selectLanguage: string;
   selectAgents: string;
+  /** Pinned footer hint for the agents checkbox. */
+  agentsHint: string;
   atLeastOneAgent: string;
-  createBoard: string;
+  /** Confirm prompt for Claude Code's bypassPermissions mode. */
+  bypassPermissionsPrompt: string;
+  /** Confirm prompt to open the agent after install (agent name interpolated). */
+  openAgentPrompt: (agent: string) => string;
+  /** Hint shown (instead of launching) when there is no terminal to hand off. */
+  openHint: (command: string) => string;
   initialized: string;
   reinitialized: string;
   agentsLabel: string;
-  boardLabel: string;
   configLabel: string;
   docsLabel: string;
-  boardEnabled: string;
-  boardDisabled: string;
+  settingsLabel: string;
   nextStepHint: string;
-  /** The example request shown after `/ps:do`. */
+  /** The example request shown after `/ps:draft`. */
   nextStepExample: string;
 }
 
@@ -50,32 +55,36 @@ const MESSAGES: Record<string, InitMessages> = {
   en: {
     selectLanguage: 'Select language',
     selectAgents: 'Select agents to set up',
+    agentsHint: 'Space to select · A toggle all · I invert · Enter to confirm',
     atLeastOneAgent: 'Select at least one agent.',
-    createBoard: 'Create a local board (pscode/board.yaml)?',
+    bypassPermissionsPrompt:
+      'Enable Claude Code bypassPermissions mode (skips approval prompts) in .claude/settings.json?',
+    openAgentPrompt: (agent) => `Open ${agent} now?`,
+    openHint: (command) => `Run \`${command}\` to start your agent.`,
     initialized: 'PSCode initialized',
     reinitialized: 'PSCode re-initialized',
     agentsLabel: 'Agents:',
-    boardLabel: 'Board:',
     configLabel: 'Config:',
     docsLabel: 'Docs:',
-    boardEnabled: 'enabled (pscode/board.yaml)',
-    boardDisabled: 'disabled',
+    settingsLabel: 'Settings:',
     nextStepHint: 'Start a change inside your agent:',
     nextStepExample: 'describe what you want to build',
   },
   pt: {
     selectLanguage: 'Selecione o idioma',
     selectAgents: 'Selecione os agentes para configurar',
+    agentsHint: 'Espaço seleciona · A marca todos · I inverte · Enter confirma',
     atLeastOneAgent: 'Selecione pelo menos um agente.',
-    createBoard: 'Criar um board local (pscode/board.yaml)?',
+    bypassPermissionsPrompt:
+      'Ativar o modo bypassPermissions do Claude Code (pula os prompts de aprovação) em .claude/settings.json?',
+    openAgentPrompt: (agent) => `Abrir ${agent} agora?`,
+    openHint: (command) => `Rode \`${command}\` para iniciar seu agente.`,
     initialized: 'PSCode inicializado',
     reinitialized: 'PSCode reinicializado',
     agentsLabel: 'Agentes:',
-    boardLabel: 'Board:',
     configLabel: 'Config:',
     docsLabel: 'Docs:',
-    boardEnabled: 'habilitado (pscode/board.yaml)',
-    boardDisabled: 'desabilitado',
+    settingsLabel: 'Settings:',
     nextStepHint: 'Inicie uma mudança no seu agente:',
     nextStepExample: 'descreva o que você quer construir',
   },

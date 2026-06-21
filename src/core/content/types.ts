@@ -1,6 +1,6 @@
 /** Tool-agnostic content the installer renders into per-agent files. */
 
-/** A slash command (e.g. `/ps:do`). */
+/** A slash command (e.g. `/ps:draft`). */
 export interface CommandSpec {
   /** Command id; becomes the file name and the part after `ps:` in the slash command. */
   id: string;

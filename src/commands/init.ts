@@ -9,9 +9,10 @@ import chalk from 'chalk';
 import { AGENTS, getAgent } from '../core/config.js';
 import { detectAgents } from '../core/detect.js';
 import { buildConfig, configExists, writeConfig } from '../core/pscode-config.js';
-import { emptyBoard, writeBoard } from '../core/board.js';
 import { ensureProjectStructure, installAgent, installChangeTemplates } from '../core/installer.js';
 import { syncInstructionFiles } from '../core/agents-md.js';
+import { enableBypassPermissions } from '../core/claude-settings.js';
+import { openTarget, launchCommandFor, canHandOffTerminal, launchAgent } from '../core/launch.js';
 import { isInteractive } from '../core/interactive.js';
 import {
   LOCALES,
@@ -23,9 +24,20 @@ import {
 
 export interface InitOptions {
   agents?: string[];
-  board?: boolean;
   lang?: string;
   yes?: boolean;
+  /**
+   * Enable Claude Code's `bypassPermissions` mode in `.claude/settings.json`.
+   * Tri-state: `undefined` defers to the wizard (default yes), `true`/`false`
+   * force it from a CLI flag. Only applies when Claude Code is selected.
+   */
+  bypassPermissions?: boolean;
+  /**
+   * Open the selected agent's CLI after install (Claude Code preferred).
+   * Tri-state: `undefined` defers to the wizard (default yes), `true`/`false`
+   * force it from a CLI flag. The launch only runs when a terminal is present.
+   */
+  open?: boolean;
   cwd?: string;
 }
 
@@ -74,29 +86,64 @@ async function resolveAgents(
 
   const { checkbox } = await import('@inquirer/prompts');
   // Claude Code is the default baseline; detected agents are pre-checked too.
+  // The same `description` on every choice pins the hint as a constant footer
+  // (it never changes on selection); `instructions: false` drops the top tip
+  // that otherwise vanishes after the first keypress.
   return checkbox<string>({
     message: t.selectAgents,
+    instructions: false,
     choices: AGENTS.map((a) => ({
       name: a.name,
       value: a.id,
       checked: a.id === 'claude' || detected.includes(a.id),
+      description: t.agentsHint,
     })),
     validate: (items) => items.length > 0 || t.atLeastOneAgent,
   });
 }
 
-/** Resolve whether to create the local board, prompting when appropriate. */
-async function resolveBoard(
+/**
+ * Resolve whether to enable Claude Code's bypassPermissions mode. Only relevant
+ * when Claude Code is selected — the other agents don't read `.claude/settings.json`.
+ */
+async function resolveBypassPermissions(
   opts: InitOptions,
+  agents: string[],
   interactive: boolean,
   t: InitMessages
 ): Promise<boolean> {
-  // `--no-board` is an explicit opt-out; respect it without prompting.
-  if (opts.board === false) return false;
-  if (!interactive) return opts.board ?? true;
+  if (!agents.includes('claude')) return false;
+  if (opts.bypassPermissions !== undefined) return opts.bypassPermissions;
+  if (!interactive) return true;
 
-  const { confirm } = await import('@inquirer/prompts');
-  return confirm({ message: t.createBoard, default: true });
+  const { instantConfirm } = await import('../core/prompts.js');
+  return instantConfirm({ message: t.bypassPermissionsPrompt, default: true });
+}
+
+/**
+ * Resolve which agent (if any) to open after install. Prioritizes Claude Code;
+ * returns null when the user opts out or no selected agent is launchable.
+ */
+async function resolveOpen(
+  opts: InitOptions,
+  agents: string[],
+  interactive: boolean,
+  t: InitMessages
+): Promise<string | null> {
+  const target = openTarget(agents);
+  if (!target) return null;
+
+  let shouldOpen: boolean;
+  if (opts.open !== undefined) {
+    shouldOpen = opts.open;
+  } else if (interactive) {
+    const { instantConfirm } = await import('../core/prompts.js');
+    const name = getAgent(target)?.name ?? target;
+    shouldOpen = await instantConfirm({ message: t.openAgentPrompt(name), default: true });
+  } else {
+    shouldOpen = true; // non-interactive (--yes): open as well
+  }
+  return shouldOpen ? target : null;
 }
 
 export async function runInit(opts: InitOptions = {}): Promise<void> {
@@ -108,32 +155,50 @@ export async function runInit(opts: InitOptions = {}): Promise<void> {
   const t = getMessages(language);
 
   const agents = await resolveAgents(projectRoot, opts, interactive, t);
-  const board = await resolveBoard(opts, interactive, t);
+  const bypassPermissions = await resolveBypassPermissions(opts, agents, interactive, t);
+  const openAgent = await resolveOpen(opts, agents, interactive, t);
 
   ensureProjectStructure(projectRoot);
-  writeConfig(projectRoot, buildConfig({ agents, board }));
-  if (board) writeBoard(projectRoot, emptyBoard());
+  writeConfig(projectRoot, buildConfig({ agents }));
   installChangeTemplates(projectRoot);
   for (const agentId of agents) installAgent(projectRoot, agentId);
-  const instructionFiles = syncInstructionFiles(projectRoot);
+  const instructionFiles = syncInstructionFiles(projectRoot, agents);
+  const settingsFile = bypassPermissions ? enableBypassPermissions(projectRoot) : undefined;
 
-  printSummary({ reinit, agents, board, instructionFiles, t });
+  printSummary({ reinit, agents, instructionFiles, settingsFile, t });
+
+  if (openAgent) openOrHint(openAgent, projectRoot, t);
+}
+
+/**
+ * Hand the terminal off to the agent's CLI when one is available; otherwise
+ * (CI, piped runs) print how to start it so the choice isn't silently lost.
+ */
+function openOrHint(agentId: string, projectRoot: string, t: InitMessages): void {
+  if (canHandOffTerminal()) {
+    launchAgent(agentId, projectRoot);
+    return;
+  }
+  const command = launchCommandFor(agentId);
+  if (command) console.log(chalk.dim(t.openHint(command)));
 }
 
 function printSummary(info: {
   reinit: boolean;
   agents: string[];
-  board: boolean;
   instructionFiles: string[];
+  settingsFile?: string;
   t: InitMessages;
 }): void {
   const { t } = info;
   const title = info.reinit ? t.reinitialized : t.initialized;
   console.log(chalk.green(`\n✓ ${title}\n`));
   console.log(`  ${chalk.bold(t.agentsLabel)}  ${info.agents.map((a) => getAgent(a)?.name ?? a).join(', ')}`);
-  console.log(`  ${chalk.bold(t.boardLabel)}   ${info.board ? t.boardEnabled : t.boardDisabled}`);
   console.log(`  ${chalk.bold(t.configLabel)}  pscode/config.yaml`);
   console.log(`  ${chalk.bold(t.docsLabel)}    ${info.instructionFiles.join(', ')}`);
+  if (info.settingsFile) {
+    console.log(`  ${chalk.bold(t.settingsLabel)} ${info.settingsFile} (bypassPermissions)`);
+  }
   console.log(chalk.dim(`\n${t.nextStepHint}`));
-  console.log(chalk.cyan(`  /ps:do "${t.nextStepExample}"\n`));
+  console.log(chalk.cyan(`  /ps:draft "${t.nextStepExample}"\n`));
 }

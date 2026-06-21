@@ -32,7 +32,7 @@ export async function runStatus(opts: StatusOptions = {}): Promise<void> {
 
   const changes = listChanges(projectRoot);
   if (changes.length === 0) {
-    console.log(chalk.dim('\nNo changes yet. Start one with /ps:do inside your agent.\n'));
+    console.log(chalk.dim('\nNo changes yet. Start one with /ps:draft inside your agent.\n'));
     return;
   }
 

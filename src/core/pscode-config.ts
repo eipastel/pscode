@@ -1,8 +1,8 @@
 /**
  * `pscode/config.yaml` — the single source of truth for a PSCode project.
  *
- * Intentionally small: which agents are installed, whether the board is on,
- * the short-document limits, and the two guardrails the workflow enforces.
+ * Intentionally small: which agents are installed, the short-document limits,
+ * and the two guardrails the workflow enforces.
  */
 
 import path from 'path';
@@ -15,7 +15,6 @@ const ConfigSchema = z.object({
   version: z.string().default(PSCODE_VERSION),
   profile: z.string().default(DEFAULT_PROFILE),
   agents: z.array(z.string()).default([]),
-  board: z.object({ enabled: z.boolean().default(true) }).default({ enabled: true }),
   limits: z
     .object({
       max_brief_lines: z.number().default(DEFAULT_LIMITS.max_brief_lines),
@@ -37,12 +36,11 @@ export function configExists(projectRoot: string): boolean {
   return exists(configPath(projectRoot));
 }
 
-export function buildConfig(opts: { agents: string[]; board?: boolean }): PscodeConfig {
+export function buildConfig(opts: { agents: string[] }): PscodeConfig {
   return ConfigSchema.parse({
     version: PSCODE_VERSION,
     profile: DEFAULT_PROFILE,
     agents: opts.agents,
-    board: { enabled: opts.board ?? true },
     limits: { ...DEFAULT_LIMITS },
     apply_mode: 'one_task_at_a_time',
     approval_required: true,

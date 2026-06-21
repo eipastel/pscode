@@ -6,7 +6,7 @@ import { CHANGE_TEMPLATES } from '../../src/core/content/change-templates';
 describe('guided-SDD content', () => {
   it('ships the eight guided slash commands', () => {
     expect(COMMANDS.map((c) => c.id)).toEqual([
-      'do',
+      'draft',
       'grill',
       'spec',
       'design',

@@ -9,7 +9,7 @@ This project uses **PSCode**: a guided, spec-driven flow installed into your
 coding agent. Every change moves through short, human-validated steps and lives
 under \`pscode/changes/<slug>/\`.
 
-**Flow:** \`/ps:do\` → \`/ps:grill\` → \`/ps:spec\` → \`/ps:design\` → \`/ps:tasks\` → \`/ps:apply-one\` → \`/ps:review\` → \`/ps:done\`
+**Flow:** \`/ps:draft\` → \`/ps:grill\` → \`/ps:spec\` → \`/ps:design\` → \`/ps:tasks\` → \`/ps:apply-one\` → \`/ps:review\` → \`/ps:done\`
 
 **Rules (non-negotiable):**
 - Do not advance to the next step without explicit user approval.

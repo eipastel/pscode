@@ -22,10 +22,33 @@ function agentArtifactPaths(projectRoot: string, agentId: string): string[] {
   ];
 }
 
+/**
+ * Wipe the PSCode-owned folders for an agent so a fresh install leaves no stale
+ * files behind (e.g. a command or skill removed/renamed in a newer version).
+ * The whole `commands/ps/` namespace and every `skills/pscode-*` folder belong
+ * to PSCode; user content lives outside them.
+ */
+function cleanAgentArtifacts(projectRoot: string, agentId: string): void {
+  const adapter = getAdapter(agentId);
+  removeDir(path.join(projectRoot, adapter.dir, 'commands', 'ps'));
+
+  const skillsDir = path.join(projectRoot, adapter.dir, 'skills');
+  if (exists(skillsDir)) {
+    for (const entry of fs.readdirSync(skillsDir, { withFileTypes: true })) {
+      if (entry.isDirectory() && entry.name.startsWith('pscode-')) {
+        removeDir(path.join(skillsDir, entry.name));
+      }
+    }
+  }
+}
+
 /** Write all command + skill files for one agent. Returns relative paths written. */
 export function installAgent(projectRoot: string, agentId: string): string[] {
   const adapter = getAdapter(agentId);
   const written: string[] = [];
+
+  // Start clean so renamed/removed artifacts don't linger across updates.
+  cleanAgentArtifacts(projectRoot, agentId);
 
   for (const cmd of COMMANDS) {
     const rel = adapter.commandPath(cmd.id);

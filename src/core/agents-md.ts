@@ -1,16 +1,19 @@
 /**
- * Manage the PSCode block inside AGENTS.md (and CLAUDE.md).
+ * Manage the PSCode block inside the agents' instruction files.
  *
- * PSCode owns only the text between its markers. Everything the user wrote
- * outside the block is preserved on update; only the block is rewritten.
+ * Each agent reads its own file (Claude Code → CLAUDE.md, the others →
+ * AGENTS.md); PSCode writes the managed block into the files the selected
+ * agents read. PSCode owns only the text between its markers — everything the
+ * user wrote outside the block is preserved on update; only the block is
+ * rewritten.
  */
 
 import path from 'path';
-import { MANAGED_MARKERS } from './config.js';
+import { MANAGED_MARKERS, instructionFilesFor } from './config.js';
 import { AGENTS_BLOCK_BODY } from './content/index.js';
-import { exists, readFile, writeFile } from './fs-utils.js';
+import { readFile, writeFile } from './fs-utils.js';
 
-/** Files PSCode keeps the managed block in. */
+/** Every instruction file PSCode may manage (used when removing the block). */
 const MANAGED_INSTRUCTION_FILES = ['AGENTS.md', 'CLAUDE.md'] as const;
 
 function block(): string {
@@ -38,19 +41,13 @@ function upsertManagedBlock(filePath: string): void {
   writeFile(filePath, `${existing}${sep}${block()}\n`);
 }
 
-/** Insert/refresh the managed block in AGENTS.md (always) and CLAUDE.md (if present). */
-export function syncInstructionFiles(projectRoot: string): string[] {
-  const touched: string[] = [];
-  const agentsPath = path.join(projectRoot, 'AGENTS.md');
-  upsertManagedBlock(agentsPath);
-  touched.push('AGENTS.md');
-
-  const claudePath = path.join(projectRoot, 'CLAUDE.md');
-  if (exists(claudePath)) {
-    upsertManagedBlock(claudePath);
-    touched.push('CLAUDE.md');
+/** Insert/refresh the managed block in the instruction file(s) the agents read. */
+export function syncInstructionFiles(projectRoot: string, agentIds: string[]): string[] {
+  const files = instructionFilesFor(agentIds);
+  for (const name of files) {
+    upsertManagedBlock(path.join(projectRoot, name));
   }
-  return touched;
+  return files;
 }
 
 /** Remove the managed block from instruction files. Returns files changed. */
@@ -67,8 +64,15 @@ export function removeManagedBlock(projectRoot: string): string[] {
   return touched;
 }
 
-/** True if the managed block is present in AGENTS.md. */
-export function hasManagedBlock(projectRoot: string): boolean {
-  const content = readFile(path.join(projectRoot, 'AGENTS.md'));
+/** True if a single file contains the managed block. */
+function fileHasBlock(filePath: string): boolean {
+  const content = readFile(filePath);
   return content !== null && blockRegex().test(content);
+}
+
+/** True if every instruction file the given agents read has the managed block. */
+export function hasManagedBlock(projectRoot: string, agentIds: string[]): boolean {
+  return instructionFilesFor(agentIds).every((name) =>
+    fileHasBlock(path.join(projectRoot, name))
+  );
 }

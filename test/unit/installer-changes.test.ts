@@ -21,7 +21,7 @@ describe('installer', () => {
     dir = makeTmpProject();
     const written = installAgent(dir, 'claude');
     expect(written.length).toBe(12); // 8 commands + 4 skills
-    expect(existsSync(path.join(dir, '.claude/commands/ps/do.md'))).toBe(true);
+    expect(existsSync(path.join(dir, '.claude/commands/ps/draft.md'))).toBe(true);
     expect(existsSync(path.join(dir, '.claude/skills/pscode-guided-sdd/SKILL.md'))).toBe(true);
     expect(isAgentInstalled(dir, 'claude')).toBe(true);
 

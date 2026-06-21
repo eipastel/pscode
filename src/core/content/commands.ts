@@ -4,19 +4,19 @@
  * Each command is a thin entrypoint that points the agent at the right skill
  * and reminds it of the one rule that matters most: stop and ask before
  * advancing. Installed as `<dir>/commands/ps/<id>.md` so they invoke as
- * `/ps:<id>` (e.g. `/ps:do`).
+ * `/ps:<id>` (e.g. `/ps:draft`).
  */
 
 import type { CommandSpec } from './types.js';
 
 export const COMMANDS: CommandSpec[] = [
   {
-    id: 'do',
-    name: 'ps:do',
-    description: 'Takes a natural-language request and starts a guided change.',
-    body: `# /ps:do
+    id: 'draft',
+    name: 'ps:draft',
+    description: 'Takes a natural-language request and drafts a guided change.',
+    body: `# /ps:draft
 
-Take a natural-language request from the user and start a guided change.
+Take a natural-language request from the user and draft a guided change.
 
 Use the **pscode-guided-sdd** skill.
 
@@ -146,7 +146,6 @@ Use the **pscode-guided-sdd** skill (final step).
 
 - Make sure there are no pending tasks in \`tasks.md\`.
 - Make sure \`review.md\` exists.
-- If the board is enabled, move the card to \`done\`.
 - Don't archive automatically without confirmation.
 `,
   },

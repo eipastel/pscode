@@ -11,7 +11,7 @@ agent (Claude Code, Codex, Cursor, Gemini) can follow a short,
 **human-validated** spec-driven flow — you approve every step:
 
 ```
-/ps:do → /ps:grill → /ps:spec → /ps:design → /ps:tasks → /ps:apply-one → /ps:review → /ps:done
+/ps:draft → /ps:grill → /ps:spec → /ps:design → /ps:tasks → /ps:apply-one → /ps:review → /ps:done
 ```
 
 ## Install
@@ -26,19 +26,19 @@ Requires Node.js `>= 20.19.0`.
 
 ```bash
 cd your-project
-pscode init        # interactive wizard: pick agents + board, scaffold pscode/
+pscode init        # interactive wizard: pick agents, scaffold pscode/
 ```
 
 `init` is interactive by default: it first asks the **wizard language** (English
-or Português), then which agents to install and whether to create a local board.
-The language only affects the wizard — installed commands and skills are always
-in English. Pass `--yes` for a non-interactive run with defaults, or
-`--lang <code>` / `--agent <id>` / `--no-board` to set choices explicitly.
+or Português), then which agents to install. The language only affects the
+wizard — installed commands and skills are always in English. Pass `--yes` for a
+non-interactive run with defaults, or `--lang <code>` / `--agent <id>` to set
+choices explicitly.
 
 Then, inside your agent:
 
 ```
-/ps:do "add a type filter to the movie search"
+/ps:draft "add a type filter to the movie search"
 ```
 
 The agent walks you through short, validated steps. Each change is a small,
@@ -49,7 +49,7 @@ versionable folder under `pscode/changes/<slug>/` (`brief.md`, `questions.md`,
 
 | CLI               | Does                                                      |
 | ----------------- | -------------------------------------------------------- |
-| `pscode init`     | Install the workflow (`--agent`, `--no-board`, `--yes`)  |
+| `pscode init`     | Install the workflow (`--agent`, `--lang`, `--bypass-permissions`, `--open`, `--yes`) |
 | `pscode update`   | Refresh installed commands/skills/instructions in place  |
 | `pscode doctor`   | Check the project is correctly configured                |
 | `pscode clean`    | Remove generated files (`--all` also removes `pscode/`)  |

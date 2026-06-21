@@ -1,15 +1,14 @@
 /**
  * `pscode doctor` — verify the project is correctly configured.
  *
- * Checks config, structure, board, and that each recorded agent has its
- * commands and skills installed at the current version. Exits non-zero when
- * something is missing or stale.
+ * Checks config, structure, and that each recorded agent has its commands and
+ * skills installed at the current version. Exits non-zero when something is
+ * missing or stale.
  */
 
 import chalk from 'chalk';
-import { PSCODE_VERSION, getAgent } from '../core/config.js';
+import { PSCODE_VERSION, getAgent, instructionFilesFor } from '../core/config.js';
 import { configExists, readConfig } from '../core/pscode-config.js';
-import { boardExists } from '../core/board.js';
 import { changesDir } from '../core/changes.js';
 import { agentArtifactStatus, installedVersion } from '../core/installer.js';
 import { hasManagedBlock } from '../core/agents-md.js';
@@ -39,14 +38,11 @@ export function collectChecks(projectRoot: string): Check[] {
   }
 
   checks.push({ ok: exists(changesDir(projectRoot)), label: 'pscode/changes/ exists' });
+  const instructionFiles = instructionFilesFor(config.agents);
   checks.push({
-    ok: hasManagedBlock(projectRoot),
-    label: 'AGENTS.md has the PSCode block',
+    ok: hasManagedBlock(projectRoot, config.agents),
+    label: `${instructionFiles.join(', ')} ${instructionFiles.length > 1 ? 'have' : 'has'} the PSCode block`,
   });
-
-  if (config.board.enabled) {
-    checks.push({ ok: boardExists(projectRoot), label: 'pscode/board.yaml exists (board enabled)' });
-  }
 
   if (config.agents.length === 0) {
     checks.push({ ok: false, label: 'at least one agent configured' });
