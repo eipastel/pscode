@@ -39,8 +39,9 @@ export async function runUpdate(opts: UpdateOptions = {}): Promise<void> {
   installChangeTemplates(projectRoot);
   const instructionFiles = syncInstructionFiles(projectRoot, agents);
 
-  // Refresh the version (and recorded agents) in place.
-  writeConfig(projectRoot, buildConfig({ agents }));
+  // Refresh the version (and recorded agents) in place, preserving the GitHub
+  // integration flag — update must not silently disable it.
+  writeConfig(projectRoot, buildConfig({ agents, githubEnabled: config.github.enabled }));
 
   console.log(chalk.green(`\n✓ PSCode updated to v${PSCODE_VERSION}\n`));
   console.log(`  ${chalk.bold('Agents:')} ${agents.join(', ') || '(none)'}`);

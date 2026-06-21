@@ -44,8 +44,11 @@ file structure — so a coding agent can run a short, human-validated, spec-driv
 flow. The agent drives the flow; PSCode never interprets schemas, builds DAGs, or
 validates artifacts.
 
-The guided flow (run inside the agent):
-`/ps:draft → /ps:grill → /ps:spec → /ps:design → /ps:tasks → /ps:apply-one → /ps:review → /ps:done`
+The guided flow (run inside the agent) mirrors the GitHub Project board, moving
+the card at each step via `pscode-github-sync`:
+`/ps:draft` (Backlog) → `/ps:refine <card#>` (In Refinement → Ready to Dev) →
+`/ps:dev <card#>` (In Development → In Code Review → In Test → Ready to Deploy) →
+`/ps:complete <card#>` (Done). `/ps:cancel <card#>` sends a card to Cancelled.
 
 ### Entry Points
 
@@ -56,9 +59,9 @@ The guided flow (run inside the agent):
 
 **Content** (`src/core/content/`)  
 The tool-agnostic substance PSCode installs, as string constants (bundled into `dist`, no file-copy at runtime):
-- `commands.ts` — the 8 slash commands (`draft`, `grill`, `spec`, `design`, `tasks`, `apply-one`, `review`, `done`).
-- `skills.ts` — the 4 skills (`pscode-guided-sdd`, `pscode-grill-me`, `pscode-mini-spec`, `pscode-task-runner`).
-- `change-templates.ts` — the 5 short change templates (`brief`, `questions`, `design`, `tasks`, `review`).
+- `commands/` — the 6 slash commands, one file per command (`draft`, `refine`, `dev`, `complete`, `cancel`, `board-setup`); `commands/index.ts` assembles them in flow order. These are the 4 guided steps plus `cancel` and `board-setup`.
+- `skills/` — the 9 skills, one file per skill (`pscode-guided-sdd`, `pscode-grill-me`, `pscode-refine`, `pscode-mini-spec`, `pscode-task-runner`, `pscode-dev`, `pscode-complete`, `pscode-github-sync`, `pscode-board-setup`); `skills/index.ts` assembles them in flow order.
+- `change-templates.ts` — the 4 short change templates (`brief`, `questions`, `refine`, `delta-spec`).
 - `index.ts` also exports `AGENTS_BLOCK_BODY`, the text injected into AGENTS.md/CLAUDE.md.
 
 **Adapters** (`src/core/adapters.ts`)  

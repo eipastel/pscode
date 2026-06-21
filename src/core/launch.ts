@@ -34,11 +34,16 @@ export function canHandOffTerminal(): boolean {
 /**
  * Launch the agent's CLI in the project, inheriting the terminal so it takes
  * over until the user quits. Returns false when the command can't be spawned.
+ *
+ * `initialCommand` (e.g. `/ps:board-setup`) is passed as the agent's first
+ * prompt — only for Claude Code, which reliably runs a slash command given as
+ * an argument; other CLIs ignore it.
  */
-export function launchAgent(agentId: string, projectRoot: string): boolean {
+export function launchAgent(agentId: string, projectRoot: string, initialCommand?: string): boolean {
   const command = launchCommandFor(agentId);
   if (!command) return false;
-  const result = spawnSync(command, [], {
+  const args = initialCommand && agentId === 'claude' ? [initialCommand] : [];
+  const result = spawnSync(command, args, {
     cwd: projectRoot,
     stdio: 'inherit',
     // On Windows the agent CLIs are .cmd/.ps1 shims resolved via the shell.

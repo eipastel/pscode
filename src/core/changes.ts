@@ -11,12 +11,10 @@ import { PSCODE_DIR } from './config.js';
 import { exists, readFile } from './fs-utils.js';
 
 export type ChangeState =
-  | 'draft' // brief only (or empty)
-  | 'spec-review' // brief + questions
-  | 'ready' // design + tasks, nothing done
-  | 'doing' // some tasks done, some pending
-  | 'review' // all tasks done, review pending/in progress
-  | 'done'; // all tasks done + review present
+  | 'draft' // brief only — sits in Backlog
+  | 'refined' // refine.md present, no subtask started — Ready to Dev
+  | 'doing' // some subtasks done — In Development
+  | 'review'; // all subtasks done — In Code Review (then /ps:complete archives it)
 
 export interface ChangeSummary {
   slug: string;
@@ -34,15 +32,15 @@ function countTasks(content: string): { done: number; total: number } {
 
 function deriveState(artifacts: string[], tasks: { done: number; total: number }): ChangeState {
   const has = (f: string) => artifacts.includes(f);
-  const hasReview = has('review.md');
-  const allTasksDone = tasks.total > 0 && tasks.done === tasks.total;
 
-  if (allTasksDone && hasReview) return 'done';
-  if (allTasksDone) return 'review';
+  // Until the change is refined it stays a draft (brief/questions only).
+  if (!has('refine.md')) return 'draft';
+
+  // refine.md drives the rest: its `## Subtasks` checklist is the unit of work
+  // `/ps:dev` implements one at a time.
+  if (tasks.total > 0 && tasks.done === tasks.total) return 'review';
   if (tasks.done > 0) return 'doing';
-  if (has('design.md') && has('tasks.md')) return 'ready';
-  if (has('questions.md')) return 'spec-review';
-  return 'draft';
+  return 'refined';
 }
 
 export function changesDir(projectRoot: string): string {
@@ -66,8 +64,10 @@ export function listChanges(projectRoot: string): ChangeSummary[] {
       .filter((e) => e.isFile())
       .map((e) => e.name);
 
-    const tasksContent = readFile(path.join(changePath, 'tasks.md'));
-    const tasks = tasksContent ? countTasks(tasksContent) : { done: 0, total: 0 };
+    // The subtask checklist lives in refine.md (`## Subtasks`); `/ps:dev` ticks
+    // them off one at a time.
+    const refineContent = readFile(path.join(changePath, 'refine.md'));
+    const tasks = refineContent ? countTasks(refineContent) : { done: 0, total: 0 };
 
     return {
       slug,

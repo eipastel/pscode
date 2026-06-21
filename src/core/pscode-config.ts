@@ -24,6 +24,11 @@ const ConfigSchema = z.object({
     .default({ ...DEFAULT_LIMITS }),
   apply_mode: z.string().default('one_task_at_a_time'),
   approval_required: z.boolean().default(true),
+  github: z
+    .object({
+      enabled: z.boolean().default(false),
+    })
+    .default({ enabled: false }),
 });
 
 export type PscodeConfig = z.infer<typeof ConfigSchema>;
@@ -36,7 +41,7 @@ export function configExists(projectRoot: string): boolean {
   return exists(configPath(projectRoot));
 }
 
-export function buildConfig(opts: { agents: string[] }): PscodeConfig {
+export function buildConfig(opts: { agents: string[]; githubEnabled?: boolean }): PscodeConfig {
   return ConfigSchema.parse({
     version: PSCODE_VERSION,
     profile: DEFAULT_PROFILE,
@@ -44,6 +49,7 @@ export function buildConfig(opts: { agents: string[] }): PscodeConfig {
     limits: { ...DEFAULT_LIMITS },
     apply_mode: 'one_task_at_a_time',
     approval_required: true,
+    github: { enabled: opts.githubEnabled ?? false },
   });
 }
 

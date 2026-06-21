@@ -31,39 +31,38 @@ One or two sentences.
 `,
   },
   {
-    file: 'design.md',
-    content: `# Design
+    file: 'refine.md',
+    content: `# <change name>
 
-## Likely files
-- file
+## Summary
+One or two plain sentences anyone can understand.
 
-## Decisions
-- decision
+## Technical detail
+- relevant technical point
 
-## Risks
-- risk
+## Scope
+### In
+- item
+### Out
+- item
+
+## Subtasks
+- [ ] micro task
+- [ ] micro task
 `,
   },
   {
-    file: 'tasks.md',
-    content: `# Tasks
+    file: 'delta-spec.md',
+    content: `# <change name> — Delta
 
-- [ ] Small task
-- [ ] Small task
-`,
-  },
-  {
-    file: 'review.md',
-    content: `# Review
+## Added
+- new behavior / requirement
 
-## Changes
-- item
+## Changed
+- behavior that changed (old → new)
 
-## Validation
-- command/test run → result
-
-## Pending
-- item
+## Removed
+- behavior dropped
 `,
   },
 ];

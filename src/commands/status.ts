@@ -14,11 +14,9 @@ export interface StatusOptions {
 
 const STATE_COLOR: Record<ChangeState, (s: string) => string> = {
   draft: chalk.gray,
-  'spec-review': chalk.yellow,
-  ready: chalk.cyan,
+  refined: chalk.cyan,
   doing: chalk.blue,
   review: chalk.magenta,
-  done: chalk.green,
 };
 
 export async function runStatus(opts: StatusOptions = {}): Promise<void> {

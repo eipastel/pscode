@@ -22,6 +22,24 @@ describe('pscode CLI lifecycle', () => {
     expect(existsSync(path.join(dir, 'AGENTS.md'))).toBe(false);
   });
 
+  it('init writes the requirements manifest and skips GitHub by default (non-interactive)', async () => {
+    dir = makeTmpProject();
+    const res = await runCLI(['init', '--agent', 'claude', '--yes'], { cwd: dir });
+    expect(res.exitCode).toBe(0);
+
+    // The manifest is always written; GitHub is off unless set up explicitly.
+    expect(existsSync(path.join(dir, 'pscode/requirements.yaml'))).toBe(true);
+    expect(existsSync(path.join(dir, 'pscode/github.yaml'))).toBe(false);
+    expect(readFileSync(path.join(dir, 'pscode/config.yaml'), 'utf-8')).toContain('enabled: false');
+  });
+
+  it('init --no-github never writes github.yaml', async () => {
+    dir = makeTmpProject();
+    const res = await runCLI(['init', '--agent', 'claude', '--no-github', '--yes'], { cwd: dir });
+    expect(res.exitCode).toBe(0);
+    expect(existsSync(path.join(dir, 'pscode/github.yaml'))).toBe(false);
+  });
+
   it('init writes bypassPermissions by default in non-interactive mode', async () => {
     dir = makeTmpProject();
     const res = await runCLI(['init', '--agent', 'claude', '--yes'], { cwd: dir });

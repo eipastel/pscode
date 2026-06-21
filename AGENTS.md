@@ -8,8 +8,8 @@ imports the principles below — keep operating guidance here, not duplicated th
 
 `pscode` is a **lightweight installer** for a guided, spec-driven workflow. It
 installs slash commands, skills, instructions and a minimal file structure so a
-coding agent can run a short, human-validated flow (understand → grill → mini
-spec → design → tasks → one task at a time → review → done). It is *not* a
+coding agent can run a short, human-validated flow that mirrors the GitHub
+Project board (draft → refine → dev → complete, one subtask at a time). It is *not* a
 workflow engine — the agent drives the flow; PSCode installs the rails. Source
 is ESM TypeScript under `src/` (see `CLAUDE.md` for the full map).
 

@@ -36,6 +36,9 @@ export function buildProgram(): Command {
     .option('--no-bypass-permissions', 'do not enable bypassPermissions mode')
     .option('--open', 'open the selected agent CLI when init finishes (Claude Code preferred)')
     .option('--no-open', 'do not open an agent when init finishes')
+    .option('--github', 'set up GitHub Projects + Issues sync')
+    .option('--no-github', 'skip the GitHub Projects integration')
+    .option('--project <ref>', 'GitHub Project URL or owner/repo (non-interactive GitHub setup)')
     .option('-y, --yes', 'skip prompts and accept defaults (non-interactive)')
     .action(async (opts) => {
       await runInit({
@@ -43,6 +46,8 @@ export function buildProgram(): Command {
         lang: opts.lang,
         bypassPermissions: opts.bypassPermissions,
         open: opts.open,
+        github: opts.github,
+        project: opts.project,
         yes: opts.yes,
       });
     });

@@ -13,6 +13,7 @@ import { changesDir } from '../core/changes.js';
 import { agentArtifactStatus, installedVersion } from '../core/installer.js';
 import { hasManagedBlock } from '../core/agents-md.js';
 import { exists } from '../core/fs-utils.js';
+import { collectPreflight } from '../core/preflight.js';
 
 export interface DoctorOptions {
   cwd?: string;
@@ -80,6 +81,20 @@ export async function runDoctor(opts: DoctorOptions = {}): Promise<void> {
     const mark = c.ok ? chalk.green('✓') : chalk.red('✗');
     const detail = c.detail ? chalk.dim(` (${c.detail})`) : '';
     console.log(`  ${mark} ${c.label}${detail}`);
+  }
+
+  // Environment preflight — informational; an optional integration being
+  // unconfigured does not fail `doctor`.
+  const config = readConfig(projectRoot);
+  const env = collectPreflight(projectRoot, { agents: config?.agents ?? [] });
+  if (env.length > 0) {
+    console.log(chalk.bold('\nEnvironment\n'));
+    for (const c of env) {
+      const mark = c.ok ? chalk.green('✓') : chalk.yellow('✗');
+      const detail = c.detail ? chalk.dim(` (${c.detail})`) : '';
+      const fix = !c.ok && c.fix ? chalk.dim(`  Run: ${c.fix}`) : '';
+      console.log(`  ${mark} ${c.label}${detail}${fix}`);
+    }
   }
 
   if (allOk) {

@@ -14,6 +14,10 @@ import { syncInstructionFiles } from '../core/agents-md.js';
 import { enableBypassPermissions } from '../core/claude-settings.js';
 import { openTarget, launchCommandFor, canHandOffTerminal, launchAgent } from '../core/launch.js';
 import { isInteractive } from '../core/interactive.js';
+import { collectPreflight, scanMcpServers, type PreflightCheck } from '../core/preflight.js';
+import { runGitHubSetup } from './init-github.js';
+import { buildRequirements, writeRequirements } from '../core/requirements.js';
+import { readGitHubConfig } from '../core/github.js';
 import {
   LOCALES,
   DEFAULT_LOCALE,
@@ -38,6 +42,14 @@ export interface InitOptions {
    * force it from a CLI flag. The launch only runs when a terminal is present.
    */
   open?: boolean;
+  /**
+   * Set up the GitHub Projects + Issues integration. Tri-state: `undefined`
+   * defers to the wizard's board question, `true`/`false` force it. `false`
+   * always skips. Non-interactive setup also accepts {@link project}.
+   */
+  github?: boolean;
+  /** Project URL (or `owner/repo`) for non-interactive GitHub setup. */
+  project?: string;
   cwd?: string;
 }
 
@@ -159,27 +171,76 @@ export async function runInit(opts: InitOptions = {}): Promise<void> {
 
   const agents = await resolveAgents(projectRoot, opts, interactive, t);
   const bypassPermissions = await resolveBypassPermissions(opts, agents, interactive, t);
-  const openAgent = await resolveOpen(opts, agents, interactive, t);
+
+  // Concentrate environment verification here so the agent reads what init
+  // found instead of re-probing later. Non-blocking and informational.
+  const preflight = collectPreflight(projectRoot, { agents });
+  printPreflight(preflight, t);
+
+  const githubEnabled = await runGitHubSetup(
+    projectRoot,
+    { github: opts.github, project: opts.project },
+    interactive,
+    t
+  );
 
   ensureProjectStructure(projectRoot);
-  writeConfig(projectRoot, buildConfig({ agents }));
+  writeConfig(projectRoot, buildConfig({ agents, githubEnabled }));
   installChangeTemplates(projectRoot);
   for (const agentId of agents) installAgent(projectRoot, agentId);
   const instructionFiles = syncInstructionFiles(projectRoot, agents);
   const settingsFile = bypassPermissions ? enableBypassPermissions(projectRoot) : undefined;
 
-  printSummary({ reinit, agents, instructionFiles, settingsFile, t });
+  // Manifest: what each integration needs and what init verified. The agent
+  // consumes this rather than rediscovering the environment.
+  writeRequirements(
+    projectRoot,
+    buildRequirements({ githubEnabled, checks: preflight, mcpServers: scanMcpServers(projectRoot) })
+  );
 
-  if (openAgent) openOrHint(openAgent, projectRoot, t);
+  const githubRepo = githubEnabled ? readGitHubConfig(projectRoot)?.repo : undefined;
+  printSummary({ reinit, agents, instructionFiles, settingsFile, githubRepo, t });
+
+  // Asked last — after every other question and step, so opening the agent is
+  // the final action of the wizard.
+  const openAgent = await resolveOpen(opts, agents, interactive, t);
+
+  // Whenever the board is wired up, the Project still needs its columns/view
+  // configured. When opening Claude Code we hand off straight into
+  // `/ps:board-setup`; otherwise we leave a hint to run it.
+  const autoBoard = githubEnabled && openAgent === 'claude' && canHandOffTerminal();
+  if (githubEnabled && !autoBoard) {
+    console.log(chalk.dim(`\n${t.boardSetupHint}`));
+  }
+  if (openAgent) {
+    openOrHint(openAgent, projectRoot, t, autoBoard ? '/ps:board-setup' : undefined);
+  }
+}
+
+/** Render the preflight checks — ✓/✗ with a fix hint for the failing ones. */
+function printPreflight(checks: PreflightCheck[], t: InitMessages): void {
+  if (checks.length === 0) return;
+  console.log(chalk.bold(`\n${t.preflightTitle}`));
+  for (const c of checks) {
+    const mark = c.ok ? chalk.green('✓') : chalk.yellow('✗');
+    const detail = c.detail ? chalk.dim(` (${c.detail})`) : '';
+    const fix = !c.ok && c.fix ? chalk.dim(`  ${t.preflightRun(c.fix)}`) : '';
+    console.log(`  ${mark} ${c.label}${detail}${fix}`);
+  }
 }
 
 /**
  * Hand the terminal off to the agent's CLI when one is available; otherwise
  * (CI, piped runs) print how to start it so the choice isn't silently lost.
  */
-function openOrHint(agentId: string, projectRoot: string, t: InitMessages): void {
+function openOrHint(
+  agentId: string,
+  projectRoot: string,
+  t: InitMessages,
+  initialCommand?: string
+): void {
   if (canHandOffTerminal()) {
-    launchAgent(agentId, projectRoot);
+    launchAgent(agentId, projectRoot, initialCommand);
     return;
   }
   const command = launchCommandFor(agentId);
@@ -191,6 +252,7 @@ function printSummary(info: {
   agents: string[];
   instructionFiles: string[];
   settingsFile?: string;
+  githubRepo?: string;
   t: InitMessages;
 }): void {
   const { t } = info;
@@ -201,6 +263,9 @@ function printSummary(info: {
   console.log(`  ${chalk.bold(t.docsLabel)}    ${info.instructionFiles.join(', ')}`);
   if (info.settingsFile) {
     console.log(`  ${chalk.bold(t.settingsLabel)} ${info.settingsFile} (bypassPermissions)`);
+  }
+  if (info.githubRepo) {
+    console.log(`  ${chalk.bold(t.githubLabel)}  ${t.githubConfigured(info.githubRepo)}`);
   }
   console.log(chalk.dim(`\n${t.nextStepHint}`));
   console.log(chalk.cyan(`  /ps:draft "${t.nextStepExample}"\n`));
