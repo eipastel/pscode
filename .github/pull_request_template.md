@@ -2,23 +2,20 @@
 
 <!-- Descreva o que esta PR adiciona, modifica ou remove. -->
 
-## Por que (contexto + ticket)
+## Por que (contexto)
 
-<!-- Explique a motivação da mudança. Inclua o ticket JIRA no formato: Refs: PROJ-123 -->
-
-Refs:
+<!-- Explique a motivação da mudança. -->
 
 ## Como testar
 
-<!-- Passo a passo para validar a mudança localmente ou em ambiente de teste. -->
+<!-- Passo a passo para validar a mudança localmente. -->
 
 1.
 2.
-3.
 
 ## Checklist
 
-- [ ] Testes passando (`pnpm test` / `mvn test`)
-- [ ] Sem TODO pendente no código
-- [ ] CHANGELOG / changeset atualizado (se aplicável)
-- [ ] Título da PR em formato conventional commit (`feat(scope): descrição [PROJ-123]`)
+- [ ] Testes passando (`pnpm test`)
+- [ ] Build e lint OK (`pnpm build` / `pnpm lint`)
+- [ ] Changeset adicionado (se aplicável)
+- [ ] Título da PR em formato conventional commit (`feat(scope): descrição`)

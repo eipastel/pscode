@@ -1,6 +1,6 @@
 ﻿# Dev Container Setup
 
-This directory contains the VS Code dev container configuration for Pastelsdd development.
+This directory contains the VS Code dev container configuration for pscode development.
 
 ## What's Included
 
