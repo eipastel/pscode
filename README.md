@@ -1,19 +1,32 @@
 # pscode
 
-> Spec-driven, AI-native development workflow CLI
+> Installs a guided SDD workflow into your coding agent.
 
 [![npm](https://img.shields.io/npm/v/@thiagodiogo/pscode)](https://www.npmjs.com/package/@thiagodiogo/pscode)
 [![license](https://img.shields.io/npm/l/@thiagodiogo/pscode)](LICENSE)
 [![node](https://img.shields.io/node/v/@thiagodiogo/pscode)](https://nodejs.org)
 
-Pscode installs a planning pipeline inside your repo. Every feature goes through **proposal → specs → design → tasks → apply**, tracked as versioned files and exposed as slash commands to your AI agent.
+PSCode is a **lightweight installer**. It lays down slash commands, skills,
+instructions and a minimal file structure so coding agents (Claude Code, Codex,
+Cursor, Gemini, GitHub Copilot) can follow a short, guided, human-validated
+spec-driven flow. It is **not** a workflow engine — the agent drives the flow,
+PSCode just installs the rails.
+
+The experience is **guided**, not autopilot:
+
+```
+request → understand → grill (quick questions) → mini spec → design →
+tasks → one task at a time → review → done
+```
+
+You validate between every step. Each artifact fits on one terminal screen.
 
 ---
 
 ## Requirements
 
 - Node.js `>= 20.19.0`
-- At least one supported AI tool: **Claude Code**, **Cursor**, **Gemini CLI**, **GitHub Copilot**, or **Codex CLI**
+- A coding agent: **Claude Code**, **Codex**, **Cursor**, **Gemini CLI**, or **GitHub Copilot**
 
 ---
 
@@ -21,8 +34,6 @@ Pscode installs a planning pipeline inside your repo. Every feature goes through
 
 ```bash
 npm install -g @thiagodiogo/pscode
-# or
-pnpm add -g @thiagodiogo/pscode
 ```
 
 ---
@@ -34,109 +45,91 @@ cd your-project
 pscode init
 ```
 
-The init wizard auto-detects which AI tools you have (`.claude/`, `.cursor/`, etc.), installs skill files and slash commands, and creates the planning folder:
+`init` detects your agents, installs the slash commands and skills, and creates
+a minimal `pscode/` directory:
 
 ```
-pscode/
-├── changes/        ← one subfolder per active change
-│   └── archive/    ← completed changes
-├── specs/          ← project capability specs
-└── config.yaml     ← local schema config
+.
+├── AGENTS.md                 # gets a small managed PSCode block
+├── pscode/
+│   ├── config.yaml           # agents, limits, guardrails
+│   ├── board.yaml            # optional local board
+│   ├── templates/            # short change templates
+│   └── changes/              # your changes live here
+└── .claude/                  # (per agent)
+    ├── commands/ps/*.md       # /ps:do, /ps:grill, …
+    └── skills/pscode-*/SKILL.md
 ```
 
-Once initialized, use slash commands in your AI agent:
+Then, inside your agent:
 
 ```
-/ps:propose "add dark mode"   ← creates a new change
-/ps:continue                  ← advances to the next artifact
-/ps:apply                     ← applies pending tasks
-/ps:complete                  ← completes a change
+/ps:do "add a type filter to the movie search"
+```
+
+The agent guides you through short, validated steps.
+
+---
+
+## Slash commands
+
+| Command         | What it does                                            |
+| --------------- | ------------------------------------------------------- |
+| `/ps:do`        | Start a guided change from a natural-language request   |
+| `/ps:grill`     | Ask objective questions to remove ambiguity (max 5)     |
+| `/ps:spec`      | Write/revise a short `brief.md`                          |
+| `/ps:design`    | Write `design.md` — likely files, decisions, risks      |
+| `/ps:tasks`     | Write `tasks.md` — small, ordered tasks                 |
+| `/ps:apply-one` | Implement only the next pending task                    |
+| `/ps:review`    | Review the change against the brief; record validation  |
+| `/ps:done`      | Finalize the change                                     |
+
+---
+
+## CLI commands
+
+| Command          | What it does                                              |
+| ---------------- | --------------------------------------------------------- |
+| `pscode init`    | Install the guided workflow into the current project      |
+| `pscode update`  | Refresh PSCode commands, skills and instructions in place |
+| `pscode doctor`  | Verify the project is correctly configured                |
+| `pscode clean`   | Remove PSCode-generated files (`--all` removes `pscode/`) |
+| `pscode status`  | List changes and their basic state                        |
+
+Useful flags: `pscode init --agent claude --agent codex`, `--no-board`, `--yes`.
+
+---
+
+## A change at a glance
+
+Each change is a small, versionable folder:
+
+```
+pscode/changes/add-search-type/
+├── brief.md       # objective, expected behavior, out of scope
+├── questions.md   # Grill Me Q&A
+├── design.md      # likely files, decisions, risks
+├── tasks.md       # small tasks
+└── review.md      # what changed, validation, pending items
 ```
 
 ---
 
-## How It Works
+## Philosophy
 
-Each change lives in `pscode/changes/<name>/` and follows a DAG of artifacts defined by a workflow schema:
-
-```
-pscode/changes/dark-mode/
-├── proposal.md    ← why this change
-├── specs/         ← what the system must do
-├── design.md      ← how to implement it
-└── tasks.md       ← implementation checklist
-```
-
-The AI agent reads these files at each step and generates the next artifact using enriched instructions from the schema.
-
----
-
-## CLI Reference
-
-| Command | Description |
-|---------|-------------|
-| `pscode init [path]` | Initialize Pscode in a project |
-| `pscode update [path]` | Regenerate skill/command files after an upgrade |
-| `pscode list` | List active changes |
-| `pscode list --specs` | List project specs |
-| `pscode status` | Show artifact completion for the current change |
-| `pscode instructions [artifact]` | Print enriched instructions for an artifact |
-| `pscode validate [name]` | Validate a change or spec |
-| `pscode validate --all` | Validate everything |
-| `pscode show [name]` | Display a change or spec |
-| `pscode complete [name]` | Complete a change |
-| `pscode new change <name>` | Create a new change directory |
-| `pscode schemas` | List available workflow schemas |
-| `pscode view` | Interactive dashboard |
-| `pscode feedback <message>` | Submit feedback |
-| `pscode completion install` | Install shell completions |
-
-### `init` options
-
-| Flag | Description |
-|------|-------------|
-| `--tools <list>` | Skip interactive selection. Use `all`, `none`, or e.g. `claude,cursor` |
-| `--force` | Skip all confirmations (CI-friendly) |
-| `--profile <name>` | Workflow profile: `core` (default) or `custom` |
-
-**Non-interactive example:**
-
-```bash
-pscode init --tools claude --force
-```
+1. Simplicity over completeness.
+2. Instructions and skills over a complex engine.
+3. Short specs over giant documents.
+4. Human validation between steps.
+5. One task at a time.
+6. A workflow anyone can understand.
+7. Simple, versionable Markdown.
+8. Compatible with multiple agents.
+9. Local-first.
+10. Low maintenance.
 
 ---
 
-## Supported AI Tools
+## License
 
-| Tool | Skills dir |
-|------|-----------|
-| Claude Code | `.claude/` |
-| Codex CLI | `.codex/` |
-| Cursor | `.cursor/` |
-| Gemini CLI | `.gemini/` |
-| GitHub Copilot | `.github/` |
-
----
-
-## Migrating from OpenSpec
-
-If your project used the old `openspec` tool, `pscode init` detects `.openspec/` automatically and offers to migrate your changes and specs — no manual steps needed.
-
----
-
-## After Upgrading
-
-Re-run `pscode init` (or `pscode update`) to regenerate skill files with the latest instructions:
-
-```bash
-pscode update
-```
-
----
-
-## Links
-
-- [npm](https://www.npmjs.com/package/@thiagodiogo/pscode)
-- [Repository](https://github.com/eipastel/pscode)
-- [Issues / Feedback](https://github.com/eipastel/pscode/issues)
+MIT

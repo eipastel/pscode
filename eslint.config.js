@@ -29,14 +29,6 @@ export default tseslint.config(
     },
   },
   {
-    // init.ts is dynamically imported from cli/index.ts, so static @inquirer
-    // imports there are safe - they won't be loaded at CLI startup
-    files: ['src/core/init.ts'],
-    rules: {
-      'no-restricted-imports': 'off',
-    },
-  },
-  {
     ignores: ['dist/**', 'node_modules/**', '*.js', '*.mjs'],
   }
 );

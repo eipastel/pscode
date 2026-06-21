@@ -6,10 +6,12 @@ imports the principles below — keep operating guidance here, not duplicated th
 
 ## Overview
 
-`pscode` is a CLI for **spec-driven, AI-native development**. Every feature change
-flows through a pipeline of planning artifacts (proposal → specs → design → tasks →
-apply), tracked under `pscode/changes/<name>/`. Source is ESM TypeScript; the public
-API and all commands live under `src/` (see `CLAUDE.md` for the full map).
+`pscode` is a **lightweight installer** for a guided, spec-driven workflow. It
+installs slash commands, skills, instructions and a minimal file structure so a
+coding agent can run a short, human-validated flow (understand → grill → mini
+spec → design → tasks → one task at a time → review → done). It is *not* a
+workflow engine — the agent drives the flow; PSCode installs the rails. Source
+is ESM TypeScript under `src/` (see `CLAUDE.md` for the full map).
 
 ## Essential Commands
 
@@ -32,8 +34,8 @@ Distilled from the 20 Claude Code Engineering Rules. Apply them in order of doub
    over-engineering, no scope creep, no refactoring unrelated code.
 3. **Follow the project's conventions and tooling.** Match the style of neighboring
    code; use pnpm, vitest, eslint and changesets; keep ESM imports with `.js`
-   extensions; prefer verb-first commands (`pscode change *` is deprecated); edit
-   existing files rather than spawning new ones.
+   extensions; import `@inquirer/*` dynamically (never statically); edit existing
+   files rather than spawning new ones.
 4. **Respect the context budget.** Be concise — distill, don't dump. High value per line.
 5. **Don't declare done without verifying.** Run `pnpm build`, `pnpm test` and
    `pnpm lint` (build before focused CLI tests if `dist/` may be stale) and confirm

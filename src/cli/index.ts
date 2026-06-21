@@ -1,565 +1,103 @@
-import { Command } from 'commander';
-import { createRequire } from 'module';
-import ora from 'ora';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { promises as fs } from 'fs';
-import { AI_TOOLS } from '../core/config.js';
-import { UpdateCommand } from '../core/update.js';
-import { ListCommand } from '../core/list.js';
-import { CompleteCommand } from '../core/complete.js';
-import { ViewCommand } from '../core/view.js';
-import { registerSpecCommand } from '../commands/spec.js';
-import { ChangeCommand } from '../commands/change.js';
-import { ValidateCommand } from '../commands/validate.js';
-import { ShowCommand } from '../commands/show.js';
-import { CompletionCommand } from '../commands/completion.js';
-import { FeedbackCommand } from '../commands/feedback.js';
-import { registerConfigCommand } from '../commands/config.js';
-import { registerSchemaCommand } from '../commands/schema.js';
-import {
-  registerWorkspaceCommand,
-  runWorkspaceUpdateForRoot,
-} from '../commands/workspace.js';
-import { registerContextStoreCommand } from '../commands/context-store.js';
-import { registerInitiativeCommand } from '../commands/initiative.js';
-import { findWorkspaceRoot } from '../core/workspace/index.js';
-import {
-  statusCommand,
-  instructionsCommand,
-  applyInstructionsCommand,
-  templatesCommand,
-  schemasCommand,
-  newChangeCommand,
-  setChangeCommand,
-  DEFAULT_SCHEMA,
-  type StatusOptions,
-  type InstructionsOptions,
-  type TemplatesOptions,
-  type SchemasOptions,
-  type NewChangeOptions,
-  type SetChangeOptions,
-} from '../commands/workflow/index.js';
-import { maybeShowTelemetryNotice, trackCommand, shutdown } from '../telemetry/index.js';
-
-const program = new Command();
-const require = createRequire(import.meta.url);
-const { version } = require('../../package.json');
-
 /**
- * Get the full command path for nested commands.
- * For example: 'change show' -> 'change:show'
+ * PSCode CLI — a lightweight installer for a guided, spec-driven workflow.
+ *
+ * Five commands, no engine: init, update, doctor, clean, status.
  */
-function getCommandPath(command: Command): string {
-  const names: string[] = [];
-  let current: Command | null = command;
 
-  while (current) {
-    const name = current.name();
-    // Skip the root 'pscode' command
-    if (name && name !== 'pscode') {
-      names.unshift(name);
-    }
-    current = current.parent;
-  }
+import { Command } from 'commander';
+import { realpathSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { PSCODE_VERSION } from '../core/config.js';
+import { runInit } from '../commands/init.js';
+import { runUpdate } from '../commands/update.js';
+import { runDoctor } from '../commands/doctor.js';
+import { runClean } from '../commands/clean.js';
+import { runStatus } from '../commands/status.js';
 
-  return names.join(':') || 'pscode';
+/** Collect a repeatable option into an array. */
+function collect(value: string, previous: string[]): string[] {
+  return [...previous, value];
 }
 
-program
-  .name('pscode')
-  .description('AI-native system for spec-driven development')
-  .version(version);
+export function buildProgram(): Command {
+  const program = new Command();
 
-// Global options
-program.option('--no-color', 'Disable color output');
+  program
+    .name('pscode')
+    .description('Installs a guided SDD workflow into your coding agent.')
+    .version(PSCODE_VERSION);
 
-// Apply global flags and telemetry before any command runs
-// Note: preAction receives (thisCommand, actionCommand) where:
-// - thisCommand: the command where hook was added (root program)
-// - actionCommand: the command actually being executed (subcommand)
-program.hook('preAction', async (thisCommand, actionCommand) => {
-  const opts = thisCommand.opts();
-  if (opts.color === false) {
-    process.env.NO_COLOR = '1';
-  }
-
-  // Show first-run telemetry notice (if not seen)
-  await maybeShowTelemetryNotice();
-
-  // Track command execution (use actionCommand to get the actual subcommand)
-  const commandPath = getCommandPath(actionCommand);
-  await trackCommand(commandPath, version);
-});
-
-// Shutdown telemetry after command completes
-program.hook('postAction', async () => {
-  await shutdown();
-});
-
-const availableToolIds = AI_TOOLS.filter((tool) => tool.skillsDir).map((tool) => tool.value);
-const toolsOptionDescription = `Configure AI tools non-interactively. Use "all", "none", or a comma-separated list of: ${availableToolIds.join(', ')}`;
-
-program
-  .command('init [path]')
-  .description('Initialize Pscode in your project')
-  .option('--tools <tools>', toolsOptionDescription)
-  .option('--force', 'Auto-cleanup legacy files without prompting')
-  .option('--profile <profile>', 'Workflow profile to use (core, full, trello)')
-  .option('--pr', 'Enable PR workflow config without interactive prompts (uses defaults: branch=feat/{change-name}, title=[{type}] {change-name})')
-  .option('--no-pr', 'Disable PR workflow config without interactive prompts')
-  .action(async (targetPath = '.', options?: { tools?: string; force?: boolean; profile?: string; pr?: boolean }) => {
-    try {
-      // Validate that the path is a valid directory
-      const resolvedPath = path.resolve(targetPath);
-
-      try {
-        const stats = await fs.stat(resolvedPath);
-        if (!stats.isDirectory()) {
-          throw new Error(`Path "${targetPath}" is not a directory`);
-        }
-      } catch (error: any) {
-        if (error.code === 'ENOENT') {
-          // Directory doesn't exist, but we can create it
-          console.log(`Directory "${targetPath}" doesn't exist, it will be created.`);
-        } else if (error.message && error.message.includes('not a directory')) {
-          throw error;
-        } else {
-          throw new Error(`Cannot access path "${targetPath}": ${error.message}`);
-        }
-      }
-
-      const { InitCommand } = await import('../core/init.js');
-      const initCommand = new InitCommand({
-        tools: options?.tools,
-        force: options?.force,
-        profile: options?.profile,
-        pr: options?.pr,
+  program
+    .command('init')
+    .description('Install the guided SDD workflow into this project')
+    .option('-a, --agent <id>', 'agent to install (repeatable): claude, codex, cursor, gemini, github-copilot', collect, [])
+    .option('--no-board', 'do not create pscode/board.yaml')
+    .option('--profile <name>', 'workflow profile', 'guided')
+    .option('-y, --yes', 'accept defaults without prompting')
+    .action(async (opts) => {
+      await runInit({
+        agents: opts.agent,
+        board: opts.board,
+        profile: opts.profile,
+        yes: opts.yes,
       });
-      await initCommand.execute(targetPath);
-    } catch (error) {
-      console.log(); // Empty line for spacing
-      ora().fail(`Error: ${(error as Error).message}`);
-      process.exit(1);
-    }
-  });
+    });
 
-// Hidden alias: 'experimental' -> 'init' for backwards compatibility
-program
-  .command('experimental', { hidden: true })
-  .description('Alias for init (deprecated)')
-  .option('--tool <tool-id>', 'Target AI tool (maps to --tools)')
-  .option('--no-interactive', 'Disable interactive prompts')
-  .action(async (options?: { tool?: string; noInteractive?: boolean }) => {
-    try {
-      console.log('Note: "pscode experimental" is deprecated. Use "pscode init" instead.');
-      const { InitCommand } = await import('../core/init.js');
-      const initCommand = new InitCommand({
-        tools: options?.tool,
-        interactive: options?.noInteractive === true ? false : undefined,
-      });
-      await initCommand.execute('.');
-    } catch (error) {
-      console.log();
-      ora().fail(`Error: ${(error as Error).message}`);
-      process.exit(1);
-    }
-  });
+  program
+    .command('update')
+    .description('Refresh PSCode commands, skills and instructions in place')
+    .action(async () => {
+      await runUpdate();
+    });
 
-program
-  .command('update [path]')
-  .description('Update Pscode instruction files')
-  .option('--force', 'Force update even when tools are up to date')
-  .action(async (targetPath = '.', options?: { force?: boolean }) => {
-    try {
-      const resolvedPath = path.resolve(targetPath);
-      const workspaceRoot = await findWorkspaceRoot(resolvedPath);
-      if (workspaceRoot) {
-        await runWorkspaceUpdateForRoot(workspaceRoot, { force: options?.force });
-        return;
-      }
+  program
+    .command('doctor')
+    .description('Check that the project is correctly configured')
+    .action(async () => {
+      await runDoctor();
+    });
 
-      const updateCommand = new UpdateCommand({ force: options?.force });
-      await updateCommand.execute(resolvedPath);
-    } catch (error) {
-      console.log(); // Empty line for spacing
-      ora().fail(`Error: ${(error as Error).message}`);
-      process.exit(1);
-    }
-  });
+  program
+    .command('clean')
+    .description('Remove PSCode-generated files')
+    .option('--all', 'also remove the pscode/ directory (deletes your changes)')
+    .option('-y, --yes', 'confirm removal without prompting')
+    .action(async (opts) => {
+      await runClean({ all: opts.all, yes: opts.yes });
+    });
 
-program
-  .command('list')
-  .description('List items (changes by default). Use --specs to list specs.')
-  .option('--specs', 'List specs instead of changes')
-  .option('--changes', 'List changes explicitly (default)')
-  .option('--sort <order>', 'Sort order: "recent" (default) or "name"', 'recent')
-  .option('--json', 'Output as JSON (for programmatic use)')
-  .action(async (options?: { specs?: boolean; changes?: boolean; sort?: string; json?: boolean }) => {
-    try {
-      const listCommand = new ListCommand();
-      const mode: 'changes' | 'specs' = options?.specs ? 'specs' : 'changes';
-      const sort = options?.sort === 'name' ? 'name' : 'recent';
-      await listCommand.execute('.', mode, { sort, json: options?.json });
-    } catch (error) {
-      console.log(); // Empty line for spacing
-      ora().fail(`Error: ${(error as Error).message}`);
-      process.exit(1);
-    }
-  });
+  program
+    .command('status')
+    .description('Show changes under pscode/changes/ and their state')
+    .action(async () => {
+      await runStatus();
+    });
 
-program
-  .command('view')
-  .description('Display an interactive dashboard of specs and changes')
-  .action(async () => {
-    try {
-      const viewCommand = new ViewCommand();
-      await viewCommand.execute('.');
-    } catch (error) {
-      console.log(); // Empty line for spacing
-      ora().fail(`Error: ${(error as Error).message}`);
-      process.exit(1);
-    }
-  });
-
-// Change command with subcommands
-const changeCmd = program
-  .command('change')
-  .description('Manage Pscode change proposals');
-
-// Deprecation notice for noun-based commands
-changeCmd.hook('preAction', () => {
-  console.error('Warning: The "pscode change ..." commands are deprecated. Prefer verb-first commands (e.g., "pscode list", "pscode validate --changes").');
-});
-
-changeCmd
-  .command('show [change-name]')
-  .description('Show a change proposal in JSON or markdown format')
-  .option('--json', 'Output as JSON')
-  .option('--deltas-only', 'Show only deltas (JSON only)')
-  .option('--requirements-only', 'Alias for --deltas-only (deprecated)')
-  .option('--no-interactive', 'Disable interactive prompts')
-  .action(async (changeName?: string, options?: { json?: boolean; requirementsOnly?: boolean; deltasOnly?: boolean; noInteractive?: boolean }) => {
-    try {
-      const changeCommand = new ChangeCommand();
-      await changeCommand.show(changeName, options);
-    } catch (error) {
-      console.error(`Error: ${(error as Error).message}`);
-      process.exitCode = 1;
-    }
-  });
-
-changeCmd
-  .command('list')
-  .description('List all active changes (DEPRECATED: use "pscode list" instead)')
-  .option('--json', 'Output as JSON')
-  .option('--long', 'Show id and title with counts')
-  .action(async (options?: { json?: boolean; long?: boolean }) => {
-    try {
-      console.error('Warning: "pscode change list" is deprecated. Use "pscode list".');
-      const changeCommand = new ChangeCommand();
-      await changeCommand.list(options);
-    } catch (error) {
-      console.error(`Error: ${(error as Error).message}`);
-      process.exitCode = 1;
-    }
-  });
-
-changeCmd
-  .command('validate [change-name]')
-  .description('Validate a change proposal')
-  .option('--strict', 'Enable strict validation mode')
-  .option('--json', 'Output validation report as JSON')
-  .option('--no-interactive', 'Disable interactive prompts')
-  .action(async (changeName?: string, options?: { strict?: boolean; json?: boolean; noInteractive?: boolean }) => {
-    try {
-      const changeCommand = new ChangeCommand();
-      await changeCommand.validate(changeName, options);
-      if (typeof process.exitCode === 'number' && process.exitCode !== 0) {
-        process.exit(process.exitCode);
-      }
-    } catch (error) {
-      console.error(`Error: ${(error as Error).message}`);
-      process.exitCode = 1;
-    }
-  });
-
-program
-  .command('complete [change-name]')
-  .description('Complete a change and update main specs')
-  .option('-y, --yes', 'Skip confirmation prompts')
-  .option('--no-validate', 'Skip validation (not recommended, requires confirmation)')
-  .action(async (changeName?: string, options?: { yes?: boolean; noValidate?: boolean; validate?: boolean }) => {
-    try {
-      const completeCommand = new CompleteCommand();
-      await completeCommand.execute(changeName, options);
-    } catch (error) {
-      console.log(); // Empty line for spacing
-      ora().fail(`Error: ${(error as Error).message}`);
-      process.exit(1);
-    }
-  });
-
-registerSpecCommand(program);
-registerConfigCommand(program);
-registerSchemaCommand(program);
-registerWorkspaceCommand(program);
-registerContextStoreCommand(program);
-registerInitiativeCommand(program);
-
-// Top-level validate command
-program
-  .command('validate [item-name]')
-  .description('Validate changes and specs')
-  .option('--all', 'Validate all changes and specs')
-  .option('--changes', 'Validate all changes')
-  .option('--specs', 'Validate all specs')
-  .option('--type <type>', 'Specify item type when ambiguous: change|spec')
-  .option('--strict', 'Enable strict validation mode')
-  .option('--json', 'Output validation results as JSON')
-  .option('--concurrency <n>', 'Max concurrent validations (defaults to env PSCODE_CONCURRENCY or 6)')
-  .option('--no-interactive', 'Disable interactive prompts')
-  .action(async (itemName?: string, options?: { all?: boolean; changes?: boolean; specs?: boolean; type?: string; strict?: boolean; json?: boolean; noInteractive?: boolean; concurrency?: string }) => {
-    try {
-      const validateCommand = new ValidateCommand();
-      await validateCommand.execute(itemName, options);
-    } catch (error) {
-      console.log();
-      ora().fail(`Error: ${(error as Error).message}`);
-      process.exit(1);
-    }
-  });
-
-// Top-level show command
-program
-  .command('show [item-name]')
-  .description('Show a change or spec')
-  .option('--json', 'Output as JSON')
-  .option('--type <type>', 'Specify item type when ambiguous: change|spec')
-  .option('--no-interactive', 'Disable interactive prompts')
-  // change-only flags
-  .option('--deltas-only', 'Show only deltas (JSON only, change)')
-  .option('--requirements-only', 'Alias for --deltas-only (deprecated, change)')
-  // spec-only flags
-  .option('--requirements', 'JSON only: Show only requirements (exclude scenarios)')
-  .option('--no-scenarios', 'JSON only: Exclude scenario content')
-  .option('-r, --requirement <id>', 'JSON only: Show specific requirement by ID (1-based)')
-  // allow unknown options to pass-through to underlying command implementation
-  .allowUnknownOption(true)
-  .action(async (itemName?: string, options?: { json?: boolean; type?: string; noInteractive?: boolean; [k: string]: any }) => {
-    try {
-      const showCommand = new ShowCommand();
-      await showCommand.execute(itemName, options ?? {});
-    } catch (error) {
-      console.log();
-      ora().fail(`Error: ${(error as Error).message}`);
-      process.exit(1);
-    }
-  });
-
-// Feedback command
-program
-  .command('feedback <message>')
-  .description('Submit feedback about Pscode')
-  .option('--body <text>', 'Detailed description for the feedback')
-  .action(async (message: string, options?: { body?: string }) => {
-    try {
-      const feedbackCommand = new FeedbackCommand();
-      await feedbackCommand.execute(message, options);
-    } catch (error) {
-      console.log();
-      ora().fail(`Error: ${(error as Error).message}`);
-      process.exit(1);
-    }
-  });
-
-// Completion command with subcommands
-const completionCmd = program
-  .command('completion')
-  .description('Manage shell completions for Pscode CLI');
-
-completionCmd
-  .command('generate [shell]')
-  .description('Generate completion script for a shell (outputs to stdout)')
-  .action(async (shell?: string) => {
-    try {
-      const completionCommand = new CompletionCommand();
-      await completionCommand.generate({ shell });
-    } catch (error) {
-      console.log();
-      ora().fail(`Error: ${(error as Error).message}`);
-      process.exit(1);
-    }
-  });
-
-completionCmd
-  .command('install [shell]')
-  .description('Install completion script for a shell')
-  .option('--verbose', 'Show detailed installation output')
-  .action(async (shell?: string, options?: { verbose?: boolean }) => {
-    try {
-      const completionCommand = new CompletionCommand();
-      await completionCommand.install({ shell, verbose: options?.verbose });
-    } catch (error) {
-      console.log();
-      ora().fail(`Error: ${(error as Error).message}`);
-      process.exit(1);
-    }
-  });
-
-completionCmd
-  .command('uninstall [shell]')
-  .description('Uninstall completion script for a shell')
-  .option('-y, --yes', 'Skip confirmation prompts')
-  .action(async (shell?: string, options?: { yes?: boolean }) => {
-    try {
-      const completionCommand = new CompletionCommand();
-      await completionCommand.uninstall({ shell, yes: options?.yes });
-    } catch (error) {
-      console.log();
-      ora().fail(`Error: ${(error as Error).message}`);
-      process.exit(1);
-    }
-  });
-
-// Hidden command for machine-readable completion data
-program
-  .command('__complete <type>', { hidden: true })
-  .description('Output completion data in machine-readable format (internal use)')
-  .action(async (type: string) => {
-    try {
-      const completionCommand = new CompletionCommand();
-      await completionCommand.complete({ type });
-    } catch (error) {
-      // Silently fail for graceful shell completion experience
-      process.exitCode = 1;
-    }
-  });
-
-// ═══════════════════════════════════════════════════════════
-// Workflow Commands (formerly experimental)
-// ═══════════════════════════════════════════════════════════
-
-// Status command
-program
-  .command('status')
-  .description('Display artifact completion status for a change')
-  .option('--change <id>', 'Change name to show status for')
-  .option('--schema <name>', 'Schema override (auto-detected from config.yaml)')
-  .option('--json', 'Output as JSON')
-  .action(async (options: StatusOptions) => {
-    try {
-      await statusCommand(options);
-    } catch (error) {
-      console.log();
-      ora().fail(`Error: ${(error as Error).message}`);
-      process.exit(1);
-    }
-  });
-
-// Instructions command
-program
-  .command('instructions [artifact]')
-  .description('Output enriched instructions for creating an artifact or applying tasks')
-  .option('--change <id>', 'Change name')
-  .option('--schema <name>', 'Schema override (auto-detected from config.yaml)')
-  .option('--json', 'Output as JSON')
-  .action(async (artifactId: string | undefined, options: InstructionsOptions) => {
-    try {
-      // Special case: "apply" is not an artifact, but a command to get apply instructions
-      if (artifactId === 'apply') {
-        await applyInstructionsCommand(options);
-      } else {
-        await instructionsCommand(artifactId, options);
-      }
-    } catch (error) {
-      console.log();
-      ora().fail(`Error: ${(error as Error).message}`);
-      process.exit(1);
-    }
-  });
-
-// Templates command
-program
-  .command('templates')
-  .description('Show resolved template paths for all artifacts in a schema')
-  .option('--schema <name>', `Schema to use (default: ${DEFAULT_SCHEMA})`)
-  .option('--json', 'Output as JSON mapping artifact IDs to template paths')
-  .action(async (options: TemplatesOptions) => {
-    try {
-      await templatesCommand(options);
-    } catch (error) {
-      console.log();
-      ora().fail(`Error: ${(error as Error).message}`);
-      process.exit(1);
-    }
-  });
-
-// Schemas command
-program
-  .command('schemas')
-  .description('List available workflow schemas with descriptions')
-  .option('--json', 'Output as JSON (for agent use)')
-  .action(async (options: SchemasOptions) => {
-    try {
-      await schemasCommand(options);
-    } catch (error) {
-      console.log();
-      ora().fail(`Error: ${(error as Error).message}`);
-      process.exit(1);
-    }
-  });
-
-// New command group with change subcommand
-const newCmd = program.command('new').description('Create new items');
-
-newCmd
-  .command('change <name>')
-  .description('Create a new change directory')
-  .option('--description <text>', 'Description to add to README.md')
-  .option('--goal <text>', 'Workspace product goal to store with the change')
-  .option('--areas <names>', 'Comma-separated affected workspace link names')
-  .option('--initiative <id>', 'Link the repo-local change to an initiative')
-  .option('--store <id>', 'Context store id for --initiative')
-  .option('--store-path <path>', 'Existing local context store root for --initiative')
-  .option('--schema <name>', `Workflow schema to use (default: ${DEFAULT_SCHEMA})`)
-  .option('--json', 'Output as JSON')
-  .action(async (name: string, options: NewChangeOptions) => {
-    try {
-      await newChangeCommand(name, options);
-    } catch (error) {
-      console.log();
-      ora().fail(`Error: ${(error as Error).message}`);
-      process.exit(1);
-    }
-  });
-
-// Set command group
-const setCmd = program.command('set').description('Set checked-in Pscode metadata');
-
-setCmd
-  .command('change <name>')
-  .description('Set repo-local change metadata')
-  .option('--initiative <id>', 'Link the repo-local change to an initiative')
-  .option('--store <id>', 'Context store id for --initiative')
-  .option('--store-path <path>', 'Existing local context store root for --initiative')
-  .option('--json', 'Output as JSON')
-  .action(async (name: string, options: SetChangeOptions) => {
-    try {
-      await setChangeCommand(name, options);
-    } catch (error) {
-      console.log();
-      ora().fail(`Error: ${(error as Error).message}`);
-      process.exit(1);
-    }
-  });
-
-export { program };
-
-export function runCli(argv = process.argv): void {
-  program.parse(argv);
+  return program;
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  runCli();
+export async function runCli(argv: string[] = process.argv): Promise<void> {
+  const program = buildProgram();
+  try {
+    await program.parseAsync(argv);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`\nError: ${message}\n`);
+    process.exitCode = 1;
+  }
+}
+
+/** True when this module is the process entry point (`node dist/cli/index.js`). */
+function isMainModule(): boolean {
+  const entry = process.argv[1];
+  if (!entry) return false;
+  try {
+    return realpathSync(fileURLToPath(import.meta.url)) === realpathSync(entry);
+  } catch {
+    return false;
+  }
+}
+
+if (isMainModule()) {
+  void runCli();
 }

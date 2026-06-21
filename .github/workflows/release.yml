@@ -90,10 +90,10 @@ jobs:
           git commit -m "chore(release): v${{ steps.version.outputs.version }} [skip ci]"
           git push origin HEAD:main
 
-      # release:ci = check:pack-version && changeset publish (publica no npm + cria git tags)
+      # release = changeset publish (publica no npm + cria git tags)
       - name: Publish to npm
         if: steps.check.outputs.has_changes == 'true'
-        run: pnpm run release:ci
+        run: pnpm run release
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
