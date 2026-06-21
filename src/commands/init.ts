@@ -41,15 +41,16 @@ async function resolveAgents(
   }
 
   const { checkbox } = await import('@inquirer/prompts');
-  const selected = await checkbox<string>({
-    message: 'Which coding agents should PSCode install into?',
+  // Claude Code is the default baseline; detected agents are pre-checked too.
+  return checkbox<string>({
+    message: 'Select agents to set up',
     choices: AGENTS.map((a) => ({
       name: a.name,
       value: a.id,
-      checked: detected.includes(a.id),
+      checked: a.id === 'claude' || detected.includes(a.id),
     })),
+    validate: (items) => items.length > 0 || 'Select at least one agent.',
   });
-  return selected.length > 0 ? selected : ['claude'];
 }
 
 /** Resolve whether to create the local board, prompting when appropriate. */
