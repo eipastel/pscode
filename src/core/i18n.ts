@@ -31,6 +31,8 @@ export function isSupportedLocale(value: string): boolean {
 export interface InitMessages {
   selectLanguage: string;
   selectAgents: string;
+  /** Suffix appended to the recommended agent's name in the picker. */
+  recommendedSuffix: string;
   /** Pinned footer hint for the agents checkbox. */
   agentsHint: string;
   atLeastOneAgent: string;
@@ -55,6 +57,7 @@ const MESSAGES: Record<string, InitMessages> = {
   en: {
     selectLanguage: 'Select language',
     selectAgents: 'Select agents to set up',
+    recommendedSuffix: '(Recommended)',
     agentsHint: 'Space to select · A toggle all · I invert · Enter to confirm',
     atLeastOneAgent: 'Select at least one agent.',
     bypassPermissionsPrompt:
@@ -73,6 +76,7 @@ const MESSAGES: Record<string, InitMessages> = {
   pt: {
     selectLanguage: 'Selecione o idioma',
     selectAgents: 'Selecione os agentes para configurar',
+    recommendedSuffix: '(Recomendado)',
     agentsHint: 'Espaço seleciona · A marca todos · I inverte · Enter confirma',
     atLeastOneAgent: 'Selecione pelo menos um agente.',
     bypassPermissionsPrompt:

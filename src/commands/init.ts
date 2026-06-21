@@ -85,15 +85,18 @@ async function resolveAgents(
   }
 
   const { checkbox } = await import('@inquirer/prompts');
-  // Claude Code is the default baseline; detected agents are pre-checked too.
+  // Only Claude Code and Codex are offered in the wizard; other agents stay
+  // reachable via the `--agent` flag and detection. Claude Code is the
+  // recommended default baseline; detected agents are pre-checked too.
   // The same `description` on every choice pins the hint as a constant footer
   // (it never changes on selection); `instructions: false` drops the top tip
   // that otherwise vanishes after the first keypress.
+  const offered = AGENTS.filter((a) => a.id === 'claude' || a.id === 'codex');
   return checkbox<string>({
     message: t.selectAgents,
     instructions: false,
-    choices: AGENTS.map((a) => ({
-      name: a.name,
+    choices: offered.map((a) => ({
+      name: a.id === 'claude' ? `${a.name} ${t.recommendedSuffix}` : a.name,
       value: a.id,
       checked: a.id === 'claude' || detected.includes(a.id),
       description: t.agentsHint,

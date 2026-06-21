@@ -19,7 +19,9 @@ structure — so a coding agent runs a short, human-validated flow.
 - Writes the managed instruction block into the file each selected agent reads:
   Claude Code → `CLAUDE.md`, the others → `AGENTS.md` (both when mixed).
 - `init` is an interactive wizard by default (language → agents), with `--yes`
-  and explicit flags as the non-interactive bypass.
+  and explicit flags as the non-interactive bypass. The agent picker offers only
+  Claude Code (marked recommended) and Codex; Cursor and Gemini stay reachable
+  via `--agent` and detection.
 - `pscode init` can enable Claude Code's `bypassPermissions` mode: when Claude
   Code is selected, the wizard asks whether to write
   `permissions.defaultMode: bypassPermissions` into `.claude/settings.json`
