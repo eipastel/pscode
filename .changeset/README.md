@@ -24,7 +24,7 @@ Use this structure for your changeset content:
 
 ```markdown
 ---
-"@thiagodiogo/pastelsdd": patch
+"@thiagodiogo/pscode": patch
 ---
 
 ### New Features

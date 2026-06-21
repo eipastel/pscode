@@ -5,10 +5,9 @@ export default tseslint.config(
     files: ['src/**/*.ts'],
     extends: [...tseslint.configs.recommended],
     rules: {
-      // Prevent static imports of @inquirer modules to avoid pre-commit hook hangs.
-      // These modules have side effects that can keep the Node.js event loop alive
-      // when stdin is piped. Use dynamic import() instead.
-      // See: https://github.com/thiagodiogo/Pastelsdd/issues/367
+      // Prevent static imports of @inquirer modules. These modules have side
+      // effects that can keep the Node.js event loop alive when stdin is piped,
+      // which hangs CLI invocations. Use dynamic import() inside functions instead.
       'no-restricted-imports': [
         'error',
         {
@@ -26,14 +25,6 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': 'off',
       'no-empty': 'off',
       'prefer-const': 'off',
-    },
-  },
-  {
-    // init.ts is dynamically imported from cli/index.ts, so static @inquirer
-    // imports there are safe - they won't be loaded at CLI startup
-    files: ['src/core/init.ts'],
-    rules: {
-      'no-restricted-imports': 'off',
     },
   },
   {

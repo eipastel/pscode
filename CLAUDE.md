@@ -24,7 +24,7 @@ pnpm test:watch      # Watch mode
 pnpm test:ui         # Vitest UI
 
 # Run a single test file
-pnpm test -- test/commands/validate.test.ts
+pnpm exec vitest run test/cli/lifecycle.test.ts
 
 # Lint
 pnpm lint            # eslint src/
@@ -34,105 +34,85 @@ pnpm changeset       # Create a changeset entry
 pnpm release         # Publishes via changeset (CI only)
 ```
 
-Tests live in `test/` (not `src/`). The vitest config (`vitest.config.ts`) uses `pool: 'forks'` for per-file process isolation because tests manipulate `process.cwd()` and temp filesystems.
+Tests live in `test/` (not `src/`). The vitest config (`vitest.config.ts`) uses `pool: 'forks'` for per-file process isolation because tests manipulate `process.cwd()` and temp filesystems. CLI tests (`test/cli/`) spawn the built `dist/cli/index.js`, so **run `pnpm build` before them** if `dist/` may be stale; unit tests (`test/unit/`) import from `src/` directly.
 
 ## Architecture
 
-`pscode` is a CLI tool for **spec-driven, AI-native development workflows**. The core idea is that every feature change goes through a pipeline of planning artifacts (proposal → specs → design → tasks → apply), tracked in a `pscode/changes/<name>/` directory inside any repository.
+`pscode` is a **lightweight installer**, not a workflow engine. Its single job is to
+lay down the rails — slash commands, skills, instructions, and a minimal `pscode/`
+file structure — so a coding agent can run a short, human-validated, spec-driven
+flow. The agent drives the flow; PSCode never interprets schemas, builds DAGs, or
+validates artifacts.
+
+The guided flow (run inside the agent) mirrors the GitHub Project board, moving
+the card at each step via `pscode-github-sync`:
+`/ps:draft` (Backlog) → `/ps:refine <card#>` (In Refinement → Ready to Dev) →
+`/ps:dev <card#>` (In Development → In Code Review → In Test → Ready to Deploy) →
+`/ps:complete <card#>` (Done). `/ps:cancel <card#>` sends a card to Cancelled.
 
 ### Entry Points
 
-- `bin/pscode.js` → `dist/cli/index.js` → `src/cli/index.ts` — the CLI entrypoint. Registers all commands on a Commander `program` instance.
+- `bin/pscode.js` → `dist/cli/index.js` → `src/cli/index.ts` — the CLI entrypoint. Builds a Commander `program` (`buildProgram`) and runs it. `index.ts` auto-runs `runCli()` when it is the main module; `bin` imports and calls `runCli()`.
 - `src/index.ts` re-exports the public API (`cli/` + `core/`) for library consumers.
 
 ### Core Concepts
 
-**Workflow Schemas** (`schemas/`)  
-YAML files (`schema.yaml`) define a DAG of *artifacts*. Each artifact has an `id`, a `generates` glob, a `template`, an optional `instruction`, and `requires` (dependencies). Two built-in schemas ship with the package:
-- `spec-driven` — repo-level: proposal → specs → design → tasks
-- `workspace-planning` — multi-repo workspace: proposal → specs → design → tasks (with `workspace-planning` defaults)
+**Content** (`src/core/content/`)  
+The tool-agnostic substance PSCode installs, as string constants (bundled into `dist`, no file-copy at runtime):
+- `commands/` — the 6 slash commands, one file per command (`draft`, `refine`, `dev`, `complete`, `cancel`, `board-setup`); `commands/index.ts` assembles them in flow order. These are the 4 guided steps plus `cancel` and `board-setup`.
+- `skills/` — the 9 skills, one file per skill (`pscode-guided-sdd`, `pscode-grill-me`, `pscode-refine`, `pscode-mini-spec`, `pscode-task-runner`, `pscode-dev`, `pscode-complete`, `pscode-github-sync`, `pscode-board-setup`); `skills/index.ts` assembles them in flow order.
+- `change-templates.ts` — the 4 short change templates (`brief`, `questions`, `refine`, `delta-spec`).
+- `index.ts` also exports `AGENTS_BLOCK_BODY`, the text injected into AGENTS.md/CLAUDE.md.
 
-**ArtifactGraph** (`src/core/artifact-graph/`)  
-In-memory DAG built from a schema YAML. Provides topological sort (`getBuildOrder`), readiness queries (`getNextArtifacts`), and completion tracking. The `status`, `instructions`, and `templates` workflow commands all go through this class.
+**Adapters** (`src/core/adapters.ts`)  
+One adapter per agent (claude, codex, cursor, gemini). All share a uniform layout — commands at `<dir>/commands/ps/<id>.md` (so they invoke as `/ps:<id>`), skills at `<dir>/skills/<name>/SKILL.md` — differing only by root dir. Adds a `generatedBy` version stamp to each file (used by `doctor`/`update`).
 
-**PlanningHome** (`src/core/planning-home.ts`)  
-Resolves where planning artifacts live for the current working directory. Walks up the directory tree looking for either a `pscode/` subdirectory (repo-level) or a workspace state file. Repo homes default to the `spec-driven` schema; workspace homes default to `workspace-planning`.
+**Installer** (`src/core/installer.ts`)  
+Writes/removes the rails: `installAgent`, `removeAgent`, `installChangeTemplates`, `ensureProjectStructure`, plus status helpers (`installedVersion`, `agentArtifactStatus`, `isAgentInstalled`).
 
-**Changes** (`pscode/changes/<name>/`)  
-Each change is a directory with a `.openspec.yaml` metadata file (schema, created date, optional initiative link and affected areas) plus artifact files generated by the workflow (e.g. `proposal.md`, `specs/*/spec.md`, `design.md`, `tasks.md`).
+**Config** (`src/core/pscode-config.ts`)  
+`pscode/config.yaml` (Zod-validated): agents, profile, the short-document `limits`, and the two guardrails (`apply_mode: one_task_at_a_time`, `approval_required`).
 
-**Workspaces** (`src/core/workspace/`)  
-Cross-repo planning surfaces. A workspace has a state file and named links to other repos/directories. Workspace changes live outside any single repo and use the `workspace-planning` schema.
+**Detection & Instruction Files** (`src/core/detect.ts`, `src/core/agents-md.ts`)  
+`detectAgents` finds agents in use. `agents-md.ts` writes the PSCode block into the instruction file each selected agent reads (Claude Code → `CLAUDE.md`, the others → `AGENTS.md`; both when mixed). Only the text between the `` markers is rewritten; user content is preserved.
 
-**Context Store / Initiatives** (`src/core/context-store/`, `src/core/collections/initiatives/`)  
-Higher-level groupings above individual changes. An *initiative* (in a *context store*) can link to multiple repo-local changes across workspaces. Stored in `<store-root>/initiatives/<id>/initiative.yaml` plus markdown files.
-
-**Command Generation** (`src/core/command-generation/`)  
-Generates tool-specific skill/command files for 5 AI tools: `claude`, `codex`, `cursor`, `gemini`, `github-copilot`. Each tool has an adapter in `src/core/command-generation/adapters/` and is registered in `CommandAdapterRegistry` (`registry.ts`). The AI tools list and their `skillsDir` paths are defined in `src/core/config.ts` (`AI_TOOLS`). The `init` and `update` commands call this to install Pscode workflow instructions into each tool's config directory (`.claude/`, `.codex/`, `.cursor/`, `.gemini/`, `.github/`).
-
-**OpenSpec Migration** (`src/core/openspec-migration.ts`)  
-Handles automatic migration from the old `openspec` tool. Triggered during `pscode init` when an `.openspec/` directory is detected — renames it to `pscode/`, deletes old `opsx-*` skill directories and command files.
-
-**Profiles** (`src/core/profiles.ts`, `src/core/profile-sync-drift.ts`)  
-Manages workflow profiles (collections of enabled AI tools). Drift detection compares stored config against the tools actually present on disk.
-
-**Validation** (`src/core/validation/`, `src/commands/validate.ts`)  
-Validates change and spec files against the schema contract and spec format rules. Supports `--strict`, `--json`, batch via `--all`, and concurrent validation via `PSCODE_CONCURRENCY`.
+**Changes** (`src/core/changes.ts`)  
+Reads `pscode/changes/<slug>/` and derives a simple state per change (`draft` → `spec-review` → `ready` → `doing` → `review` → `done`) from which artifacts exist and task progress. No engine — just file presence.
 
 ### Directory Layout
 
 ```
 src/
-  cli/index.ts          — Commander program, all command registrations
-  commands/             — Command handler classes/functions
+  cli/index.ts          — Commander program (init, update, doctor, clean, status)
+  commands/             — One handler per command: init, update, doctor, clean, status
   core/
-    artifact-graph/     — Schema loading, ArtifactGraph class, instruction/state resolution
-    change-metadata/    — .openspec.yaml schema (Zod)
-    collections/        — Initiatives and other collections
-    command-generation/ — Tool adapter system (5 adapters: claude, codex, cursor, gemini, github-copilot)
-    completions/        — Shell completion generators/installers
-    context-store/      — Context store CRUD
-    workspace/          — Workspace state, openers, registry
-    config.ts           — AI_TOOLS list and constants
-    global-config.ts    — XDG-aware global config (~/.config/pscode/config.json)
-    openspec-migration.ts — Migration from old .openspec/ to pscode/
-    planning-home.ts    — Repo vs workspace root resolution
-    profiles.ts         — Workflow profile management
-    ...                 — init, update, list, archive, view, etc.
-schemas/
-  spec-driven/          — Default schema + templates
-  workspace-planning/   — Workspace schema + templates
-test/                   — All tests (mirrors src/ structure)
+    config.ts           — version, AGENTS list, limits
+    content/            — commands, skills, change templates, AGENTS block (string constants)
+    adapters.ts         — per-agent file paths + frontmatter rendering
+    installer.ts        — write/remove rails; install status helpers
+    pscode-config.ts    — pscode/config.yaml (Zod) read/write
+    detect.ts           — detect agents in use
+    agents-md.ts        — managed AGENTS.md/CLAUDE.md block
+    changes.ts          — list changes + derive state
+    fs-utils.ts         — small fs helpers
+    interactive.ts      — whether prompting is allowed
+test/
+  unit/                 — import from src/ directly
+  cli/                  — spawn the built CLI (dist/)
+  helpers/              — run-cli.ts (spawns dist), tmp.ts (temp projects)
 ```
 
-**Workflow Commands** (`src/commands/workflow/`)  
-Top-level commands that drive the artifact pipeline:
-- `pscode status` — shows artifact completion status for a change (reads the DAG + file system)
-- `pscode instructions [artifact]` — outputs enriched instructions for the next artifact to create; `pscode instructions apply` for apply-phase instructions
-- `pscode templates` — resolves template paths for all artifacts in a schema
-- `pscode schemas` — lists available schemas with descriptions
-- `pscode new change <name>` — creates a new change directory with `.openspec.yaml`
-- `pscode set change <name>` — sets metadata (initiative link, etc.) on an existing change
-
-**Profiles** (`src/core/profiles.ts`)  
-Two built-in profiles selectable via `pscode init --profile <name>`:
-- `standard` — default; enables `propose`, `explore`, `apply`, `complete`, `trello-setup`, `draft`
-- `dixi` — Java/Spring + React/Next.js projects; enables `rfc`, `design`, `tasks`, `apply`, `arch-check`, `adr`, `jira-sync`, `dod`
-
-**Schema Resolution Order**  
-When resolving a schema name (e.g., `spec-driven`), pscode searches in order:
-1. Project-local: `<projectRoot>/pscode/schemas/<name>/schema.yaml`
-2. User override: `~/.local/share/pscode/schemas/<name>/schema.yaml` (XDG data dir)
-3. Package built-in: `<package>/schemas/<name>/schema.yaml`
-
-**Telemetry** (`src/telemetry/`)  
-Uses PostHog. First run shows an opt-in/opt-out notice. Commands are tracked by path (e.g., `change:show`, `validate`). Shutdown is hooked via `program.hook('postAction')`.
+**CLI Commands** (`src/commands/`)  
+- `pscode init` — install the workflow (detects/prompts agents; `--agent`, `--lang`, `--bypass-permissions` / `--no-bypass-permissions`, `--open` / `--no-open`, `--yes`). For Claude Code it can also write `permissions.defaultMode: bypassPermissions` into `.claude/settings.json` (see `core/claude-settings.ts`). When done it can open the selected agent's CLI — Claude Code preferred — handing off the terminal (`core/launch.ts`); with no TTY it prints how to start instead.
+- `pscode update` — refresh PSCode-controlled files in place, preserving user content.
+- `pscode doctor` — verify config, structure, and per-agent install/version; non-zero exit on issues.
+- `pscode clean` — remove the rails (`--all` also removes `pscode/`); destructive actions need `--yes`.
+- `pscode status` — list changes and their derived state.
 
 ### Key Conventions
 
 - All source is ESM (`"type": "module"`); imports use `.js` extension even for `.ts` source files.
-- Zod v4 is used for schema validation across the codebase.
-- Global config follows XDG Base Directory spec; on Windows uses `%APPDATA%` / `%LOCALAPPDATA%`.
-- The `pscode/changes/archive/` directory holds completed (archived) changes.
+- Import `@inquirer/*` **dynamically** (`await import(...)`), never statically — static imports can hang piped-stdin hooks (enforced by eslint `no-restricted-imports`).
+- Zod v4 validates `config.yaml`.
+- Installed files carry a `generatedBy: <version>` stamp; `doctor` flags stale installs and `update` rewrites them.
 - Changesets (`@changesets/cli`) manage versioning; add a changeset entry before releasing.
-- The `pscode change *` subcommands are deprecated; prefer verb-first top-level commands (`pscode list`, `pscode validate`, `pscode show`).
