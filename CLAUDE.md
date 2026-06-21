@@ -71,7 +71,7 @@ Writes/removes the rails: `installAgent`, `removeAgent`, `installChangeTemplates
 `pscode/config.yaml` (Zod-validated): agents, profile, the short-document `limits`, and the two guardrails (`apply_mode: one_task_at_a_time`, `approval_required`).
 
 **Detection & Instruction Files** (`src/core/detect.ts`, `src/core/agents-md.ts`)  
-`detectAgents` finds agents in use. `agents-md.ts` writes the PSCode block into the instruction file each selected agent reads (Claude Code → `CLAUDE.md`, the others → `AGENTS.md`; both when mixed). Only the text between the `<!-- PSCODE:START -->` / `<!-- PSCODE:END -->` markers is rewritten; user content is preserved.
+`detectAgents` finds agents in use. `agents-md.ts` writes the PSCode block into the instruction file each selected agent reads (Claude Code → `CLAUDE.md`, the others → `AGENTS.md`; both when mixed). Only the text between the `` markers is rewritten; user content is preserved.
 
 **Changes** (`src/core/changes.ts`)  
 Reads `pscode/changes/<slug>/` and derives a simple state per change (`draft` → `spec-review` → `ready` → `doing` → `review` → `done`) from which artifacts exist and task progress. No engine — just file presence.

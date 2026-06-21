@@ -26,6 +26,12 @@ structure — so a coding agent runs a short, human-validated flow.
   (merging into existing settings). Defaults to yes; control it with
   `--bypass-permissions` / `--no-bypass-permissions`. Never written when Claude
   Code is not selected. Its yes/no prompt resolves on the first keypress.
+- When `init` finishes it can open the selected agent's CLI (`claude`, `codex`
+  or `gemini`) — Claude Code preferred when more than one is selected — handing
+  off the terminal. Defaults to yes and is honored in `--yes` runs; control it
+  with `--open` / `--no-open`. The agent is only launched when a real terminal
+  is present; in CI or piped runs PSCode prints how to start it instead of
+  blocking. Cursor has no unambiguous CLI, so it is never auto-opened.
 - `update` now wipes the `commands/ps/` folder and every `skills/pscode-*` folder
   before rewriting, so commands or skills removed/renamed in a new version don't
   linger.
