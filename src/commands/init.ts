@@ -3,7 +3,7 @@
  */
 
 import chalk from 'chalk';
-import { AGENTS, DEFAULT_PROFILE, getAgent } from '../core/config.js';
+import { AGENTS, getAgent } from '../core/config.js';
 import { detectAgents } from '../core/detect.js';
 import { buildConfig, configExists, writeConfig } from '../core/pscode-config.js';
 import { emptyBoard, writeBoard } from '../core/board.js';
@@ -14,7 +14,6 @@ import { isInteractive } from '../core/interactive.js';
 export interface InitOptions {
   agents?: string[];
   board?: boolean;
-  profile?: string;
   yes?: boolean;
   cwd?: string;
 }
@@ -53,12 +52,11 @@ export async function runInit(opts: InitOptions = {}): Promise<void> {
   const projectRoot = opts.cwd ?? process.cwd();
   const reinit = configExists(projectRoot);
   const board = opts.board ?? true;
-  const profile = opts.profile ?? DEFAULT_PROFILE;
 
   const agents = await resolveAgents(projectRoot, opts);
 
   ensureProjectStructure(projectRoot);
-  writeConfig(projectRoot, buildConfig({ agents, board, profile }));
+  writeConfig(projectRoot, buildConfig({ agents, board }));
   if (board) writeBoard(projectRoot, emptyBoard());
   installChangeTemplates(projectRoot);
   for (const agentId of agents) installAgent(projectRoot, agentId);

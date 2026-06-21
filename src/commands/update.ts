@@ -40,10 +40,7 @@ export async function runUpdate(opts: UpdateOptions = {}): Promise<void> {
   const instructionFiles = syncInstructionFiles(projectRoot);
 
   // Refresh the version (and recorded agents) without touching board settings.
-  writeConfig(
-    projectRoot,
-    buildConfig({ agents, board: config.board.enabled, profile: config.profile })
-  );
+  writeConfig(projectRoot, buildConfig({ agents, board: config.board.enabled }));
 
   console.log(chalk.green(`\n✓ PSCode updated to v${PSCODE_VERSION}\n`));
   console.log(`  ${chalk.bold('Agents:')} ${agents.join(', ') || '(none)'}`);

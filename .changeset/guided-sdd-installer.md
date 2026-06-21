@@ -13,7 +13,7 @@ structure — so a coding agent runs a short, human-validated flow.
 - Installs 8 slash commands (`/ps:do`, `/ps:grill`, `/ps:spec`, `/ps:design`,
   `/ps:tasks`, `/ps:apply-one`, `/ps:review`, `/ps:done`) and 4 skills
   (`pscode-guided-sdd`, `pscode-grill-me`, `pscode-mini-spec`,
-  `pscode-task-runner`) for Claude Code, Codex, Cursor, Gemini and GitHub Copilot.
+  `pscode-task-runner`) for Claude Code, Codex, Cursor and Gemini.
 - Adds `pscode/config.yaml` (short-document limits + one-task-at-a-time and
   approval guardrails), an optional `pscode/board.yaml`, and short change
   templates.

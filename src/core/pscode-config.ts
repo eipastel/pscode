@@ -37,10 +37,10 @@ export function configExists(projectRoot: string): boolean {
   return exists(configPath(projectRoot));
 }
 
-export function buildConfig(opts: { agents: string[]; board?: boolean; profile?: string }): PscodeConfig {
+export function buildConfig(opts: { agents: string[]; board?: boolean }): PscodeConfig {
   return ConfigSchema.parse({
     version: PSCODE_VERSION,
-    profile: opts.profile ?? DEFAULT_PROFILE,
+    profile: DEFAULT_PROFILE,
     agents: opts.agents,
     board: { enabled: opts.board ?? true },
     limits: { ...DEFAULT_LIMITS },

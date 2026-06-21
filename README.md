@@ -7,7 +7,7 @@
 
 PSCode is a **lightweight installer**, not a workflow engine. It lays down slash
 commands, skills, instructions and a minimal `pscode/` structure so your coding
-agent (Claude Code, Codex, Cursor, Gemini, GitHub Copilot) can follow a short,
+agent (Claude Code, Codex, Cursor, Gemini) can follow a short,
 **human-validated** spec-driven flow — you approve every step:
 
 ```

@@ -62,7 +62,7 @@ The tool-agnostic substance PSCode installs, as string constants (bundled into `
 - `index.ts` also exports `AGENTS_BLOCK_BODY`, the text injected into AGENTS.md/CLAUDE.md.
 
 **Adapters** (`src/core/adapters.ts`)  
-One adapter per agent (claude, codex, cursor, gemini, github-copilot). All share a uniform layout — commands at `<dir>/commands/ps/<id>.md` (so they invoke as `/ps:<id>`), skills at `<dir>/skills/<name>/SKILL.md` — differing only by root dir. Adds a `generatedBy` version stamp to each file (used by `doctor`/`update`).
+One adapter per agent (claude, codex, cursor, gemini). All share a uniform layout — commands at `<dir>/commands/ps/<id>.md` (so they invoke as `/ps:<id>`), skills at `<dir>/skills/<name>/SKILL.md` — differing only by root dir. Adds a `generatedBy` version stamp to each file (used by `doctor`/`update`).
 
 **Installer** (`src/core/installer.ts`)  
 Writes/removes the rails: `installAgent`, `removeAgent`, `installChangeTemplates`, `ensureProjectStructure`, plus status helpers (`installedVersion`, `agentArtifactStatus`, `isAgentInstalled`).

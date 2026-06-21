@@ -30,15 +30,13 @@ export function buildProgram(): Command {
   program
     .command('init')
     .description('Install the guided SDD workflow into this project')
-    .option('-a, --agent <id>', 'agent to install (repeatable): claude, codex, cursor, gemini, github-copilot', collect, [])
+    .option('-a, --agent <id>', 'agent to install (repeatable): claude, codex, cursor, gemini', collect, [])
     .option('--no-board', 'do not create pscode/board.yaml')
-    .option('--profile <name>', 'workflow profile', 'guided')
     .option('-y, --yes', 'accept defaults without prompting')
     .action(async (opts) => {
       await runInit({
         agents: opts.agent,
         board: opts.board,
-        profile: opts.profile,
         yes: opts.yes,
       });
     });

@@ -3,9 +3,9 @@
  *
  * PSCode is a lightweight installer: it lays down slash commands, skills,
  * instructions and a minimal file structure so coding agents (Claude Code,
- * Codex, Cursor, Gemini, GitHub Copilot) can follow a short, guided,
- * human-validated spec-driven flow. It is intentionally *not* a workflow
- * engine — the agent drives the flow; PSCode just installs the rails.
+ * Codex, Cursor, Gemini) can follow a short, guided, human-validated
+ * spec-driven flow. It is intentionally *not* a workflow engine — the agent
+ * drives the flow; PSCode just installs the rails.
  */
 
 import { createRequire } from 'module';
@@ -42,12 +42,6 @@ export const AGENTS: Agent[] = [
   { id: 'codex', name: 'Codex', dir: '.codex', detectionPaths: ['.codex'] },
   { id: 'cursor', name: 'Cursor', dir: '.cursor', detectionPaths: ['.cursor'] },
   { id: 'gemini', name: 'Gemini CLI', dir: '.gemini', detectionPaths: ['.gemini'] },
-  {
-    id: 'github-copilot',
-    name: 'GitHub Copilot',
-    dir: '.github',
-    detectionPaths: ['.github/copilot-instructions.md', '.github/prompts', '.github/skills'],
-  },
 ];
 
 export function getAgent(id: string): Agent | undefined {
