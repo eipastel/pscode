@@ -1,18 +1,18 @@
 ---
 name: "ps:review"
-description: Revisa a mudança contra o brief e registra a validação.
+description: Reviews the change against the brief and records validation.
 generatedBy: 2.16.0
 ---
 
 # /ps:review
 
-Revisa a mudança.
+Review the change.
 
-Use a skill **pscode-guided-sdd** (etapa de review).
+Use the **pscode-guided-sdd** skill (review step).
 
-- Compare o código alterado com o `brief.md`.
-- Verifique se as tasks foram cumpridas.
-- Aponte riscos.
-- Registre a validação em `review.md`.
+- Compare the changed code against `brief.md`.
+- Check that the tasks were completed.
+- Point out risks.
+- Record the validation in `review.md`.
 
-**Pergunte se pode finalizar.**
+**Ask whether you can finalize.**

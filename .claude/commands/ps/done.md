@@ -1,16 +1,16 @@
 ---
 name: "ps:done"
-description: Finaliza a mudança após review.
+description: Finalizes the change after review.
 generatedBy: 2.16.0
 ---
 
 # /ps:done
 
-Finaliza a mudança.
+Finalize the change.
 
-Use a skill **pscode-guided-sdd** (etapa final).
+Use the **pscode-guided-sdd** skill (final step).
 
-- Garanta que não há tasks pendentes em `tasks.md`.
-- Garanta que `review.md` existe.
-- Se o board estiver habilitado, mova o card para `done`.
-- Não arquive automaticamente sem confirmação.
+- Make sure there are no pending tasks in `tasks.md`.
+- Make sure `review.md` exists.
+- If the board is enabled, move the card to `done`.
+- Don't archive automatically without confirmation.

@@ -1,21 +1,21 @@
 ---
 name: pscode-task-runner
-description: "Implementa a próxima task pendente de tasks.md — apenas uma, sem avançar o escopo, mostrando o diff e rodando a validação relevante. Use durante a implementação, uma task por vez."
+description: "Implements the next pending task in tasks.md — only one, without expanding the scope, showing the diff and running the relevant validation. Use it during implementation, one task at a time."
 generatedBy: 2.16.0
 ---
 
 # Task Runner
 
-Implemente **somente a próxima task pendente** de `tasks.md`.
+Implement **only the next pending task** in `tasks.md`.
 
-## Como agir
+## How to act
 
-1. Leia `brief.md`, `design.md` e `tasks.md`.
-2. Pegue a **primeira** task não marcada (`- [ ]`).
-3. Implemente apenas essa task. **Não avance o escopo.**
-4. Mostre um diff resumido do que mudou.
-5. Rode a validação relevante (testes/lint), se possível, e relate o resultado.
-6. Pergunte se pode marcar a task como concluída (`- [x]`).
+1. Read `brief.md`, `design.md` and `tasks.md`.
+2. Take the **first** unchecked task (`- [ ]`).
+3. Implement only that task. **Don't expand the scope.**
+4. Show a short diff of what changed.
+5. Run the relevant validation (tests/lint), if possible, and report the result.
+6. Ask whether you can mark the task as done (`- [x]`).
 
-Respeite `apply_mode: one_task_at_a_time` e `approval_required` em
-`pscode/config.yaml`. Uma task por vez, sempre com validação humana.
+Respect `apply_mode: one_task_at_a_time` and `approval_required` in
+`pscode/config.yaml`. One task at a time, always with human validation.

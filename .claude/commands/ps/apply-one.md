@@ -1,17 +1,17 @@
 ---
 name: "ps:apply-one"
-description: Implementa apenas a próxima task pendente.
+description: Implements only the next pending task.
 generatedBy: 2.16.0
 ---
 
 # /ps:apply-one
 
-Implementa **somente a próxima task pendente**.
+Implement **only the next pending task**.
 
-Use a skill **pscode-task-runner**.
+Use the **pscode-task-runner** skill.
 
-1. Leia `brief.md`, `design.md` e `tasks.md`.
-2. Implemente apenas uma task. Não avance o escopo.
-3. Mostre um diff resumido.
-4. Rode a validação relevante, se possível.
-5. Pergunte se pode marcar a task como concluída.
+1. Read `brief.md`, `design.md` and `tasks.md`.
+2. Implement a single task. Don't expand the scope.
+3. Show a short diff.
+4. Run the relevant validation, if possible.
+5. Ask whether you can mark the task as done.

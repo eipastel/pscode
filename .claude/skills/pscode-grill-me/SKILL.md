@@ -1,25 +1,25 @@
 ---
 name: pscode-grill-me
-description: "Interroga um pedido antes da implementação — perguntas objetivas que reduzem ambiguidade, no máximo 5, registradas em questions.md. Use para validar o entendimento antes de escrever specs ou código."
+description: "Interrogates a request before implementation — objective questions that reduce ambiguity, at most 5, recorded in questions.md. Use it to validate understanding before writing specs or code."
 generatedBy: 2.16.0
 ---
 
 # Grill Me
 
-Faça perguntas úteis para reduzir ambiguidade **antes** de escrever specs ou código.
+Ask useful questions to reduce ambiguity **before** writing specs or code.
 
-## Como agir
+## How to act
 
-- Faça perguntas **objetivas**; evite perguntas óbvias.
-- Foque em: comportamento esperado, escopo, exceções e validação.
-- **Máximo de 5 perguntas** (veja `limits.max_questions` em `pscode/config.yaml`).
-- Sempre que possível, ofereça uma resposta recomendada baseada no código.
-- Registre tudo em `pscode/changes/<slug>/questions.md`:
+- Ask **objective** questions; avoid obvious ones.
+- Focus on: expected behavior, scope, exceptions and validation.
+- **At most 5 questions** (see `limits.max_questions` in `pscode/config.yaml`).
+- Whenever possible, offer a recommended answer based on the code.
+- Record everything in `pscode/changes/<slug>/questions.md`:
 
 ```
 # Grill Me
-- [x] Pergunta respondida — resposta
-- [ ] Pergunta ainda aberta
+- [x] Answered question — answer
+- [ ] Still-open question
 ```
 
-Ao terminar, **pare e peça validação**. Não implemente código.
+When done, **stop and ask for validation**. Don't write code.

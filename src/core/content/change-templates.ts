@@ -10,16 +10,16 @@ import type { ChangeTemplate } from './types.js';
 export const CHANGE_TEMPLATES: ChangeTemplate[] = [
   {
     file: 'brief.md',
-    content: `# <nome da mudança>
+    content: `# <change name>
 
-## Objetivo
-Uma ou duas frases.
+## Objective
+One or two sentences.
 
-## Comportamento esperado
+## Expected behavior
 - item
 - item
 
-## Fora do escopo
+## Out of scope
 - item
 `,
   },
@@ -27,42 +27,42 @@ Uma ou duas frases.
     file: 'questions.md',
     content: `# Grill Me
 
-- [ ] Pergunta ainda aberta
+- [ ] Still-open question
 `,
   },
   {
     file: 'design.md',
     content: `# Design
 
-## Arquivos prováveis
-- arquivo
+## Likely files
+- file
 
-## Decisões
-- decisão
+## Decisions
+- decision
 
-## Riscos
-- risco
+## Risks
+- risk
 `,
   },
   {
     file: 'tasks.md',
     content: `# Tasks
 
-- [ ] Task pequena
-- [ ] Task pequena
+- [ ] Small task
+- [ ] Small task
 `,
   },
   {
     file: 'review.md',
     content: `# Review
 
-## Alterações
+## Changes
 - item
 
-## Validação
-- comando/teste executado → resultado
+## Validation
+- command/test run → result
 
-## Pendências
+## Pending
 - item
 `,
   },

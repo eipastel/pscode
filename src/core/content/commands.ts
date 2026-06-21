@@ -13,141 +13,141 @@ export const COMMANDS: CommandSpec[] = [
   {
     id: 'do',
     name: 'ps:do',
-    description: 'Recebe um pedido em linguagem natural e inicia uma mudança guiada.',
+    description: 'Takes a natural-language request and starts a guided change.',
     body: `# /ps:do
 
-Recebe um pedido natural do usuário e inicia uma mudança guiada.
+Take a natural-language request from the user and start a guided change.
 
-Use a skill **pscode-guided-sdd**.
+Use the **pscode-guided-sdd** skill.
 
-1. Entenda a mudança.
-2. Crie a pasta \`pscode/changes/<slug>\` (slug em kebab-case).
-3. Crie ou atualize \`brief.md\`.
-4. Chame a lógica de **Grill Me** (skill \`pscode-grill-me\`), no máximo 5 perguntas.
-5. **Pare e peça validação.**
+1. Understand the change.
+2. Create the folder \`pscode/changes/<slug>\` (slug in kebab-case).
+3. Create or update \`brief.md\`.
+4. Run the **Grill Me** logic (skill \`pscode-grill-me\`), at most 5 questions.
+5. **Stop and ask for validation.**
 
-Não implemente código nesta etapa.
+Do not write code in this step.
 `,
   },
   {
     id: 'grill',
     name: 'ps:grill',
-    description: 'Faz perguntas objetivas para reduzir ambiguidade antes de implementar.',
+    description: 'Asks objective questions to reduce ambiguity before implementing.',
     body: `# /ps:grill
 
-Faz perguntas úteis para reduzir ambiguidade.
+Ask useful questions to reduce ambiguity.
 
-Use a skill **pscode-grill-me**.
+Use the **pscode-grill-me** skill.
 
-- Perguntas objetivas; evite o óbvio.
-- Foque em comportamento esperado, escopo, exceções e validação.
-- Máximo de 5 perguntas.
-- Registre respostas em \`questions.md\`.
+- Objective questions; avoid the obvious.
+- Focus on expected behavior, scope, exceptions and validation.
+- At most 5 questions.
+- Record answers in \`questions.md\`.
 
-**Pare e peça validação.**
+**Stop and ask for validation.**
 `,
   },
   {
     id: 'spec',
     name: 'ps:spec',
-    description: 'Gera ou revisa o brief.md — curto e aprovável.',
+    description: 'Writes or revises brief.md — short and approvable.',
     body: `# /ps:spec
 
-Gera ou revisa o \`brief.md\`.
+Write or revise \`brief.md\`.
 
-Use a skill **pscode-mini-spec**.
+Use the **pscode-mini-spec** skill.
 
-- Mantenha o texto curto e em linguagem simples.
-- Separe objetivo, comportamento esperado e fora do escopo.
+- Keep the text short and in plain language.
+- Separate objective, expected behavior and out of scope.
 
-**Pare e peça aprovação.**
+**Stop and ask for approval.**
 `,
   },
   {
     id: 'design',
     name: 'ps:design',
-    description: 'Gera o design.md — arquivos prováveis, decisões e riscos.',
+    description: 'Writes design.md — likely files, decisions and risks.',
     body: `# /ps:design
 
-Gera o \`design.md\`.
+Write \`design.md\`.
 
-Use a skill **pscode-guided-sdd** (etapa de design).
+Use the **pscode-guided-sdd** skill (design step).
 
-- Liste arquivos prováveis.
-- Liste decisões técnicas principais.
-- Liste riscos.
-- Não crie arquitetura desnecessária. Mantenha curto.
+- List the likely files.
+- List the main technical decisions.
+- List the risks.
+- Don't create unnecessary architecture. Keep it short.
 
-**Pare e peça aprovação.**
+**Stop and ask for approval.**
 `,
   },
   {
     id: 'tasks',
     name: 'ps:tasks',
-    description: 'Gera o tasks.md — tarefas pequenas, em ordem lógica.',
+    description: 'Writes tasks.md — small tasks in logical order.',
     body: `# /ps:tasks
 
-Gera o \`tasks.md\`.
+Write \`tasks.md\`.
 
-Use a skill **pscode-guided-sdd** (etapa de tasks).
+Use the **pscode-guided-sdd** skill (tasks step).
 
-- Crie tasks pequenas.
-- Ordene por sequência lógica.
-- Permita implementação uma por vez.
-- Não misture muitas mudanças em uma única task.
+- Create small tasks.
+- Order them in a logical sequence.
+- Allow one-at-a-time implementation.
+- Don't mix many changes into a single task.
 
-**Pare e peça aprovação.**
+**Stop and ask for approval.**
 `,
   },
   {
     id: 'apply-one',
     name: 'ps:apply-one',
-    description: 'Implementa apenas a próxima task pendente.',
+    description: 'Implements only the next pending task.',
     body: `# /ps:apply-one
 
-Implementa **somente a próxima task pendente**.
+Implement **only the next pending task**.
 
-Use a skill **pscode-task-runner**.
+Use the **pscode-task-runner** skill.
 
-1. Leia \`brief.md\`, \`design.md\` e \`tasks.md\`.
-2. Implemente apenas uma task. Não avance o escopo.
-3. Mostre um diff resumido.
-4. Rode a validação relevante, se possível.
-5. Pergunte se pode marcar a task como concluída.
+1. Read \`brief.md\`, \`design.md\` and \`tasks.md\`.
+2. Implement a single task. Don't expand the scope.
+3. Show a short diff.
+4. Run the relevant validation, if possible.
+5. Ask whether you can mark the task as done.
 `,
   },
   {
     id: 'review',
     name: 'ps:review',
-    description: 'Revisa a mudança contra o brief e registra a validação.',
+    description: 'Reviews the change against the brief and records validation.',
     body: `# /ps:review
 
-Revisa a mudança.
+Review the change.
 
-Use a skill **pscode-guided-sdd** (etapa de review).
+Use the **pscode-guided-sdd** skill (review step).
 
-- Compare o código alterado com o \`brief.md\`.
-- Verifique se as tasks foram cumpridas.
-- Aponte riscos.
-- Registre a validação em \`review.md\`.
+- Compare the changed code against \`brief.md\`.
+- Check that the tasks were completed.
+- Point out risks.
+- Record the validation in \`review.md\`.
 
-**Pergunte se pode finalizar.**
+**Ask whether you can finalize.**
 `,
   },
   {
     id: 'done',
     name: 'ps:done',
-    description: 'Finaliza a mudança após review.',
+    description: 'Finalizes the change after review.',
     body: `# /ps:done
 
-Finaliza a mudança.
+Finalize the change.
 
-Use a skill **pscode-guided-sdd** (etapa final).
+Use the **pscode-guided-sdd** skill (final step).
 
-- Garanta que não há tasks pendentes em \`tasks.md\`.
-- Garanta que \`review.md\` existe.
-- Se o board estiver habilitado, mova o card para \`done\`.
-- Não arquive automaticamente sem confirmação.
+- Make sure there are no pending tasks in \`tasks.md\`.
+- Make sure \`review.md\` exists.
+- If the board is enabled, move the card to \`done\`.
+- Don't archive automatically without confirmation.
 `,
   },
 ];

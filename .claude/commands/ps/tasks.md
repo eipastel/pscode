@@ -1,18 +1,18 @@
 ---
 name: "ps:tasks"
-description: "Gera o tasks.md — tarefas pequenas, em ordem lógica."
+description: Writes tasks.md — small tasks in logical order.
 generatedBy: 2.16.0
 ---
 
 # /ps:tasks
 
-Gera o `tasks.md`.
+Write `tasks.md`.
 
-Use a skill **pscode-guided-sdd** (etapa de tasks).
+Use the **pscode-guided-sdd** skill (tasks step).
 
-- Crie tasks pequenas.
-- Ordene por sequência lógica.
-- Permita implementação uma por vez.
-- Não misture muitas mudanças em uma única task.
+- Create small tasks.
+- Order them in a logical sequence.
+- Allow one-at-a-time implementation.
+- Don't mix many changes into a single task.
 
-**Pare e peça aprovação.**
+**Stop and ask for approval.**

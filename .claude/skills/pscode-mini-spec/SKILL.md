@@ -1,28 +1,28 @@
 ---
 name: pscode-mini-spec
-description: "Escreve ou revisa um brief.md curto: objetivo, comportamento esperado e fora do escopo, em linguagem simples. Use para transformar o entendimento em uma spec pequena e aprovável."
+description: "Writes or revises a short brief.md: objective, expected behavior and out of scope, in plain language. Use it to turn understanding into a small, approvable spec."
 generatedBy: 2.16.0
 ---
 
 # Mini Spec
 
-Escreva ou revise o `brief.md` — curto, simples, aprovável.
+Write or revise `brief.md` — short, simple, approvable.
 
-## Formato
+## Format
 
 ```
-# <nome da mudança>
-## Objetivo
-Uma ou duas frases.
-## Comportamento esperado
+# <change name>
+## Objective
+One or two sentences.
+## Expected behavior
 - item
-## Fora do escopo
+## Out of scope
 - item
 ```
 
-## Regras
+## Rules
 
-- Linguagem simples; sem jargão desnecessário.
-- Separe **objetivo**, **comportamento esperado** e **fora do escopo**.
-- Respeite `limits.max_brief_lines` (`pscode/config.yaml`). Se passar, corte.
-- Ao terminar, **pare e peça aprovação**.
+- Plain language; no unnecessary jargon.
+- Separate **objective**, **expected behavior** and **out of scope**.
+- Respect `limits.max_brief_lines` (`pscode/config.yaml`). If you exceed it, trim.
+- When done, **stop and ask for approval**.

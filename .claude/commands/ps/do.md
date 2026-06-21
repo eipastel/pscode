@@ -1,19 +1,19 @@
 ---
 name: "ps:do"
-description: Recebe um pedido em linguagem natural e inicia uma mudança guiada.
+description: Takes a natural-language request and starts a guided change.
 generatedBy: 2.16.0
 ---
 
 # /ps:do
 
-Recebe um pedido natural do usuário e inicia uma mudança guiada.
+Take a natural-language request from the user and start a guided change.
 
-Use a skill **pscode-guided-sdd**.
+Use the **pscode-guided-sdd** skill.
 
-1. Entenda a mudança.
-2. Crie a pasta `pscode/changes/<slug>` (slug em kebab-case).
-3. Crie ou atualize `brief.md`.
-4. Chame a lógica de **Grill Me** (skill `pscode-grill-me`), no máximo 5 perguntas.
-5. **Pare e peça validação.**
+1. Understand the change.
+2. Create the folder `pscode/changes/<slug>` (slug in kebab-case).
+3. Create or update `brief.md`.
+4. Run the **Grill Me** logic (skill `pscode-grill-me`), at most 5 questions.
+5. **Stop and ask for validation.**
 
-Não implemente código nesta etapa.
+Do not write code in this step.

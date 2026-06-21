@@ -1,41 +1,41 @@
 ---
 name: pscode-guided-sdd
-description: "Conduz uma mudança por etapas curtas e validadas: entendimento → perguntas → mini spec → design → tasks → uma task por vez → review → done. Use para guiar qualquer mudança do início ao fim."
+description: "Drives a change through short, validated steps: understand → questions → mini spec → design → tasks → one task at a time → review → done. Use it to guide any change from start to finish."
 generatedBy: 2.16.0
 ---
 
 # Guided SDD
 
-Você guia uma mudança por etapas curtas e **validadas pelo humano**. O produto é
-*guided*, não *autopilot*: você nunca avança de etapa sem aprovação.
+You guide a change through short, **human-validated** steps. The product is
+*guided*, not *autopilot*: you never advance to the next step without approval.
 
-## Fluxo
+## Flow
 
-1. **Entendimento** — leia o pedido. Crie/atualize `pscode/changes/<slug>/brief.md`.
-2. **Perguntas** — use `pscode-grill-me` (máx. 5 perguntas). Registre em `questions.md`.
-3. **Mini spec** — use `pscode-mini-spec` para escrever o `brief.md` curto.
-4. **Design** — escreva `design.md`: arquivos prováveis, decisões, riscos. Curto.
-5. **Tasks** — escreva `tasks.md`: tarefas pequenas, em ordem lógica.
-6. **Apply** — use `pscode-task-runner` para implementar **uma task por vez**.
-7. **Review** — compare o código com o `brief.md`; registre em `review.md`.
-8. **Done** — só finalize quando não houver tasks pendentes e `review.md` existir.
+1. **Understand** — read the request. Create/update `pscode/changes/<slug>/brief.md`.
+2. **Questions** — use `pscode-grill-me` (max 5 questions). Record in `questions.md`.
+3. **Mini spec** — use `pscode-mini-spec` to write a short `brief.md`.
+4. **Design** — write `design.md`: likely files, decisions, risks. Keep it short.
+5. **Tasks** — write `tasks.md`: small tasks, in logical order.
+6. **Apply** — use `pscode-task-runner` to implement **one task at a time**.
+7. **Review** — compare the code against `brief.md`; record in `review.md`.
+8. **Done** — only finalize when there are no pending tasks and `review.md` exists.
 
-## Regras invioláveis
+## Non-negotiable rules
 
-- **Não avance sem aprovação.** Pare ao fim de cada etapa e peça validação.
-- **Implemente uma task por vez.** Nunca avance o escopo.
-- **Não gere documento gigante.** Cada etapa cabe em uma tela do terminal.
-- Respeite os limites em `pscode/config.yaml` (`limits`, `apply_mode`, `approval_required`).
+- **Don't advance without approval.** Stop at the end of each step and ask for validation.
+- **Implement one task at a time.** Never expand the scope.
+- **Don't produce a giant document.** Each step fits on one terminal screen.
+- Respect the limits in `pscode/config.yaml` (`limits`, `apply_mode`, `approval_required`).
 
-## Estrutura de uma mudança
+## Structure of a change
 
 ```
 pscode/changes/<slug>/
-├── brief.md       # objetivo, comportamento esperado, fora do escopo
-├── questions.md   # perguntas do Grill Me
-├── design.md      # arquivos prováveis, decisões, riscos
-├── tasks.md       # tasks pequenas
-└── review.md      # alterações, validação, pendências
+├── brief.md       # objective, expected behavior, out of scope
+├── questions.md   # Grill Me questions
+├── design.md      # likely files, decisions, risks
+├── tasks.md       # small tasks
+└── review.md      # changes, validation, pending items
 ```
 
-Slug = título em kebab-case (ex.: "Adicionar filtro type" → `add-search-type`).
+Slug = title in kebab-case (e.g. "Add type filter" → `add-search-type`).

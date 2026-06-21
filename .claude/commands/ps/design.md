@@ -1,18 +1,18 @@
 ---
 name: "ps:design"
-description: "Gera o design.md — arquivos prováveis, decisões e riscos."
+description: "Writes design.md — likely files, decisions and risks."
 generatedBy: 2.16.0
 ---
 
 # /ps:design
 
-Gera o `design.md`.
+Write `design.md`.
 
-Use a skill **pscode-guided-sdd** (etapa de design).
+Use the **pscode-guided-sdd** skill (design step).
 
-- Liste arquivos prováveis.
-- Liste decisões técnicas principais.
-- Liste riscos.
-- Não crie arquitetura desnecessária. Mantenha curto.
+- List the likely files.
+- List the main technical decisions.
+- List the risks.
+- Don't create unnecessary architecture. Keep it short.
 
-**Pare e peça aprovação.**
+**Stop and ask for approval.**

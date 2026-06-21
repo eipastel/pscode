@@ -1,16 +1,16 @@
 ---
 name: "ps:spec"
-description: Gera ou revisa o brief.md — curto e aprovável.
+description: Writes or revises brief.md — short and approvable.
 generatedBy: 2.16.0
 ---
 
 # /ps:spec
 
-Gera ou revisa o `brief.md`.
+Write or revise `brief.md`.
 
-Use a skill **pscode-mini-spec**.
+Use the **pscode-mini-spec** skill.
 
-- Mantenha o texto curto e em linguagem simples.
-- Separe objetivo, comportamento esperado e fora do escopo.
+- Keep the text short and in plain language.
+- Separate objective, expected behavior and out of scope.
 
-**Pare e peça aprovação.**
+**Stop and ask for approval.**
