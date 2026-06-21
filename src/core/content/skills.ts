@@ -124,5 +124,3 @@ Respeite \`apply_mode: one_task_at_a_time\` e \`approval_required\` em
 `,
   },
 ];
-
-export const SKILL_NAMES = SKILLS.map((s) => s.name);

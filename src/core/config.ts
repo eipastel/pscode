@@ -77,5 +77,3 @@ export const BOARD_STATES = [
   'review',
   'done',
 ] as const;
-
-export type BoardState = (typeof BOARD_STATES)[number];

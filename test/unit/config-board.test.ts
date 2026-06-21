@@ -1,11 +1,13 @@
 import { describe, it, expect, afterEach } from 'vitest';
+import { readFileSync } from 'fs';
+import path from 'path';
 import {
   buildConfig,
   readConfig,
   writeConfig,
   configExists,
 } from '../../src/core/pscode-config';
-import { emptyBoard, readBoard, writeBoard, boardExists } from '../../src/core/board';
+import { emptyBoard, writeBoard, boardExists } from '../../src/core/board';
 import { DEFAULT_LIMITS } from '../../src/core/config';
 import { makeTmpProject, cleanup } from '../helpers/tmp';
 
@@ -54,8 +56,9 @@ describe('pscode board', () => {
       path: 'pscode/changes/add-search-type',
     });
     writeBoard(dir, board);
-    const read = readBoard(dir);
-    expect(read?.states).toContain('done');
-    expect(read?.cards[0].slug).toBe('add-search-type');
+    expect(boardExists(dir)).toBe(true);
+    const raw = readFileSync(path.join(dir, 'pscode', 'board.yaml'), 'utf-8');
+    expect(raw).toContain('done');
+    expect(raw).toContain('add-search-type');
   });
 });

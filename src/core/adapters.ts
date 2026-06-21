@@ -9,7 +9,7 @@
 
 import path from 'path';
 import { AGENTS, getAgent, PSCODE_VERSION } from './config.js';
-import type { CommandSpec, SkillSpec } from './content/index.js';
+import type { CommandSpec, SkillSpec } from './content/types.js';
 
 /** Quote a YAML scalar if it contains characters that need escaping. */
 function yamlScalar(value: string): string {
@@ -56,7 +56,7 @@ function createAdapter(id: string): AgentAdapter {
 }
 
 /** Adapters for every supported agent, keyed by id. */
-export const ADAPTERS: Record<string, AgentAdapter> = Object.fromEntries(
+const ADAPTERS: Record<string, AgentAdapter> = Object.fromEntries(
   AGENTS.map((a) => [a.id, createAdapter(a.id)])
 );
 

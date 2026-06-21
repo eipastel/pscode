@@ -14,7 +14,7 @@ import { PSCODE_DIR } from './config.js';
 import { exists, readFile, removeDir, removeDirIfEmpty, removeFile, writeFile } from './fs-utils.js';
 
 /** Absolute paths of every command + skill file an agent owns. */
-export function agentArtifactPaths(projectRoot: string, agentId: string): string[] {
+function agentArtifactPaths(projectRoot: string, agentId: string): string[] {
   const adapter = getAdapter(agentId);
   return [
     ...COMMANDS.map((c) => path.join(projectRoot, adapter.commandPath(c.id))),

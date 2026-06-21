@@ -151,5 +151,3 @@ Use a skill **pscode-guided-sdd** (etapa final).
 `,
   },
 ];
-
-export const COMMAND_IDS = COMMANDS.map((c) => c.id);

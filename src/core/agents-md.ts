@@ -11,7 +11,7 @@ import { AGENTS_BLOCK_BODY } from './content/index.js';
 import { exists, readFile, writeFile } from './fs-utils.js';
 
 /** Files PSCode keeps the managed block in. */
-export const MANAGED_INSTRUCTION_FILES = ['AGENTS.md', 'CLAUDE.md'] as const;
+const MANAGED_INSTRUCTION_FILES = ['AGENTS.md', 'CLAUDE.md'] as const;
 
 function block(): string {
   return `${MANAGED_MARKERS.start}\n${AGENTS_BLOCK_BODY}\n${MANAGED_MARKERS.end}`;
@@ -24,7 +24,7 @@ function blockRegex(): RegExp {
 }
 
 /** Insert or refresh the managed block in a single file. */
-export function upsertManagedBlock(filePath: string): void {
+function upsertManagedBlock(filePath: string): void {
   const existing = readFile(filePath);
   if (existing === null) {
     writeFile(filePath, `${block()}\n`);

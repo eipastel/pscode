@@ -67,5 +67,3 @@ Uma ou duas frases.
 `,
   },
 ];
-
-export const CHANGE_TEMPLATE_FILES = CHANGE_TEMPLATES.map((t) => t.file);

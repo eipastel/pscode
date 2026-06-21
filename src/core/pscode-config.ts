@@ -11,7 +11,7 @@ import { z } from 'zod';
 import { DEFAULT_LIMITS, DEFAULT_PROFILE, PSCODE_DIR, PSCODE_VERSION } from './config.js';
 import { exists, readFile, writeFile } from './fs-utils.js';
 
-export const ConfigSchema = z.object({
+const ConfigSchema = z.object({
   version: z.string().default(PSCODE_VERSION),
   profile: z.string().default(DEFAULT_PROFILE),
   agents: z.array(z.string()).default([]),
@@ -29,7 +29,7 @@ export const ConfigSchema = z.object({
 
 export type PscodeConfig = z.infer<typeof ConfigSchema>;
 
-export function configPath(projectRoot: string): string {
+function configPath(projectRoot: string): string {
   return path.join(projectRoot, PSCODE_DIR, 'config.yaml');
 }
 

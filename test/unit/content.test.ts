@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { COMMANDS, COMMAND_IDS } from '../../src/core/content/commands';
-import { SKILLS, SKILL_NAMES } from '../../src/core/content/skills';
-import { CHANGE_TEMPLATES, CHANGE_TEMPLATE_FILES } from '../../src/core/content/change-templates';
+import { COMMANDS } from '../../src/core/content/commands';
+import { SKILLS } from '../../src/core/content/skills';
+import { CHANGE_TEMPLATES } from '../../src/core/content/change-templates';
 
 describe('guided-SDD content', () => {
   it('ships the eight guided slash commands', () => {
-    expect(COMMAND_IDS).toEqual([
+    expect(COMMANDS.map((c) => c.id)).toEqual([
       'do',
       'grill',
       'spec',
@@ -22,7 +22,7 @@ describe('guided-SDD content', () => {
   });
 
   it('ships the four skills', () => {
-    expect(SKILL_NAMES).toEqual([
+    expect(SKILLS.map((s) => s.name)).toEqual([
       'pscode-guided-sdd',
       'pscode-grill-me',
       'pscode-mini-spec',
@@ -34,7 +34,7 @@ describe('guided-SDD content', () => {
   });
 
   it('ships the five short change templates', () => {
-    expect(CHANGE_TEMPLATE_FILES).toEqual([
+    expect(CHANGE_TEMPLATES.map((t) => t.file)).toEqual([
       'brief.md',
       'questions.md',
       'design.md',

@@ -1,7 +1,6 @@
-export * from './types.js';
-export { COMMANDS, COMMAND_IDS } from './commands.js';
-export { SKILLS, SKILL_NAMES } from './skills.js';
-export { CHANGE_TEMPLATES, CHANGE_TEMPLATE_FILES } from './change-templates.js';
+export { COMMANDS } from './commands.js';
+export { SKILLS } from './skills.js';
+export { CHANGE_TEMPLATES } from './change-templates.js';
 
 /** The managed-block instructions injected into AGENTS.md / CLAUDE.md. */
 export const AGENTS_BLOCK_BODY = `## PSCode — Guided SDD
