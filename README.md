@@ -26,8 +26,12 @@ Requires Node.js `>= 20.19.0`.
 
 ```bash
 cd your-project
-pscode init        # detect agents, install commands/skills, scaffold pscode/
+pscode init        # interactive wizard: pick agents + board, scaffold pscode/
 ```
+
+`init` is interactive by default (it asks which agents to install and whether to
+create a local board). Pass `--yes` for a non-interactive run with defaults, or
+`--agent <id>` / `--no-board` to set choices explicitly.
 
 Then, inside your agent:
 

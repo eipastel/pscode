@@ -29,10 +29,10 @@ export function buildProgram(): Command {
 
   program
     .command('init')
-    .description('Install the guided SDD workflow into this project')
+    .description('Install the guided SDD workflow into this project (interactive wizard by default)')
     .option('-a, --agent <id>', 'agent to install (repeatable): claude, codex, cursor, gemini', collect, [])
     .option('--no-board', 'do not create pscode/board.yaml')
-    .option('-y, --yes', 'accept defaults without prompting')
+    .option('-y, --yes', 'skip prompts and accept defaults (non-interactive)')
     .action(async (opts) => {
       await runInit({
         agents: opts.agent,

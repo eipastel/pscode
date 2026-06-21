@@ -19,7 +19,11 @@ export interface InitOptions {
 }
 
 /** Resolve which agents to install for, prompting when appropriate. */
-async function resolveAgents(projectRoot: string, opts: InitOptions): Promise<string[]> {
+async function resolveAgents(
+  projectRoot: string,
+  opts: InitOptions,
+  interactive: boolean
+): Promise<string[]> {
   if (opts.agents && opts.agents.length > 0) {
     const unknown = opts.agents.filter((id) => !getAgent(id));
     if (unknown.length > 0) {
@@ -32,7 +36,7 @@ async function resolveAgents(projectRoot: string, opts: InitOptions): Promise<st
 
   const detected = detectAgents(projectRoot).map((a) => a.id);
 
-  if (opts.yes || !isInteractive()) {
+  if (!interactive) {
     return detected.length > 0 ? detected : ['claude'];
   }
 
@@ -48,12 +52,23 @@ async function resolveAgents(projectRoot: string, opts: InitOptions): Promise<st
   return selected.length > 0 ? selected : ['claude'];
 }
 
+/** Resolve whether to create the local board, prompting when appropriate. */
+async function resolveBoard(opts: InitOptions, interactive: boolean): Promise<boolean> {
+  // `--no-board` is an explicit opt-out; respect it without prompting.
+  if (opts.board === false) return false;
+  if (!interactive) return opts.board ?? true;
+
+  const { confirm } = await import('@inquirer/prompts');
+  return confirm({ message: 'Create a local board (pscode/board.yaml)?', default: true });
+}
+
 export async function runInit(opts: InitOptions = {}): Promise<void> {
   const projectRoot = opts.cwd ?? process.cwd();
   const reinit = configExists(projectRoot);
-  const board = opts.board ?? true;
+  const interactive = isInteractive() && !opts.yes;
 
-  const agents = await resolveAgents(projectRoot, opts);
+  const agents = await resolveAgents(projectRoot, opts, interactive);
+  const board = await resolveBoard(opts, interactive);
 
   ensureProjectStructure(projectRoot);
   writeConfig(projectRoot, buildConfig({ agents, board }));
