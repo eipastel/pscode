@@ -17,24 +17,31 @@ consistent.
    to **assign the current user** *and* move the card → **In Refinement**
    (\`proposed\`). The assign does not replace the status move — run both and
    confirm the move landed. Non-blocking only on \`gh\` failure.
-2. **Gather context.** Read everything that describes the demand:
-   - \`pscode/changes/<slug>/brief.md\` — the draft.
+2. **Set up the change and write the brief.** The draft now lives on the card,
+   not in a file. Resolve the slug (Issue title in kebab-case), create
+   \`pscode/changes/<slug>/\`, and save the card number to \`.issue\`. Read the
+   **Issue description** (the draft) via \`pscode-github-sync\` and turn it into
+   \`brief.md\` with \`pscode-mini-spec\` (objective, expected behavior, out of
+   scope). If a local \`brief.md\` already exists (no-GitHub draft), use it as-is.
+3. **Gather context.** Read everything that describes the demand:
+   - \`pscode/changes/<slug>/brief.md\` — the brief you just wrote (or the
+     existing one).
    - \`pscode/changes/<slug>/questions.md\` — fold in answered questions, note open
      ones (\`- [ ]\`).
    - **Analyze the relevant code** so the refinement is grounded in reality.
    - If \`pscode/github.yaml\` exists, read the Issue **description and comments**
      (\`gh issue view <issue> --repo <repo> --comments\` via \`pscode-github-sync\`).
-3. Use \`pscode-grill-me\` to close blocking ambiguities (max 5 questions). The
-   spec format itself follows \`pscode-mini-spec\`. **Don't write production code.**
-4. Write \`pscode/changes/<slug>/refine.md\` in the standard format below.
-5. Keep it short — fits on one terminal screen.
-6. **Close the iteration with \`AskUserQuestion\`.** Ask how refined the change
+4. Use \`pscode-grill-me\` to close blocking ambiguities (max 5 questions).
+   **Don't write production code.**
+5. Write \`pscode/changes/<slug>/refine.md\` in the standard format below.
+6. Keep it short — fits on one terminal screen.
+7. **Close the iteration with \`AskUserQuestion\`.** Ask how refined the change
    is, offering a predefined **"Está refinada"** answer; the free-text field
    lets the user say what is still missing. If the user answers anything other
    than "Está refinada", treat the input as the next gap to close, **loop back
-   to step 2**, and ask again at the end. Only move on once the user picks
+   to step 3**, and ask again at the end. Only move on once the user picks
    "Está refinada".
-7. **Once refined**, use \`pscode-github-sync\` to, in order:
+8. **Once refined**, use \`pscode-github-sync\` to, in order:
    - **Create one native sub-issue per \`## Subtasks\` item**, linked to the card,
      so the board shows the breakdown and its progress (idempotent — skip titles
      that already exist).
