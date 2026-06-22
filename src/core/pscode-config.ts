@@ -24,6 +24,10 @@ const ConfigSchema = z.object({
     .default({ ...DEFAULT_LIMITS }),
   apply_mode: z.string().default('one_task_at_a_time'),
   approval_required: z.boolean().default(true),
+  // Whether the dev step uses a pull-request flow (draft PR per change) or
+  // commits directly to the current branch. Drives which shape of the dev
+  // commands/skills gets installed. Defaults on to preserve prior behavior.
+  pr_flow: z.boolean().default(true),
   github: z
     .object({
       enabled: z.boolean().default(false),
@@ -41,7 +45,11 @@ export function configExists(projectRoot: string): boolean {
   return exists(configPath(projectRoot));
 }
 
-export function buildConfig(opts: { agents: string[]; githubEnabled?: boolean }): PscodeConfig {
+export function buildConfig(opts: {
+  agents: string[];
+  githubEnabled?: boolean;
+  prFlow?: boolean;
+}): PscodeConfig {
   return ConfigSchema.parse({
     version: PSCODE_VERSION,
     profile: DEFAULT_PROFILE,
@@ -49,6 +57,7 @@ export function buildConfig(opts: { agents: string[]; githubEnabled?: boolean })
     limits: { ...DEFAULT_LIMITS },
     apply_mode: 'one_task_at_a_time',
     approval_required: true,
+    pr_flow: opts.prFlow ?? true,
     github: { enabled: opts.githubEnabled ?? false },
   });
 }

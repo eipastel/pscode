@@ -3,22 +3,28 @@ import type { SkillSpec } from '../types.js';
 export const dev: SkillSpec = {
   name: 'pscode-dev',
   description:
-    'Develops a refined change: opens a draft PR linked to the Issue, moves the card to In Development, implements the refine.md subtasks one at a time, then walks the card through Code Review → Test → Ready to Deploy. Use it from /ps:dev. Never merges the PR.',
+    'Develops a refined change: {{#pr}}opens a draft PR linked to the Issue, {{/pr}}moves the card to In Development, implements the refine.md subtasks one at a time{{^pr}} on the current branch{{/pr}}, then walks the card through Code Review → Test → Ready to Deploy. Use it from /ps:dev.{{#pr}} Never merges the PR.{{/pr}}',
   body: `# Dev
 
 Build a **refined** change (Ready to Dev) by walking it across the board, one
-subtask at a time. The PR is the unit of delivery; **merging is never your call**
-— that stays human/CI.
+subtask at a time. {{#pr}}The PR is the unit of delivery; **merging is never your
+call** — that stays human/CI.{{/pr}}{{^pr}}You commit directly to the current
+branch — there is no PR.{{/pr}}
 
 ## How to act
 
-### 1. Open the PR and claim the card (if \`pscode/github.yaml\` exists)
+{{#pr}}### 1. Open the PR and claim the card (if \`pscode/github.yaml\` exists)
 
 Use \`pscode-github-sync\`:
 - Create a branch and open the **PR as a draft**, linked to the Issue with
   \`Closes #<card>\` in the body.
 - **Move the card → In Development** (\`in_progress\`) *and* **assign the user** —
+  the assign does not replace the status move; run both and confirm it landed.{{/pr}}{{^pr}}### 1. Claim the card (if \`pscode/github.yaml\` exists)
+
+Use \`pscode-github-sync\`:
+- **Move the card → In Development** (\`in_progress\`) *and* **assign the user** —
   the assign does not replace the status move; run both and confirm it landed.
+  Work directly on the current branch — no PR is opened.{{/pr}}
 
 ### 2. Gather context before coding
 
@@ -46,8 +52,9 @@ Use \`pscode-task-runner\` against \`refine.md\`'s \`## Subtasks\`:
 When all subtasks are done **and the project builds and its tests pass** — run
 the project's own build/test commands (e.g. the scripts in its package manifest
 or Makefile); don't assume a specific tool:
-- Mark the PR **Ready for Review** and move the card → **In Code Review**
-  (\`review\`) via \`pscode-github-sync\`.
+- {{#pr}}Mark the PR **Ready for Review** and move the card → **In Code Review**
+  (\`review\`) via \`pscode-github-sync\`.{{/pr}}{{^pr}}Move the card → **In Code
+  Review** (\`review\`) via \`pscode-github-sync\`.{{/pr}}
 
 ### 5. Test, then Ready to Deploy
 
@@ -60,7 +67,7 @@ or Makefile); don't assume a specific tool:
 
 One subtask at a time, always with human validation (\`apply_mode\` +
 \`approval_required\` in \`pscode/config.yaml\`). Each gate above **moves the card** —
-confirm every move landed, never leave it behind. Don't merge the PR; \`gh\` calls
+confirm every move landed, never leave it behind. {{#pr}}Don't merge the PR; {{/pr}}\`gh\` calls
 are non-blocking only on failure, never optional.
 `,
 };

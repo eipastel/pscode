@@ -38,6 +38,8 @@ export interface InitMessages {
   atLeastOneAgent: string;
   /** Confirm prompt for Claude Code's bypassPermissions mode. */
   bypassPermissionsPrompt: string;
+  /** Confirm prompt: use a pull-request flow (draft PR per change)? */
+  prFlowPrompt: string;
   /** Confirm prompt to open the agent after install (agent name interpolated). */
   openAgentPrompt: (agent: string) => string;
   /** Hint shown (instead of launching) when there is no terminal to hand off. */
@@ -102,6 +104,7 @@ const MESSAGES: Record<string, InitMessages> = {
     atLeastOneAgent: 'Select at least one agent.',
     bypassPermissionsPrompt:
       'Enable Claude Code bypassPermissions mode (skips approval prompts) in .claude/settings.json?',
+    prFlowPrompt: 'Use a pull-request flow (open a draft PR for each change)?',
     openAgentPrompt: (agent) => `Open ${agent} now?`,
     openHint: (command) => `Run \`${command}\` to start your agent.`,
     initialized: 'PSCode initialized',
@@ -140,6 +143,7 @@ const MESSAGES: Record<string, InitMessages> = {
     atLeastOneAgent: 'Selecione pelo menos um agente.',
     bypassPermissionsPrompt:
       'Ativar o modo bypassPermissions do Claude Code (pula os prompts de aprovação) em .claude/settings.json?',
+    prFlowPrompt: 'Usar um fluxo de pull request (abrir um PR draft para cada mudança)?',
     openAgentPrompt: (agent) => `Abrir ${agent} agora?`,
     openHint: (command) => `Rode \`${command}\` para iniciar seu agente.`,
     initialized: 'PSCode inicializado',

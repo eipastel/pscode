@@ -71,7 +71,10 @@ One adapter per agent (claude, codex, cursor, gemini). All share a uniform layou
 Writes/removes the rails: `installAgent`, `removeAgent`, `installChangeTemplates`, `ensureProjectStructure`, plus status helpers (`installedVersion`, `agentArtifactStatus`, `isAgentInstalled`).
 
 **Config** (`src/core/pscode-config.ts`)  
-`pscode/config.yaml` (Zod-validated): agents, profile, the short-document `limits`, and the two guardrails (`apply_mode: one_task_at_a_time`, `approval_required`).
+`pscode/config.yaml` (Zod-validated): agents, profile, the short-document `limits`, the two guardrails (`apply_mode: one_task_at_a_time`, `approval_required`), and `pr_flow` (whether the dev step opens a pull request or commits directly to the current branch).
+
+**Conditional content** (`src/core/content/flags.ts`)  
+Command/skill bodies (and descriptions) carry `{{#pr}}…{{/pr}}` / `{{^pr}}…{{/pr}}` markers. `applyContentFlags` resolves them at render time so one source of truth installs either the PR flow or the commit-directly flow. The adapter (`renderCommand`/`renderSkill`) applies the flags; `installAgent(root, id, { prFlow })` selects which shape to write, and `update` re-renders with the project's recorded `pr_flow`.
 
 **Detection & Instruction Files** (`src/core/detect.ts`, `src/core/agents-md.ts`)  
 `detectAgents` finds agents in use. `agents-md.ts` writes the PSCode block into the instruction file each selected agent reads (Claude Code → `CLAUDE.md`, the others → `AGENTS.md`; both when mixed). Only the text between the `` markers is rewritten; user content is preserved.
@@ -103,7 +106,7 @@ test/
 ```
 
 **CLI Commands** (`src/commands/`)  
-- `pscode init` — install the workflow (detects/prompts agents; `--agent`, `--lang`, `--bypass-permissions` / `--no-bypass-permissions`, `--open` / `--no-open`, `--yes`). For Claude Code it can also write `permissions.defaultMode: bypassPermissions` into `.claude/settings.json` (see `core/claude-settings.ts`). When done it can open the selected agent's CLI — Claude Code preferred — handing off the terminal (`core/launch.ts`); with no TTY it prints how to start instead.
+- `pscode init` — install the workflow (detects/prompts agents; `--agent`, `--lang`, `--bypass-permissions` / `--no-bypass-permissions`, `--pr` / `--no-pr`, `--open` / `--no-open`, `--yes`). A wizard question (asked before the GitHub/board question) toggles the pull-request flow; `--pr` / `--no-pr` force it. For Claude Code it can also write `permissions.defaultMode: bypassPermissions` into `.claude/settings.json` (see `core/claude-settings.ts`). When done it can open the selected agent's CLI — Claude Code preferred — handing off the terminal (`core/launch.ts`); with no TTY it prints how to start instead.
 - `pscode update` — refresh PSCode-controlled files in place, preserving user content.
 - `pscode doctor` — verify config, structure, and per-agent install/version; non-zero exit on issues.
 - `pscode clean` — remove the rails (`--all` also removes `pscode/`); destructive actions need `--yes`.

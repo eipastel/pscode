@@ -22,15 +22,21 @@ does not replace the status move; confirm the move landed. Non-blocking only on
 
 ## Then refine
 
-1. Gather context before refining:
-   - Read \`brief.md\` (the draft).
+1. **Set up the change and write the brief.** The draft now lives on the card,
+   not in a file. Resolve the slug (Issue title in kebab-case), create
+   \`pscode/changes/<slug>/\`, and save the card number to \`.issue\`. Turn the
+   **Issue description** (the draft) into \`brief.md\` (objective, expected
+   behavior, out of scope). If a local \`brief.md\` already exists (no-GitHub
+   draft), use it as-is.
+2. Gather context before refining:
+   - Read \`brief.md\`.
    - Read \`questions.md\`: fold in answered questions, note any still open.
    - **Analyze the code** the change will touch, so the refinement is grounded.
    - If \`pscode/github.yaml\` exists, read the Issue **description + comments**
      via **pscode-github-sync** — recent discussion may add or cut scope.
-2. Run the **Grill Me** logic (skill \`pscode-grill-me\`) to close blocking
+3. Run the **Grill Me** logic (skill \`pscode-grill-me\`) to close blocking
    ambiguities — at most 5 questions.
-3. Write \`refine.md\` in the standard format: lean summary, technical detail,
+4. Write \`refine.md\` in the standard format: lean summary, technical detail,
    in/out of scope, and a **\`## Subtasks\`** checklist (the unit \`/ps:dev\` runs).
 
 Do not write production code in this step. **Stop and ask for approval.**
