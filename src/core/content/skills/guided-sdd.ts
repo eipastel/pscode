@@ -13,15 +13,18 @@ without approval, and each step moves the card to the matching column (via
 
 ## Flow (command → board column)
 
-1. **\`/ps:draft\`** → **Backlog**. Capture the request as a short \`brief.md\`. No
-   grilling, no code.
+1. **\`/ps:draft\`** → **Backlog**. Register the request as a Backlog card (the
+   Issue body is a short description). No \`brief.md\`, no grilling, no code.
 2. **\`/ps:refine <card#>\`** → **In Refinement** → **Ready to Dev**. Claim the
-   card, analyze the code, run \`pscode-grill-me\`, and write \`refine.md\` (summary,
-   technical detail, scope, \`## Subtasks\` — mirrored as native **sub-issues** on
-   the card). Uses \`pscode-refine\`.
+   card, create the local change folder, write \`brief.md\` from the card's
+   description, analyze the code, run \`pscode-grill-me\`, and write \`refine.md\`
+   (summary, technical detail, scope, \`## Subtasks\` — mirrored as native
+   **sub-issues** on the card). Uses \`pscode-refine\`.
 3. **\`/ps:dev <card#>\`** → **In Development** → **In Code Review** → **In Test**
-   → **Ready to Deploy**. Open a draft PR, implement one subtask at a time, and
-   walk the card across the columns. Uses \`pscode-dev\` + \`pscode-task-runner\`.
+   → **Ready to Deploy**. {{#pr}}Open a draft PR, implement one subtask at a time,
+   and walk the card across the columns.{{/pr}}{{^pr}}Implement one subtask at a
+   time on the current branch and walk the card across the columns.{{/pr}} Uses
+   \`pscode-dev\` + \`pscode-task-runner\`.
 4. **\`/ps:complete <card#>\`** → **Done**. Write a short delta spec and archive
    the change. Uses \`pscode-complete\`. (\`/ps:cancel\` → **Cancelled**.)
 
@@ -40,11 +43,11 @@ without approval, and each step moves the card to the matching column (via
 
 \`\`\`
 pscode/changes/<slug>/
-├── brief.md       # objective, expected behavior, out of scope (/ps:draft)
+├── brief.md       # objective, expected behavior, out of scope (/ps:refine; /ps:draft only without GitHub)
 ├── questions.md   # Grill Me questions (/ps:refine)
 ├── refine.md      # summary, technical detail, scope, subtasks (/ps:refine)
 ├── delta-spec.md  # what the spec/behavior added, changed, removed (/ps:complete)
-└── .issue         # GitHub issue number (when synced)
+└── .issue         # GitHub issue number (written by /ps:refine when synced)
 \`\`\`
 
 \`/ps:complete\` archives the folder to \`pscode/changes/archive/<YYYY-MM-DD>-<slug>/\`.

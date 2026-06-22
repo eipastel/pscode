@@ -40,6 +40,27 @@ describe('pscode CLI lifecycle', () => {
     expect(existsSync(path.join(dir, 'pscode/github.yaml'))).toBe(false);
   });
 
+  it('init installs the PR flow by default', async () => {
+    dir = makeTmpProject();
+    const res = await runCLI(['init', '--agent', 'claude', '--yes'], { cwd: dir });
+    expect(res.exitCode).toBe(0);
+    expect(readFileSync(path.join(dir, 'pscode/config.yaml'), 'utf-8')).toContain('pr_flow: true');
+    const devCmd = readFileSync(path.join(dir, '.claude/commands/ps/dev.md'), 'utf-8');
+    expect(devCmd).toContain('PR as a draft');
+    expect(devCmd).not.toMatch(/\{\{[#^/]?pr\}\}/);
+  });
+
+  it('init --no-pr installs the commit-directly flow and strips PR steps', async () => {
+    dir = makeTmpProject();
+    const res = await runCLI(['init', '--agent', 'claude', '--no-pr', '--yes'], { cwd: dir });
+    expect(res.exitCode).toBe(0);
+    expect(readFileSync(path.join(dir, 'pscode/config.yaml'), 'utf-8')).toContain('pr_flow: false');
+    const devCmd = readFileSync(path.join(dir, '.claude/commands/ps/dev.md'), 'utf-8');
+    expect(devCmd).not.toContain('PR as a draft');
+    expect(devCmd).toContain('no PR is opened');
+    expect(devCmd).not.toMatch(/\{\{[#^/]?pr\}\}/);
+  });
+
   it('init writes bypassPermissions by default in non-interactive mode', async () => {
     dir = makeTmpProject();
     const res = await runCLI(['init', '--agent', 'claude', '--yes'], { cwd: dir });

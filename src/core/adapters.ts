@@ -10,6 +10,10 @@
 import path from 'path';
 import { AGENTS, getAgent, PSCODE_VERSION } from './config.js';
 import type { CommandSpec, SkillSpec } from './content/types.js';
+import { applyContentFlags, type ContentFlags } from './content/flags.js';
+
+/** Default rendering flags: the full pull-request flow. */
+const DEFAULT_FLAGS: ContentFlags = { pr: true };
 
 /** Quote a YAML scalar if it contains characters that need escaping. */
 function yamlScalar(value: string): string {
@@ -25,8 +29,8 @@ export interface AgentAdapter {
   dir: string;
   commandPath(id: string): string;
   skillPath(name: string): string;
-  renderCommand(spec: CommandSpec): string;
-  renderSkill(spec: SkillSpec): string;
+  renderCommand(spec: CommandSpec, flags?: ContentFlags): string;
+  renderSkill(spec: SkillSpec, flags?: ContentFlags): string;
 }
 
 function createAdapter(id: string): AgentAdapter {
@@ -40,18 +44,18 @@ function createAdapter(id: string): AgentAdapter {
     dir,
     commandPath: (cmdId) => path.join(dir, 'commands', 'ps', `${cmdId}.md`),
     skillPath: (skillName) => path.join(dir, 'skills', skillName, 'SKILL.md'),
-    renderCommand: (spec) =>
+    renderCommand: (spec, flags = DEFAULT_FLAGS) =>
       `---\n` +
       `name: ${yamlScalar(spec.name)}\n` +
-      `description: ${yamlScalar(spec.description)}\n` +
+      `description: ${yamlScalar(applyContentFlags(spec.description, flags))}\n` +
       `generatedBy: ${yamlScalar(PSCODE_VERSION)}\n` +
-      `---\n\n${spec.body}`,
-    renderSkill: (spec) =>
+      `---\n\n${applyContentFlags(spec.body, flags)}`,
+    renderSkill: (spec, flags = DEFAULT_FLAGS) =>
       `---\n` +
       `name: ${yamlScalar(spec.name)}\n` +
-      `description: ${yamlScalar(spec.description)}\n` +
+      `description: ${yamlScalar(applyContentFlags(spec.description, flags))}\n` +
       `generatedBy: ${yamlScalar(PSCODE_VERSION)}\n` +
-      `---\n\n${spec.body}`,
+      `---\n\n${applyContentFlags(spec.body, flags)}`,
   };
 }
 

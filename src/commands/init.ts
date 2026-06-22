@@ -37,6 +37,13 @@ export interface InitOptions {
    */
   bypassPermissions?: boolean;
   /**
+   * Install the pull-request flow (a draft PR per change) instead of committing
+   * directly to the current branch. Tri-state: `undefined` defers to the wizard
+   * (default yes), `true`/`false` force it from a CLI flag. Independent of the
+   * board; PR-on presumes a GitHub repo with a remote.
+   */
+  pr?: boolean;
+  /**
    * Open the selected agent's CLI after install (Claude Code preferred).
    * Tri-state: `undefined` defers to the wizard (default yes), `true`/`false`
    * force it from a CLI flag. The launch only runs when a terminal is present.
@@ -136,6 +143,20 @@ async function resolveBypassPermissions(
 }
 
 /**
+ * Resolve whether to install the pull-request flow. Independent of the board —
+ * you can use PRs without a Project (and a Project without PRs) — and asked just
+ * before the GitHub question. PR-on presumes a GitHub repo with a remote, which
+ * the agent resolves via `gh` at run time.
+ */
+async function resolvePrFlow(opts: InitOptions, interactive: boolean, t: InitMessages): Promise<boolean> {
+  if (opts.pr !== undefined) return opts.pr;
+  if (!interactive) return true;
+
+  const { instantConfirm } = await import('../core/prompts.js');
+  return instantConfirm({ message: t.prFlowPrompt, default: true });
+}
+
+/**
  * Resolve which agent (if any) to open after install. Prioritizes Claude Code;
  * returns null when the user opts out or no selected agent is launchable.
  */
@@ -177,6 +198,10 @@ export async function runInit(opts: InitOptions = {}): Promise<void> {
   const preflight = collectPreflight(projectRoot, { agents });
   printPreflight(preflight, t);
 
+  // Asked before the board question — the PR flow is independent of GitHub
+  // Projects (you can use either without the other).
+  const prFlow = await resolvePrFlow(opts, interactive, t);
+
   const githubEnabled = await runGitHubSetup(
     projectRoot,
     { github: opts.github, project: opts.project },
@@ -185,9 +210,9 @@ export async function runInit(opts: InitOptions = {}): Promise<void> {
   );
 
   ensureProjectStructure(projectRoot);
-  writeConfig(projectRoot, buildConfig({ agents, githubEnabled }));
+  writeConfig(projectRoot, buildConfig({ agents, githubEnabled, prFlow }));
   installChangeTemplates(projectRoot);
-  for (const agentId of agents) installAgent(projectRoot, agentId);
+  for (const agentId of agents) installAgent(projectRoot, agentId, { prFlow });
   const instructionFiles = syncInstructionFiles(projectRoot, agents);
   const settingsFile = bypassPermissions ? enableBypassPermissions(projectRoot) : undefined;
 

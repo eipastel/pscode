@@ -34,6 +34,8 @@ export function buildProgram(): Command {
     .option('-l, --lang <code>', 'wizard language: en, pt')
     .option('--bypass-permissions', 'enable Claude Code bypassPermissions mode in .claude/settings.json')
     .option('--no-bypass-permissions', 'do not enable bypassPermissions mode')
+    .option('--pr', 'install the pull-request flow (a draft PR per change)')
+    .option('--no-pr', 'install the no-PR flow (commit directly to the current branch)')
     .option('--open', 'open the selected agent CLI when init finishes (Claude Code preferred)')
     .option('--no-open', 'do not open an agent when init finishes')
     .option('--github', 'set up GitHub Projects + Issues sync')
@@ -45,6 +47,7 @@ export function buildProgram(): Command {
         agents: opts.agent,
         lang: opts.lang,
         bypassPermissions: opts.bypassPermissions,
+        pr: opts.pr,
         open: opts.open,
         github: opts.github,
         project: opts.project,

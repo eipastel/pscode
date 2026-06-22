@@ -42,9 +42,19 @@ function cleanAgentArtifacts(projectRoot: string, agentId: string): void {
   }
 }
 
-/** Write all command + skill files for one agent. Returns relative paths written. */
-export function installAgent(projectRoot: string, agentId: string): string[] {
+/**
+ * Write all command + skill files for one agent. Returns relative paths written.
+ *
+ * `prFlow` (default on) selects which shape of the dev flow gets rendered — the
+ * pull-request flow or the commit-directly one (see `content/flags.ts`).
+ */
+export function installAgent(
+  projectRoot: string,
+  agentId: string,
+  opts: { prFlow?: boolean } = {}
+): string[] {
   const adapter = getAdapter(agentId);
+  const flags = { pr: opts.prFlow ?? true };
   const written: string[] = [];
 
   // Start clean so renamed/removed artifacts don't linger across updates.
@@ -52,12 +62,12 @@ export function installAgent(projectRoot: string, agentId: string): string[] {
 
   for (const cmd of COMMANDS) {
     const rel = adapter.commandPath(cmd.id);
-    writeFile(path.join(projectRoot, rel), adapter.renderCommand(cmd));
+    writeFile(path.join(projectRoot, rel), adapter.renderCommand(cmd, flags));
     written.push(rel);
   }
   for (const skill of SKILLS) {
     const rel = adapter.skillPath(skill.name);
-    writeFile(path.join(projectRoot, rel), adapter.renderSkill(skill));
+    writeFile(path.join(projectRoot, rel), adapter.renderSkill(skill, flags));
     written.push(rel);
   }
   return written;

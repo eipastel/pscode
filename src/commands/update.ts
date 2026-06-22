@@ -35,13 +35,19 @@ export async function runUpdate(opts: UpdateOptions = {}): Promise<void> {
     .filter((id) => isAgentInstalled(projectRoot, id));
   const agents = Array.from(new Set([...fromConfig, ...detected]));
 
-  for (const agentId of agents) installAgent(projectRoot, agentId);
+  // Re-render with the project's recorded PR-flow choice so update keeps the
+  // same shape of the dev commands/skills the project was installed with.
+  const prFlow = config.pr_flow;
+  for (const agentId of agents) installAgent(projectRoot, agentId, { prFlow });
   installChangeTemplates(projectRoot);
   const instructionFiles = syncInstructionFiles(projectRoot, agents);
 
   // Refresh the version (and recorded agents) in place, preserving the GitHub
-  // integration flag — update must not silently disable it.
-  writeConfig(projectRoot, buildConfig({ agents, githubEnabled: config.github.enabled }));
+  // integration and PR-flow flags — update must not silently change them.
+  writeConfig(
+    projectRoot,
+    buildConfig({ agents, githubEnabled: config.github.enabled, prFlow })
+  );
 
   console.log(chalk.green(`\n✓ PSCode updated to v${PSCODE_VERSION}\n`));
   console.log(`  ${chalk.bold('Agents:')} ${agents.join(', ') || '(none)'}`);

@@ -31,7 +31,7 @@ Close out a change and keep the history tidy. Two paths share this skill:
    \`pscode/changes/archive/<YYYY-MM-DD>-<slug>/\` (use today's date).
 4. If \`pscode/github.yaml\` exists, use \`pscode-github-sync\`: **move the card →
    Done** (\`done\`) and confirm it landed, comment the conclusion, then **close**
-   the Issue. Merging the PR stays human/CI.
+   the Issue.{{#pr}} Merging the PR stays human/CI.{{/pr}}
 
 ## Cancel path (\`/ps:cancel\`)
 
