@@ -1,0 +1,15 @@
+# PSCode configuration — guided SDD installer.
+# See https://github.com/eipastel/pscode
+version: 3.1.0
+profile: guided
+agents:
+  - claude
+limits:
+  max_brief_lines: 40
+  max_design_lines: 30
+  max_questions: 5
+apply_mode: one_task_at_a_time
+approval_required: true
+pr_flow: false
+github:
+  enabled: true

@@ -1,0 +1,19 @@
+# PSCode requirements manifest — written by `pscode init`.
+# What each active integration needs, and what init verified. The agent
+# reads this instead of re-probing; `configured` ≠ live MCP connection.
+generatedBy: 3.1.0
+github:
+  enabled: true
+  checks:
+    git: ok
+    git-repo: ok
+    git-remote: ok
+    gh: ok
+    gh-auth: ok
+  mcp:
+    - name: github
+      required: true
+      configured: false
+    - name: chrome
+      required: false
+      configured: false

@@ -79,9 +79,11 @@ failure" rule — always attempt it after confirming the move landed.
 
 **Create the Issue (\`/ps:draft\`):** the short draft description is the Issue
 body — there is **no \`brief.md\`** at draft time, so pass it inline (a heredoc or
-\`--body-file -\` keeps the line breaks):
+\`--body-file -\` keeps the line breaks). The title follows the
+\`[<type>] <description>\` pattern (type ∈ \`feat\`, \`fix\`, \`refactor\`, \`test\`,
+\`docs\`, \`chore\`):
 \`\`\`bash
-gh issue create --repo <repo> --title "<change name>" --body "<short draft>"
+gh issue create --repo <repo> --title "[<type>] <description>" --body "<short draft>"
 \`\`\`
 Capture the printed URL, extract its number, add it to the board and set
 \`backlog\`. The local change folder and \`.issue\` are **not** written here — that

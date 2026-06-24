@@ -51,6 +51,11 @@ pscode/changes/<slug>/
 \`\`\`
 
 \`/ps:complete\` archives the folder to \`pscode/changes/archive/<YYYY-MM-DD>-<slug>/\`.
-Slug = title in kebab-case (e.g. "Add type filter" → \`add-type-filter\`).
+
+**Naming.** The card title is \`[<type>] <description>\` and the slug is
+\`<type>-<description-in-kebab-case>\`, where \`<type>\` is one of \`feat\`, \`fix\`,
+\`refactor\`, \`test\`, \`docs\`, \`chore\` (e.g. "add type filter" → title
+\`[feat] add type filter\`, slug \`feat-add-type-filter\`). The slug names the change
+folder.
 `,
 };
