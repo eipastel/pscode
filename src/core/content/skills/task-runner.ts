@@ -16,9 +16,12 @@ checklist). This is the implementation loop inside \`/ps:dev\`.
 3. Implement only that subtask. **Don't expand the scope.**
 4. Show a short diff of what changed.
 5. Run the relevant validation (tests/lint), if possible, and report the result.
-6. Ask whether you can mark the subtask as done (\`- [x]\`).
+6. Ask whether you can mark the subtask as done (\`- [x]\`) — put it through
+   \`AskUserQuestion\` as a \`Sim\` / \`Não\` choice (recommended first), never as plain
+   prose.
 
 Respect \`apply_mode: one_task_at_a_time\` and \`approval_required\` in
-\`pscode/config.yaml\`. One task at a time, always with human validation.
+\`pscode/config.yaml\`. One task at a time, always with human validation — every
+"can I proceed?" goes through \`AskUserQuestion\`.
 `,
 };

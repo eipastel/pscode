@@ -17,7 +17,8 @@ Use the **pscode-complete** skill.
    what behavior/spec was Added, Changed or Removed. Keep it to one screen.
 3. **Archive** the change: move \`pscode/changes/<slug>/\` to
    \`pscode/changes/archive/<YYYY-MM-DD>-<slug>/\`.
-4. **Stop and confirm** before archiving — don't archive automatically.
+4. **Stop and confirm** before archiving — ask via \`AskUserQuestion\` (\`Sim\` /
+   \`Não\`, recommended first); don't archive automatically.
 
 ## GitHub sync (if \`pscode/github.yaml\` exists)
 

@@ -25,6 +25,7 @@ One or two sentences.
 - Plain language; no unnecessary jargon.
 - Separate **objective**, **expected behavior** and **out of scope**.
 - Respect \`limits.max_brief_lines\` (\`pscode/config.yaml\`). If you exceed it, trim.
-- When done, **stop and ask for approval**.
+- When done, **stop and ask for approval** — via \`AskUserQuestion\` (\`Sim\` / \`Não\`,
+  recommended first), never as plain prose.
 `,
 };

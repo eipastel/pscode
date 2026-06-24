@@ -16,7 +16,10 @@ sends a card to Cancelled.
 
 **Rules (non-negotiable):**
 - Prefer the \`AskUserQuestion\` tool for any question — at every step — with a
-  recommended option first; it makes answering a one-tap choice.
+  recommended option first. This includes **yes/no confirmations** (e.g. "can I
+  mark \`[x]\` and close the sub-issue?"): pair them with an \`AskUserQuestion\`
+  offering \`Sim\` / \`Não\` (recommended first), never plain prose. It makes
+  answering a one-tap choice.
 - Do not advance to the next step without explicit user approval.
 - Implement one subtask at a time; never expand scope mid-subtask.
 - Keep every artifact short — each step fits on one terminal screen.

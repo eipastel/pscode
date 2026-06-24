@@ -21,7 +21,8 @@ Use the **pscode-guided-sdd** skill (draft step).
    \`feat-padrao-titulo-card\`). The slug names the \`pscode/changes/<slug>/\` folder.
 2. Draft a **short description** — objective plus a line on expected behavior and
    what's out of scope. A few lines, not a spec.
-3. **Stop and ask for validation** of the title and that description.
+3. **Stop and ask for validation** of the title and that description — via
+   \`AskUserQuestion\` (\`Sim\` / \`Não\`, recommended first), never as plain prose.
 
 Do not ask the Grill Me questions, do not write a \`brief.md\`, and do not write
 code here.

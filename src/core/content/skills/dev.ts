@@ -43,8 +43,10 @@ expands scope, **stop and ask the user** rather than guessing.
 Use \`pscode-task-runner\` against \`refine.md\`'s \`## Subtasks\`:
 - Take the **first unchecked** subtask, implement only that, show a short diff.
 - Run the relevant validation and report the result.
-- Ask before ticking it \`[x]\`. After ticking, **close the matching sub-issue**
-  on the card (via \`pscode-github-sync\`) so its progress bar stays accurate.
+- Ask before ticking it \`[x]\` — through \`AskUserQuestion\` as a \`Sim\` / \`Não\`
+  choice (recommended first), e.g. "Subtask done. Marco \`[x]\` e fecho a
+  sub-issue #N?". After ticking, **close the matching sub-issue** on the card
+  (via \`pscode-github-sync\`) so its progress bar stays accurate.
 - Repeat. **Never expand scope mid-subtask.**
 
 ### 4. Code review gate
@@ -58,10 +60,11 @@ or Makefile); don't assume a specific tool:
 
 ### 5. Test, then Ready to Deploy
 
-- With the user's approval, move the card → **In Test** (\`in_test\`).
-- Once the user confirms it is **working**, move the card → **Ready to Deploy**
-  (\`ready_to_deploy\`), then post the **next-step comment** (\`/ps:complete <card#>\`
-  in a fenced block) via \`pscode-github-sync\`.
+- With the user's approval (ask via \`AskUserQuestion\`, \`Sim\` / \`Não\`), move the
+  card → **In Test** (\`in_test\`).
+- Once the user confirms it is **working** (again via \`AskUserQuestion\`), move the
+  card → **Ready to Deploy** (\`ready_to_deploy\`), then post the **next-step
+  comment** (\`/ps:complete <card#>\` in a fenced block) via \`pscode-github-sync\`.
 
 ## Golden rule
 
