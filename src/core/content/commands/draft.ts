@@ -12,10 +12,16 @@ is \`/ps:refine\`'s job. The draft only gets the idea onto the board.
 
 Use the **pscode-guided-sdd** skill (draft step).
 
-1. Understand the request well enough to name it (kebab-case slug = title).
+1. Understand the request well enough to name it. **Infer a \`<type>\`** from the
+   request — one of \`feat\`, \`fix\`, \`refactor\`, \`test\`, \`docs\`, \`chore\` — and
+   **confirm it via \`AskUserQuestion\`** (recommended option first). From the type
+   plus a short natural-language description, build the **card title** as
+   \`[<type>] <description>\` (e.g. \`[feat] padrão de título para cards\`) and the
+   internal **slug** as \`<type>-<description-in-kebab-case>\` (e.g.
+   \`feat-padrao-titulo-card\`). The slug names the \`pscode/changes/<slug>/\` folder.
 2. Draft a **short description** — objective plus a line on expected behavior and
    what's out of scope. A few lines, not a spec.
-3. **Stop and ask for validation** of that description.
+3. **Stop and ask for validation** of the title and that description.
 
 Do not ask the Grill Me questions, do not write a \`brief.md\`, and do not write
 code here.
