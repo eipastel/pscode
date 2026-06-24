@@ -32,7 +32,10 @@ without approval, and each step moves the card to the matching column (via
 
 - **Always prefer \`AskUserQuestion\`.** Whenever you need input from the user — at
   any step — ask through the \`AskUserQuestion\` tool, with a recommended option
-  first; the free-text field covers the rest. It makes answering effortless.
+  first (mark it \`(recomendado)\`); the free-text field covers the rest. This also
+  covers **yes/no confirmations**: never leave a "can I proceed?" / "can I mark
+  \`[x]\`?" question as plain prose — pair it with an \`AskUserQuestion\` offering
+  \`Sim\` / \`Não\` (recommended first). It makes answering a one-tap choice.
 - **Don't advance without approval.** Stop at the end of each step and ask.
 - **One subtask at a time.** Never expand scope mid-subtask.
 - **Keep artifacts short.** Each one fits on one terminal screen.

@@ -30,14 +30,17 @@ Use the **pscode-github-sync** skill, in order:
    shift scope. If it conflicts with \`refine.md\` or expands scope, **stop and
    ask** before coding.
 4. Take the **first unchecked** \`## Subtasks\` item, implement only that, show a
-   short diff, run the relevant validation, and ask before ticking it \`[x]\`.
-   After ticking, **close its sub-issue** on the card. Repeat for each subtask.
+   short diff, run the relevant validation, and ask before ticking it \`[x]\` —
+   via \`AskUserQuestion\` as a \`Sim\` / \`Não\` choice (recommended first), never as
+   plain prose. After ticking, **close its sub-issue** on the card. Repeat for
+   each subtask.
 5. When every subtask is done **and the project builds and its tests pass** (use
    the project's own build/test commands), {{#pr}}mark the PR **Ready for Review**
    and move the card → **In Code Review** (\`review\`).{{/pr}}{{^pr}}move the card →
    **In Code Review** (\`review\`).{{/pr}}
-6. With the user's approval, move the card → **In Test** (\`in_test\`).
-7. Once the user confirms it is **working**, move the card → **Ready to Deploy**
+6. With the user's approval (ask via \`AskUserQuestion\`, \`Sim\` / \`Não\`), move the
+   card → **In Test** (\`in_test\`).
+7. Once the user confirms it is **working** (via \`AskUserQuestion\`), move the card → **Ready to Deploy**
    (\`ready_to_deploy\`) and post the **next-step comment** (\`/ps:complete <card#>\`
    in a fenced block).
 

@@ -39,7 +39,8 @@ does not replace the status move; confirm the move landed. Non-blocking only on
 4. Write \`refine.md\` in the standard format: lean summary, technical detail,
    in/out of scope, and a **\`## Subtasks\`** checklist (the unit \`/ps:dev\` runs).
 
-Do not write production code in this step. **Stop and ask for approval.**
+Do not write production code in this step. **Stop and ask for approval** — via
+\`AskUserQuestion\` (offer the \`Está refinada\` answer first), never as plain prose.
 
 ## On approval (if \`pscode/github.yaml\` exists)
 

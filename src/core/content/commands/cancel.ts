@@ -12,10 +12,13 @@ Drop a change that won't be delivered. Accepts the board **card/issue number**
 
 Use the **pscode-complete** skill (cancel path).
 
-1. Ask the user for the **reason** to cancel.
+1. Ask the user for the **reason** to cancel — via \`AskUserQuestion\`, offering a
+   few common reasons (e.g. \`Obsoleto\`, \`Duplicado\`, \`Fora de escopo\`) plus the
+   free-text field.
 2. **Archive** the change: move \`pscode/changes/<slug>/\` to
    \`pscode/changes/archive/<YYYY-MM-DD>-<slug>/\`.
-3. **Stop and confirm** before archiving.
+3. **Stop and confirm** before archiving — ask via \`AskUserQuestion\` (\`Sim\` /
+   \`Não\`, recommended first).
 
 ## GitHub sync (if \`pscode/github.yaml\` exists)
 

@@ -8,7 +8,8 @@ export const complete: SkillSpec = {
 
 Close out a change and keep the history tidy. Two paths share this skill:
 **complete** (delivered → Done) and **cancel** (dropped → Cancelled). Both
-**archive** the change and sync the board. Always **confirm before archiving**.
+**archive** the change and sync the board. Always **confirm before archiving** —
+ask via \`AskUserQuestion\` (\`Sim\` / \`Não\`, recommended first), never as plain prose.
 
 ## Complete path (\`/ps:complete\`)
 
@@ -35,7 +36,9 @@ Close out a change and keep the history tidy. Two paths share this skill:
 
 ## Cancel path (\`/ps:cancel\`)
 
-1. Ask the user for the **reason** to cancel. No delta spec is written.
+1. Ask the user for the **reason** to cancel — via \`AskUserQuestion\`, offering a
+   few common reasons (e.g. \`Obsoleto\`, \`Duplicado\`, \`Fora de escopo\`) plus the
+   free-text field. No delta spec is written.
 2. **Archive** the change to \`pscode/changes/archive/<YYYY-MM-DD>-<slug>/\`.
 3. If \`pscode/github.yaml\` exists, use \`pscode-github-sync\`: **move the card →
    Cancelled** (\`cancelled\`) and confirm it landed, comment the reason, then
@@ -43,7 +46,7 @@ Close out a change and keep the history tidy. Two paths share this skill:
 
 ## Golden rule
 
-Confirm before archiving — never archive automatically. \`gh\` calls are
+Confirm before archiving (via \`AskUserQuestion\`) — never archive automatically. \`gh\` calls are
 non-blocking only on failure, never optional: always *attempt* the status move,
 and if the sync fails, archive locally and report what to finish by hand.
 `,

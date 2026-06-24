@@ -44,7 +44,7 @@ clique.
 - Alterar a UI/implementação do próprio `AskUserQuestion` (é nativo do agente).
 
 ## Subtasks
-- [ ] Reforçar a diretriz central (perguntas + confirmações Sim/Não, recomendada primeiro) em `AGENTS_BLOCK_BODY` (`content/index.ts`) e `pscode-guided-sdd`.
-- [ ] Converter os pontos de confirmação em `task-runner.ts`, `dev.ts` (skill) e `commands/dev.ts` para `AskUserQuestion` Sim/Não.
-- [ ] Converter os pontos de confirmação/cancelamento em `complete.ts` (skill+comando), `cancel.ts` e `mini-spec.ts`; alinhar vocabulário em `grill-me.ts`/`refine.ts`/`draft.ts`.
-- [ ] Adicionar teste de conteúdo em `content.test.ts` e criar o changeset.
+- [x] Reforçar a diretriz central (perguntas + confirmações Sim/Não, recomendada primeiro) em `AGENTS_BLOCK_BODY` (`content/index.ts`) e `pscode-guided-sdd`.
+- [x] Converter os pontos de confirmação em `task-runner.ts`, `dev.ts` (skill) e `commands/dev.ts` para `AskUserQuestion` Sim/Não.
+- [x] Converter os pontos de confirmação/cancelamento em `complete.ts` (skill+comando), `cancel.ts` e `mini-spec.ts`; alinhar vocabulário em `grill-me.ts`/`refine.ts`/`draft.ts`.
+- [x] Adicionar teste de conteúdo em `content.test.ts` e criar o changeset.

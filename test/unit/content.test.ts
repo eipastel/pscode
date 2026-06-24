@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { COMMANDS } from '../../src/core/content/commands';
 import { SKILLS } from '../../src/core/content/skills';
 import { CHANGE_TEMPLATES } from '../../src/core/content/change-templates';
+import { AGENTS_BLOCK_BODY } from '../../src/core/content';
 
 describe('guided-SDD content', () => {
   it('ships the board-aligned slash commands plus board-setup', () => {
@@ -44,6 +45,38 @@ describe('guided-SDD content', () => {
     }
     // board-setup configures the board itself — it doesn't drive a card's status.
     expect(byId['board-setup']).not.toContain('pscode-github-sync');
+  });
+
+  it('routes every interactive command through AskUserQuestion', () => {
+    const byId = Object.fromEntries(COMMANDS.map((c) => [c.id, c.body]));
+    for (const id of ['draft', 'refine', 'dev', 'complete', 'cancel']) {
+      expect(byId[id]).toContain('AskUserQuestion');
+    }
+  });
+
+  it('routes every interactive skill through AskUserQuestion', () => {
+    const byName = Object.fromEntries(SKILLS.map((s) => [s.name, s.body]));
+    for (const name of [
+      'pscode-guided-sdd',
+      'pscode-grill-me',
+      'pscode-refine',
+      'pscode-mini-spec',
+      'pscode-task-runner',
+      'pscode-dev',
+      'pscode-complete',
+    ]) {
+      expect(byName[name]).toContain('AskUserQuestion');
+    }
+  });
+
+  it('makes the central directive cover yes/no confirmations with a recommended option', () => {
+    const guided = SKILLS.find((s) => s.name === 'pscode-guided-sdd')!.body;
+    for (const text of [AGENTS_BLOCK_BODY, guided]) {
+      expect(text).toContain('AskUserQuestion');
+      expect(text).toContain('Sim');
+      expect(text).toContain('Não');
+      expect(text.toLowerCase()).toContain('recommended');
+    }
   });
 
   it('ships the four short change templates', () => {
