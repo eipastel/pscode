@@ -1,5 +1,17 @@
 ﻿# @thiagodiogo/pastelsdd
 
+## 3.1.1
+
+### Patch Changes
+
+- [#54](https://github.com/eipastel/pscode/pull/54) [`e240f4c`](https://github.com/eipastel/pscode/commit/e240f4c4e5265c36c9d740cb2cf8b023e63daa83) Thanks [@eipastel](https://github.com/eipastel)! - feat(draft): padrão `[tipo] descrição` para o título do card
+
+  O `/ps:draft` passa a montar o título do card no formato `[<tipo>] <descrição>`
+  (tipos de commit: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`) e o slug
+  interno como `<tipo>-<descrição-kebab>`. O tipo é inferido do pedido e confirmado
+  via `AskUserQuestion`. As skills `pscode-guided-sdd` e `pscode-github-sync` foram
+  atualizadas para refletir o padrão.
+
 ## 3.1.0
 
 ### Minor Changes
